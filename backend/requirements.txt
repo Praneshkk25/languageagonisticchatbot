@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+tensorflow
+numpy
+scikit-learn
+python-multipart
+python-jose[cryptography]
+passlib[bcrypt]
+nltk
+
+pymupdf
+python-docx
+sentence-transformers
+chardet
+pytesseract
+Pillow
+firebase-admin
