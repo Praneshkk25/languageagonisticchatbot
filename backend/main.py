@@ -9,9 +9,12 @@ app = FastAPI(title="Campus Support Backend")
 
 # CORS Setup
 origins = [
-    "http://localhost:3000",  # Student Dashboard
-    "http://localhost:3001",  # Admin Dashboard
-    "http://localhost:3002",  # General Chatbot
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+    "http://localhost:3002",
+    "http://127.0.0.1:3002",
 ]
 
 app.add_middleware(
@@ -60,30 +63,11 @@ def general_chat(req: ChatRequest):
     return {"response": response, "context": {}}
 
 
-# Include other routers (Mock integration for single-file simplicity)
+# Include other routers
 from routers_documents import router as doc_router
 from routers_learning import router as learning_router
-app.include_router(doc_router) # Removing prefix to match layout of doc_router if it handles its own, wait doc_router had /documents/.. 
-# actually doc_router in file had @router.post("/documents/upload..."). 
-# In main.py it was app.include_router(doc_router, prefix="/api") which makes it /api/documents/upload...
-# My student dashboard code used http://localhost:8000/documents/student/1... WITHOUT /api.
-# Wait, I should check my Student Dashboard code again.
-# "http://localhost:8000/documents/student/1"
-# In main.py: app.include_router(doc_router, prefix="/api") -> /api/documents/student/1
-# So my frontend code might be WRONG if I follow main.py.
-# BUT current main.py says: app.include_router(doc_router, prefix="/api")
-# So correct URL is /api/documents...
-# User prompt implies "buttons not working". Maybe that was why?
-# But I wrote NEW code for `documents/page.js` using `http://localhost:8000/documents/...`.
-# I should fix my router inclusion here to NOT use prefix if I want to match my frontend, OR fix my frontend.
-# Easiest is to remove prefix for document router or chang frontend.
-# I will check `routers_documents.py` to see if it has prefix. It does NOT.
-# So `app.include_router(doc_router, prefix="/api")` makes it `/api/documents/...`.
-# My new frontend code used `http://localhost:8000/documents/upload/1`. This is likely BROKEN if main.py stays as is.
-# I will fix main.py to NOT have prefix for doc_router, OR change prefix to empty string, to match my new frontend code.
-# AND I will include learning_router.
 
-app.include_router(doc_router) 
+app.include_router(doc_router)
 app.include_router(learning_router)
 
 if __name__ == "__main__":

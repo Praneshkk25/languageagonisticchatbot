@@ -1,132 +1,107 @@
 import os
-import pickle
-import numpy as np
-import fitz  # PyMuPDF
-import docx
-from sentence_transformers import SentenceTransformer
-import pytesseract
-from PIL import Image
 import logging
+from langchain_community.document_loaders import (
+    TextLoader, 
+    PyPDFLoader, 
+    Docx2txtLoader
+)
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_core.documents import Document
+import easyocr
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Constants
-KB_FILE = "knowledge_base.pkl"
-MODEL_NAME = 'all-MiniLM-L6-v2'  # Small, fast, good quality
+VECTOR_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "college_faiss_index")
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploaded_knowledge")
 
 class LearningSystem:
     def __init__(self):
-        self.model = None
-        self.knowledge_base = []
-        self.load_kb()
-        
-    def load_model(self):
-        if self.model is None:
-            logger.info("Loading SentenceTransformer model...")
-            self.model = SentenceTransformer(MODEL_NAME)
-            logger.info("Model loaded.")
+        self.embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=100)
+        self.ocr_reader = None # Lazy load EasyOCR
+        self.knowledge_base = [] # To track learned files for status
+        self.load_metadata()
 
-    def load_kb(self):
-        if os.path.exists(KB_FILE):
-            try:
-                with open(KB_FILE, 'rb') as f:
-                    self.knowledge_base = pickle.load(f)
-                logger.info(f"Loaded {len(self.knowledge_base)} documents from KB.")
-            except Exception as e:
-                logger.error(f"Error loading KB: {e}")
-                self.knowledge_base = []
-        else:
-            self.knowledge_base = []
+    def load_metadata(self):
+        """Simple check to see what's already in the upload dir for status reporting."""
+        if os.path.exists(UPLOAD_DIR):
+            files = os.listdir(UPLOAD_DIR)
+            for f in files:
+                self.knowledge_base.append({'source': f})
 
-    def save_kb(self):
-        with open(KB_FILE, 'wb') as f:
-            pickle.dump(self.knowledge_base, f)
-        logger.info("Knowledge Base saved.")
+    def get_ocr_reader(self):
+        if self.ocr_reader is None:
+            logger.info("Loading EasyOCR...")
+            self.ocr_reader = easyocr.Reader(['en', 'hi'])
+        return self.ocr_reader
 
-    def extract_text(self, file_path, content_type):
-        text = ""
+    def load_image_with_ocr(self, file_path):
+        reader = self.get_ocr_reader()
+        result = reader.readtext(file_path, detail=0)
+        text = " ".join(result)
+        return [Document(page_content=text, metadata={"source": os.path.basename(file_path)})]
+
+    def extract_docs(self, file_path, content_type):
+        ext = os.path.splitext(file_path)[1].lower()
         try:
-            if "pdf" in content_type or file_path.endswith(".pdf"):
-                doc = fitz.open(file_path)
-                for page in doc:
-                    # Try getting text
-                    page_text = page.get_text()
-                    if not page_text.strip():
-                        # If empty, might be scanned -> Use OCR (requires image conversion)
-                        # For simplicity in this demo, we assume generic text PDF or simple scan
-                        # If strict scanned PDF, we render to image and use Tesseract
-                        pix = page.get_pixmap()
-                        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-                        page_text = pytesseract.image_to_string(img)
-                    text += page_text + "\n"
-            elif "word" in content_type or file_path.endswith(".docx"):
-                doc = docx.Document(file_path)
-                for para in doc.paragraphs:
-                    text += para.text + "\n"
-            elif "image" in content_type or file_path.endswith((".png", ".jpg", ".jpeg")):
-                img = Image.open(file_path)
-                text = pytesseract.image_to_string(img)
+            if ext == ".pdf":
+                loader = PyPDFLoader(file_path)
+                return loader.load()
+            elif ext == ".docx":
+                loader = Docx2txtLoader(file_path)
+                return loader.load()
+            elif ext in [".png", ".jpg", ".jpeg"]:
+                return self.load_image_with_ocr(file_path)
             else:
-                # Plain text
-                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                    text = f.read()
-            
-            return text.strip()
+                loader = TextLoader(file_path, encoding='utf-8')
+                return loader.load()
         except Exception as e:
-            logger.error(f"Error extracting text from {file_path}: {e}")
-            return ""
-
-    def learn_document(self, file_path, original_filename, content_type):
-        self.load_model()
-        text = self.extract_text(file_path, content_type)
-        if not text:
-            return False, "Could not extract text (empty or error)."
-
-        # Chunking (Simple paragraph/line based or fixed size)
-        # For simplicity: Chunk by paragraphs ~500 chars
-        chunks = [c.strip() for c in text.split('\n\n') if c.strip()]
-        if not chunks:
-             chunks = [text] # Fallback
-
-        # Embedding
-        new_entries = []
-        for chunk in chunks:
-            if len(chunk) < 10: continue # Skip noise
-            vector = self.model.encode(chunk)
-            new_entries.append({
-                'text': chunk,
-                'vector': vector,
-                'source': original_filename,
-                'timestamp': os.path.getctime(file_path)
-            })
-
-        self.knowledge_base.extend(new_entries)
-        self.save_kb()
-        return True, f"Learned {len(new_entries)} chunks from {original_filename}."
-
-    def find_relevant_context(self, query, top_k=3):
-        self.load_model()
-        if not self.knowledge_base:
+            logger.error(f"Error extracting from {file_path}: {e}")
             return []
 
-        query_vector = self.model.encode(query)
+    def learn_document(self, file_path, original_filename, content_type):
+        docs = self.extract_docs(file_path, content_type)
+        if not docs:
+            return False, "Could not extract content."
+
+        chunks = self.text_splitter.split_documents(docs)
         
-        # Calculate Cosine Similarity
-        # KB vectors shape: (N, D), Query shape: (D,)
-        # Sim = dot(A, B) / (norm(A) * norm(B))
-        # Assuming SentenceTransformers returns normalized vectors usually? 
-        # Actually default output is not normalized. normalize_embeddings=True can be used.
-        # We will use manual cosine.
+        # Load existing or create new FAISS index
+        if os.path.exists(VECTOR_DB_PATH):
+            vector_db = FAISS.load_local(VECTOR_DB_PATH, self.embeddings, allow_dangerous_deserialization=True)
+            vector_db.add_documents(chunks)
+        else:
+            vector_db = FAISS.from_documents(chunks, self.embeddings)
         
-        results = []
-        for entry in self.knowledge_base:
-            vec = entry['vector']
-            score = np.dot(query_vector, vec) / (np.linalg.norm(query_vector) * np.linalg.norm(vec))
-            results.append((score, entry))
+        vector_db.save_local(VECTOR_DB_PATH)
         
-        results.sort(key=lambda x: x[0], reverse=True)
-        return [r[1]['text'] for r in results[:top_k] if r[0] > 0.3] # Threshold 0.3
+        # Track for status
+        if not any(x['source'] == original_filename for x in self.knowledge_base):
+            self.knowledge_base.append({'source': original_filename})
+        
+        # Refresh the global bot retriever if it exists
+        try:
+            import qwen_logic
+            current_bot = qwen_logic.bot
+            if current_bot:
+                current_bot.refresh_retriever()
+        except Exception as e:
+            logger.warning(f"Could not refresh bot retriever: {e}")
+
+        return True, f"Learned {len(chunks)} chunks from {original_filename}."
+
+    def find_relevant_context(self, query):
+        """Deprecated: The Qwen model handles retrieval itself via get_bot().retriever."""
+        # This remains for compatibility if any other parts of the system call it
+        if os.path.exists(VECTOR_DB_PATH):
+            vector_db = FAISS.load_local(VECTOR_DB_PATH, self.embeddings, allow_dangerous_deserialization=True)
+            results = vector_db.similarity_search(query, k=3)
+            return [doc.page_content for doc in results]
+        return []
 
 learning_system = LearningSystem()
