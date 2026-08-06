@@ -29,11 +29,13 @@ export default function AdminLoginPage() {
 
   return (
     <main className="login-container relative overflow-hidden flex items-center justify-center min-h-screen">
-      {/* Background Decorative Elements */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] pointer-events-none" 
-           style={{ backgroundColor: 'var(--primary-glow)' }} />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] pointer-events-none"
-           style={{ backgroundColor: 'var(--primary-glow)' }} />
+      {/* Aurora Background Orbs */}
+      <div className="absolute top-[-12%] right-[-8%] w-[45%] h-[45%] rounded-full blur-[120px] pointer-events-none"
+           style={{ background: 'radial-gradient(circle, rgba(20,184,166,0.32) 0%, transparent 70%)' }} />
+      <div className="absolute bottom-[-12%] left-[-8%] w-[40%] h-[40%] rounded-full blur-[120px] pointer-events-none"
+           style={{ background: 'radial-gradient(circle, rgba(244,63,94,0.22) 0%, transparent 70%)' }} />
+      <div className="absolute top-[40%] left-[40%] w-[30%] h-[30%] rounded-full blur-[100px] pointer-events-none"
+           style={{ background: 'radial-gradient(circle, rgba(245,158,11,0.16) 0%, transparent 70%)' }} />
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
@@ -46,21 +48,26 @@ export default function AdminLoginPage() {
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4"
-            style={{ backgroundColor: 'var(--primary-glow)' }}
+            className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+            style={{ background: 'linear-gradient(135deg, rgba(20,184,166,0.15) 0%, rgba(245,158,11,0.12) 100%)', border: '1px solid rgba(20,184,166,0.22)' }}
           >
-            <ShieldCheck className="w-8 h-8 text-primary" style={{ color: 'var(--primary)' }} />
+            <ShieldCheck className="w-8 h-8" style={{ color: 'var(--primary)' }} />
           </motion.div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Admin Portal</h1>
-          <p className="text-muted text-sm px-4">Secure access control for Sona Campus Management</p>
+          <h1
+            className="text-3xl font-bold tracking-tight mb-2"
+            style={{ fontFamily: 'var(--font-display)', backgroundImage: 'linear-gradient(135deg, #14b8a6 0%, #f43f5e 55%, #f59e0b 100%)', backgroundClip: 'text', WebkitBackgroundClip: 'text', color: 'transparent' }}
+          >
+            Admin Portal
+          </h1>
+          <p className="text-sm px-4" style={{ color: 'var(--text-muted)' }}>Secure access control for Sona Campus Management</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted px-1">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <div className="space-y-2 flex flex-col">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted px-1 mb-2">
               Username
             </label>
-            <div className="relative group">
+            <div className="relative group flex">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted group-focus-within:text-primary transition-colors" />
               <input
                 type="text"
@@ -73,11 +80,11 @@ export default function AdminLoginPage() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted px-1">
+          <div className="space-y-2 flex flex-col">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted px-1 mb-2">
               Password
             </label>
-            <div className="relative group">
+            <div className="relative group flex">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted group-focus-within:text-primary transition-colors" />
               <input
                 type="password"
@@ -112,12 +119,6 @@ export default function AdminLoginPage() {
               {loading ? "Authenticating..." : "Login to Dashboard"}
               {!loading && <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
             </span>
-            <motion.div 
-              className="absolute inset-0 bg-white/10"
-              initial={false}
-              whileHover={{ x: '100%' }}
-              transition={{ duration: 0.5 }}
-            />
           </button>
         </form>
 

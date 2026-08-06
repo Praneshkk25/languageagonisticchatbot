@@ -23,6 +23,8 @@ async def upload_learning_file(file: UploadFile = File(...)):
         else:
             raise HTTPException(status_code=400, detail=message)
             
+    except HTTPException as he:
+        raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

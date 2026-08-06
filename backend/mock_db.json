@@ -1,0 +1,180 @@
+{
+    "students": {
+        "2023CS001": {
+            "name": "Student Demo",
+            "admission_no": "2023CS001",
+            "dob": "2000-01-01",
+            "cgpa": 9.2,
+            "department": "CSE",
+            "year": 3,
+            "family_income": 250000.0,
+            "attendance_pct": 85,
+            "lectures_attended": 34,
+            "lectures_total": 40,
+            "labs_attended": 10,
+            "labs_total": 15,
+            "study_hours": 12.5
+        },
+        "2023CS002": {
+            "name": "Alex Smith",
+            "admission_no": "2023CS002",
+            "dob": "2001-02-15",
+            "cgpa": 7.8,
+            "department": "ECE",
+            "year": 2,
+            "family_income": 400000.0,
+            "attendance_pct": 72,
+            "lectures_attended": 28,
+            "lectures_total": 40,
+            "labs_attended": 11,
+            "labs_total": 15,
+            "study_hours": 9.5
+        }
+    },
+    "activity_logs": {
+        "be5801c1-f7eb-4b7a-8aab-be00ce84adfd": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /api/auth/student | Origin: None | Status: 200 | Duration: 0.0020s",
+            "timestamp": "2026-07-17T18:19:49.832720"
+        },
+        "d55e47d8-9047-4efa-a2f9-e01ac5937b7e": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/logs/all | Origin: None | Status: 200 | Duration: 0.0005s",
+            "timestamp": "2026-07-17T18:19:51.869203"
+        },
+        "d4815e83-9299-4a29-9c11-0a8311b24845": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /admin/learn/upload | Origin: None | Status: 200 | Duration: 33.4588s",
+            "timestamp": "2026-07-17T18:20:27.394908"
+        },
+        "2a3c7726-6169-4fbf-9530-d6cfbb68da78": {
+            "user_id": "2023CS001",
+            "action_type": "CHAT",
+            "details": "Query: Am I eligible for the Sona Merit Scholarship? | Response: Congratulations! You are eligible for the **Sona Merit Scholarship**. You meet all the eligibility criteria.",
+            "timestamp": "2026-07-17T18:20:29.455544"
+        },
+        "142b3846-19df-48ad-afe2-479b53c291bb": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /api/chat/student | Origin: None | Status: 200 | Duration: 0.0030s",
+            "timestamp": "2026-07-17T18:20:29.456542"
+        },
+        "06ad266f-840a-449c-ac37-cdbb907d9cb6": {
+            "user_id": "2023CS001",
+            "action_type": "CHAT",
+            "details": "Query: Check my eligibility please | Response: I couldn't quite understand that. Please specify your family income (e.g. for CGPA: 8.5, for family income: 250000):",
+            "timestamp": "2026-07-17T18:20:31.491098"
+        },
+        "69df0c07-e8cc-4cf2-ba34-938b266038a7": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /api/chat/student | Origin: None | Status: 200 | Duration: 0.0020s",
+            "timestamp": "2026-07-17T18:20:31.492107"
+        },
+        "97d1fd0e-666e-4bd7-b768-02640b3f133f": {
+            "user_id": "2023CS001",
+            "action_type": "CHAT",
+            "details": "Query: My family income is 250000 | Response: Congratulations! You are eligible for the **Sona Merit Scholarship**. You meet all the eligibility criteria.",
+            "timestamp": "2026-07-17T18:20:33.545880"
+        },
+        "51f3b848-9fdc-4be7-9ac7-4eaf7be02787": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /api/chat/student | Origin: None | Status: 200 | Duration: 0.0020s",
+            "timestamp": "2026-07-17T18:20:33.546879"
+        },
+        "1fa2a182-d5fa-41f2-88e6-ee13ce6a045a": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /api/auth/student | Origin: None | Status: 200 | Duration: 0.0000s",
+            "timestamp": "2026-07-17T18:20:54.336885"
+        },
+        "92b3d67d-4ed9-427b-b67c-095c422ff6c1": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/logs/all | Origin: None | Status: 200 | Duration: 0.0010s",
+            "timestamp": "2026-07-17T18:20:56.386217"
+        },
+        "8930590a-ae0e-4602-b470-a851b57c4ffd": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /admin/learn/upload | Origin: None | Status: 200 | Duration: 5.5102s",
+            "timestamp": "2026-07-17T18:21:03.951416"
+        },
+        "55fc18b5-c84e-48ff-a76c-b7aa6c8f1a62": {
+            "user_id": "2023CS001",
+            "action_type": "CHAT",
+            "details": "Query: Am I eligible for the Sona Merit Scholarship? | Response: Congratulations! You are eligible for the **Sona Merit Scholarship**. You meet all the eligibility criteria.",
+            "timestamp": "2026-07-17T18:21:06.000589"
+        },
+        "cb4558bc-0001-4a55-93db-82028ae88e47": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /api/chat/student | Origin: None | Status: 200 | Duration: 0.0010s",
+            "timestamp": "2026-07-17T18:21:06.001592"
+        },
+        "ac0da836-b702-4c6e-b1ca-1beed47ff2c1": {
+            "user_id": "2023CS001",
+            "action_type": "CHAT",
+            "details": "Query: Check my eligibility please | Response: I couldn't quite understand that. Please specify your family income (e.g. for CGPA: 8.5, for family income: 250000):",
+            "timestamp": "2026-07-17T18:21:08.050721"
+        },
+        "fc989896-9e45-4f34-aa2d-fba154a20e15": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /api/chat/student | Origin: None | Status: 200 | Duration: 0.0014s",
+            "timestamp": "2026-07-17T18:21:08.051729"
+        },
+        "cc1b5a74-bf43-4c21-b627-93f1a4745627": {
+            "user_id": "2023CS001",
+            "action_type": "CHAT",
+            "details": "Query: My family income is 250000 | Response: Congratulations! You are eligible for the **Sona Merit Scholarship**. You meet all the eligibility criteria.",
+            "timestamp": "2026-07-17T18:21:10.107256"
+        },
+        "cb23e0a0-9e93-47da-95ea-fdc61a5fd4a7": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /api/chat/student | Origin: None | Status: 200 | Duration: 0.0030s",
+            "timestamp": "2026-07-17T18:21:10.109266"
+        }
+    },
+    "documents": {},
+    "scholarships": {
+        "sona_merit": {
+            "id": "sona_merit",
+            "scholarship_name": "Sona Merit Scholarship",
+            "min_gpa": 8.5,
+            "max_income": 300000.0,
+            "eligible_departments": [
+                "CSE",
+                "ECE",
+                "IT"
+            ],
+            "eligible_years": [
+                2,
+                3,
+                4
+            ]
+        },
+        "test_scholarship_txt": {
+            "id": "test_scholarship_txt",
+            "scholarship_name": "Government Post-Matric Scholarship",
+            "min_gpa": 8.0,
+            "max_income": 200000,
+            "eligible_departments": [
+                "CSE",
+                "ECE",
+                "IT"
+            ],
+            "eligible_years": [
+                2,
+                3,
+                4
+            ],
+            "source_file": "test_scholarship.txt"
+        }
+    }
+}

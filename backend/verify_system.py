@@ -20,7 +20,7 @@ def test_upload():
     with open("test_doc.pdf", "wb") as f:
         f.write(b"%PDF-1.4 mock content")
     
-    url = f"{BASE_URL}/api/documents/upload/2023CS001"
+    url = f"{BASE_URL}/documents/upload/2023CS001"
     files = {"file": ("test_doc.pdf", open("test_doc.pdf", "rb"), "application/pdf")}
     try:
         r = requests.post(url, files=files)

@@ -1,0 +1,6 @@
+Scholarship Name: Government Post-Matric Scholarship
+Eligibility Criteria:
+1. Candidate must be from CSE, ECE or IT department.
+2. Candidate must have a minimum CGPA of 8.0.
+3. Annual family income must not exceed 2 Lakhs (200000).
+4. Eligible for 2nd, 3rd, and 4th year students.
