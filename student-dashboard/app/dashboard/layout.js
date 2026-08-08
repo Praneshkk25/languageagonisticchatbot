@@ -4,158 +4,168 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useLanguage } from "../LanguageContext";
-import { Home, Bot, FileText, HelpCircle, LogOut, Languages, GraduationCap } from "lucide-react";
 
 export default function DashboardLayout({ children }) {
     const pathname = usePathname();
     const router = useRouter();
-    const [user, setUser] = useState({ name: "Student Demo", id: "2023CS001" });
-    const { language, setLanguage, t } = useLanguage();
+    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [user, setUser] = useState({ name: "Student Demo", id: "2023CS001", dept: "CSE - 2023CS001" });
+    const { language, setLanguage } = useLanguage();
 
-    useEffect(() => {
+    const loadUserData = () => {
         if (typeof window !== "undefined") {
             const userStr = localStorage.getItem("user");
             if (userStr) {
                 try {
                     const u = JSON.parse(userStr);
-                    setUser(u);
+                    setUser({
+                        name: u.name || "Student Demo",
+                        id: u.id || "2023CS001",
+                        dept: u.department ? `${u.department} - ${u.id || '2023CS001'}` : "CSE - 2023CS001"
+                    });
                 } catch(e) {}
             }
         }
+    };
+
+    useEffect(() => {
+        loadUserData();
+        const handleUserUpdate = () => loadUserData();
+        window.addEventListener("userProfileUpdated", handleUserUpdate);
+        return () => window.removeEventListener("userProfileUpdated", handleUserUpdate);
     }, []);
 
     const getInitials = (name) => {
         if (!name) return "SD";
-        return name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
+        return name.split(" ").filter(Boolean).map(n => n[0]).join("").toUpperCase().substring(0, 2);
     };
 
-
-    const navItems = [
-        { name: t('overview'), href: "/dashboard", icon: <Home className="w-4 h-4" /> },
-        { name: t('scholarships') || "Scholarships", href: "/dashboard/scholarships", icon: <GraduationCap className="w-4 h-4" /> },
-        { name: t('aiAssistant'), href: "/dashboard/chat", icon: <Bot className="w-4 h-4" /> },
-        { name: t('documents'), href: "/dashboard/documents", icon: <FileText className="w-4 h-4" /> },
-        { name: t('helpCenter'), href: "/dashboard/help", icon: <HelpCircle className="w-4 h-4" /> },
+    const navItemsPrimary = [
+        { name: "Overview", href: "/dashboard", icon: "⌂" },
+        { name: "AI Assistant", href: "/dashboard/chat", icon: "◉" },
+        { name: "Scholarship", href: "/dashboard/scholarships", icon: "♢" },
+        { name: "Documents", href: "/dashboard/documents", icon: "▤" },
+        { name: "Chat History", href: "/dashboard/history", icon: "◷" },
+        { name: "Notifications", href: "/dashboard/notifications", icon: "♧", count: 3 },
+        { name: "Help & Support", href: "/dashboard/help", icon: "?" },
+        { name: "Settings", href: "/dashboard/settings", icon: "⚙" },
     ];
 
+    const getPageTitle = () => {
+        if (pathname === '/dashboard') return { title: 'Overview', desc: 'Welcome back to your campus student dashboard.' };
+        if (pathname === '/dashboard/chat') return { title: 'AI Assistant', desc: 'Ask anything about college, admissions, events, or policies.' };
+        if (pathname === '/dashboard/history') return { title: 'Chat History', desc: 'View your past conversations with AI Assistant.' };
+        if (pathname === '/dashboard/scholarships') return { title: 'Scholarship Portal', desc: 'Find and verify academic resources.' };
+        if (pathname === '/dashboard/documents') return { title: 'Digital Vault', desc: 'Secure document management system.' };
+        if (pathname === '/dashboard/notifications') return { title: 'Notifications', desc: 'Stay updated with active announcements and alerts.' };
+        if (pathname === '/dashboard/help') return { title: 'Help & Support', desc: 'Find instant answers to your questions or browse topics.' };
+        if (pathname === '/dashboard/settings') return { title: 'Settings & Profile', desc: 'Manage your profile details, security and notification preferences.' };
+        return { title: 'Student Portal', desc: 'Your personalized campus companion.' };
+    };
+
+    const pageMeta = getPageTitle();
+
     return (
-        <div className="dashboard-wrapper">
-            {/* Sidebar */}
-            <aside className="sidebar">
-                <div className="sidebar-header">
-                    <div className="sidebar-brand-icon">
-                        <span style={{ fontSize: "1.1rem", color: "#fff", fontWeight: "900" }}>S</span>
+        <div className="app">
+            {/* SIDEBAR */}
+            <aside className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
+                <div className="brand">
+                    <div className="brand-logo" onClick={() => setIsCollapsed(!isCollapsed)} style={{ cursor: 'pointer' }}>
+                        <span>◆</span>
                     </div>
-                    <span>Campus Connect</span>
+
+                    <div>
+                        <div className="brand-name">COLLEGE</div>
+                        <div className="brand-subtitle">CHATBOT</div>
+                    </div>
                 </div>
 
-                <nav className="sidebar-nav">
-                    {navItems.map((item) => {
+                {/* NAVIGATION */}
+                <nav className="navigation">
+                    {navItemsPrimary.map((item) => {
                         const isActive = pathname === item.href;
                         return (
                             <Link
-                                key={item.href}
+                                key={item.name}
                                 href={item.href}
-                                className={`nav-link ${isActive ? "active" : ""}`}
+                                className={`nav-item ${isActive ? "active" : ""}`}
                             >
-                                <span style={{ color: isActive ? 'var(--primary)' : 'var(--text-muted)' }}>
-                                    {item.icon}
-                                </span>
-                                <span>{item.name}</span>
+                                <span className="nav-icon">{item.icon}</span>
+                                <span className="nav-text">{item.name}</span>
+                                {item.count && (
+                                    <span className="notification-count">{item.count}</span>
+                                )}
                             </Link>
                         );
                     })}
                 </nav>
 
-                <div className="sidebar-footer">
-                    {/* Information Card */}
-                    <div className="sidebar-info-card">
-                        <p style={{ fontWeight: 600, color: "#fff", marginBottom: "0.25rem" }}>Student Hub</p>
-                        <p>Ask AI support, download academic transcripts, view fee details, and track your attendance.</p>
+                <div className="sidebar-bottom">
+                    <div className="sidebar-divider"></div>
+
+                    {/* USER CARD */}
+                    <div className="user-card" onClick={() => router.push('/dashboard/settings')}>
+                        <div className="avatar">{getInitials(user.name)}</div>
+                        <div className="user-info">
+                            <div className="user-name">{user.name}</div>
+                            <div className="user-course">{user.dept}</div>
+                        </div>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>⌄</span>
                     </div>
 
-                    <div className="user-info">
-                        <div className="avatar">{getInitials(user.name)}</div>
-                        <div style={{ flex: 1 }}>
-                            <p style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>{user.name}</p>
-                            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{user.id}</p>
+                    {/* ASK QUESTION CARD */}
+                    <div className="ask-card" onClick={() => router.push('/dashboard/chat')}>
+                        <div className="ask-icon">?</div>
+                        <div>
+                            <div className="ask-title">Ask a Question</div>
+                            <div className="ask-subtitle">Start a conversation</div>
                         </div>
                     </div>
-                    <button
-                        onClick={() => router.push('/')}
-                        style={{
-                            marginTop: '0.5rem',
-                            width: '100%',
-                            padding: '0.75rem',
-                            fontSize: '0.8rem',
-                            fontWeight: 700,
-                            color: 'var(--accent-rose)',
-                            background: 'rgba(244, 63, 94, 0.07)',
-                            border: '1px solid rgba(244, 63, 94, 0.18)',
-                            borderRadius: '0.75rem',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.5rem'
-                        }}>
-                        <LogOut className="w-3.5 h-3.5" />
-                        <span>{t('signOut')}</span>
-                    </button>
+
+                    {/* CAMPUS ART */}
+                    <div className="campus-art">
+                        <div className="campus-building">🏛</div>
+                    </div>
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <div className="main-area">
-                <header className="top-bar">
-                    <div className="flex flex-col">
-                        <h2 className="text-lg font-extrabold tracking-tight" style={{ fontWeight: 700, letterSpacing: '-0.025em', fontFamily: 'var(--font-display)', color: 'var(--text-main)' }}>
-                            {pathname === '/dashboard/chat' ? t('aiAssistant') :
-                             pathname === '/dashboard/scholarships' ? 'Scholarships Hub (14 Categories)' :
-                             pathname === '/dashboard/documents' ? 'Digital Vault' :
-                             pathname === '/dashboard/help' ? 'Help Center' : t('overview')}
-                        </h2>
-                        <span className="text-xs font-semibold" style={{ color: 'var(--text-light)' }}>
-                            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-                        </span>
+            {/* MAIN AREA */}
+            <main className="main">
+                {/* TOP BAR */}
+                <header className="topbar">
+                    <div>
+                        <h1 className="page-title">{pageMeta.title}</h1>
+                        <p className="page-description">{pageMeta.desc}</p>
                     </div>
-                    
-                    <div className="flex items-center gap-4">
-                        <div
-                            className="flex items-center gap-2 p-1.5 rounded-full border px-3 notranslate"
-                            style={{
-                                background: 'rgba(255,255,255,0.85)',
-                                border: '1.5px solid rgba(20,184,166,0.22)',
-                                boxShadow: '0 2px 10px rgba(20,184,166,0.10)'
-                            }}
-                        >
-                            <Languages className="w-4 h-4" style={{ color: 'var(--primary)' }} />
-                            <select
-                                className="bg-transparent border-none outline-none text-xs font-bold cursor-pointer appearance-none pr-4 relative notranslate"
-                                style={{ color: 'var(--text-main)' }}
-                                value={language}
-                                onChange={(e) => setLanguage(e.target.value)}
-                            >
-                                <option value="en">English</option>
-                                <option value="hi">हिंदी (Hindi)</option>
-                                <option value="ta">தமிழ் (Tamil)</option>
-                                <option value="te">తెలుగు (Telugu)</option>
-                                <option value="ne">नेपाली (Nepali)</option>
-                                <option value="ar">العربية (Arabic)</option>
-                                <option value="ml">മലയാളം (Malayalam)</option>
-                            </select>
+
+                    <div className="topbar-actions">
+                        <div className="search">
+                            <span className="search-icon">⌕</span>
+                            <input type="text" placeholder="Search anything..." />
                         </div>
 
-                        <div className="h-10 w-10 glass rounded-xl flex items-center justify-center shadow-sm" style={{ border: '1px solid rgba(0,0,0,0.06)', cursor: 'pointer' }}>
-                            <span className="text-md">🔔</span>
+                        <div className="language">
+                            <span>◉</span>
+                            <select
+                                value={language}
+                                onChange={(e) => setLanguage(e.target.value)}
+                                style={{ background: 'transparent', border: 'none', color: '#d9deec', outline: 'none', cursor: 'pointer' }}
+                            >
+                                <option value="en" style={{ background: '#081229', color: '#fff' }}>English</option>
+                                <option value="hi" style={{ background: '#081229', color: '#fff' }}>हिंदी</option>
+                                <option value="ta" style={{ background: '#081229', color: '#fff' }}>தமிழ்</option>
+                                <option value="te" style={{ background: '#081229', color: '#fff' }}>తెలుగు</option>
+                            </select>
+                            <span>⌄</span>
                         </div>
                     </div>
                 </header>
 
-                <main className="page-scroll">
+                {/* PAGE CONTENT */}
+                <section className="content">
                     {children}
-                </main>
-            </div>
+                </section>
+            </main>
         </div>
     );
 }

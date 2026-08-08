@@ -1,783 +1,697 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { 
-    Search, GraduationCap, CheckCircle2, ShieldCheck, Download, ExternalLink, 
-    FileText, Lock, Key, Award, AlertCircle, Sparkles, Filter, ChevronRight, X, UserCheck
-} from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 
 export default function ScholarshipsPage() {
-    const [categories, setCategories] = useState([]);
-    const [scholarships, setScholarships] = useState([]);
-    const [selectedCategory, setSelectedCategory] = useState(null); // null = All
-    const [searchQuery, setSearchQuery] = useState("");
-    const [selectedScholarship, setSelectedScholarship] = useState(null);
-    const [checkedDocs, setCheckedDocs] = useState({});
-    
-    // Student Profile State
-    const [studentProfile, setStudentProfile] = useState({
-        id: "2023CS001",
-        name: "Student Demo",
-        cgpa: 9.2,
-        department: "CSE",
-        year: 3,
-        family_income: 250000.0
-    });
+    const categories = [
+        { id: 1, name: "Central Government Scholarships", count: "2 Available", total: 2 },
+        { id: 2, name: "Category Based Scholarships", count: "4 Available", total: 4 },
+        { id: 3, name: "AICTE Scholarships", count: "2 Available", total: 2 },
+        { id: 4, name: "State Government Scholarships", count: "1 Available", total: 1 },
+        { id: 5, name: "Merit Based Scholarships", count: "2 Available", total: 2 },
+        { id: 6, name: "Need Based Scholarships", count: "2 Available", total: 2 },
+        { id: 7, name: "Scholarships for Girls", count: "1 Available", total: 1 },
+        { id: 8, name: "Scholarships for Students with Disabilities (PwD)", count: "1 Available", total: 1 },
+        { id: 9, name: "Institutional Scholarships", count: "1 Available", total: 1 },
+        { id: 10, name: "Sports Scholarships", count: "1 Available", total: 1 },
+        { id: 11, name: "Research and Innovation Scholarships", count: "1 Available", total: 1 },
+        { id: 12, name: "International Scholarships for Indian UG Students", count: "1 Available", total: 1 },
+        { id: 13, name: "Corporate Scholarships", count: "2 Available", total: 2 },
+        { id: 14, name: "Education Loan Interest Subsidy Schemes", count: "1 Available", total: 1 },
+    ];
 
-    // Double Passkey State
+    const [scholarships] = useState([
+        // CATEGORY #1: Central Government Scholarships (2)
+        {
+            id: 101,
+            categoryId: 1,
+            scholarship_name: "Central Sector Scheme of Scholarships for College Students",
+            category_name: "Central Government Scholarships",
+            benefits: "Financial Benefit: ₹12,000 per annum for graduation",
+            min_gpa: 7.5,
+            max_income: 450000,
+            income_label: "₹4.5 Lakhs",
+            caste_quota: "All Quotas (Top 20th Percentile)",
+            description: "MHRD scholarship for meritorious students pursuing higher education in professional degree courses.",
+            documents: ["12th Marksheet", "Income Certificate", "Bonafide Student Certificate", "Aadhaar Linked Bank Passbook"]
+        },
+        {
+            id: 102,
+            categoryId: 1,
+            scholarship_name: "PM's Scholarship Scheme for Central Armed Police Forces (CAPF)",
+            category_name: "Central Government Scholarships",
+            benefits: "Financial Benefit: ₹36,000 per annum for male / female wards",
+            min_gpa: 6.0,
+            max_income: 600000,
+            income_label: "₹6.0 Lakhs",
+            caste_quota: "Wards of Deceased CAPF & AR Personnel",
+            description: "Encouraging higher technical and professional education for dependent wards of ex-servicemen.",
+            documents: ["CAPF Service/Discharge Certificate", "Academic Marksheets", "Institute Bonafide", "Bank Account Details"]
+        },
+
+        // CATEGORY #2: Category Based Scholarships (4)
+        {
+            id: 201,
+            categoryId: 2,
+            scholarship_name: "Post-Matric Scholarship Scheme for SC/ST Students",
+            category_name: "Category Based Scholarships",
+            benefits: "Financial Benefit: 100% Tuition Fee Waiver + Maintenance Allowance",
+            min_gpa: 6.0,
+            max_income: 250000,
+            income_label: "₹2.5 Lakhs",
+            caste_quota: "Scheduled Caste (SC) / Scheduled Tribe (ST)",
+            description: "Full state financial support covering tuition fees, examination fees, and monthly maintenance allowance.",
+            documents: ["Community Certificate (SC/ST)", "Income Certificate (Tehsildar)", "Previous Year Marksheets", "Institute Bonafide"]
+        },
+        {
+            id: 202,
+            categoryId: 2,
+            scholarship_name: "Post-Matric Scholarship for OBC / EBC Students",
+            category_name: "Category Based Scholarships",
+            benefits: "Financial Benefit: ₹25,000 Tuition Fee Subsidy per year",
+            min_gpa: 6.5,
+            max_income: 250000,
+            income_label: "₹2.5 Lakhs",
+            caste_quota: "Other Backward Classes (OBC) / EBC",
+            description: "Financial assistance provided by the State Department of Backward Classes Welfare for degree students.",
+            documents: ["OBC NCL Certificate", "Income Declaration", "College Fee Receipts", "Aadhaar Card"]
+        },
+        {
+            id: 203,
+            categoryId: 2,
+            scholarship_name: "Minority Community Higher Education Grant",
+            category_name: "Category Based Scholarships",
+            benefits: "Financial Benefit: ₹30,000 Annual Stipend",
+            min_gpa: 6.5,
+            max_income: 250000,
+            income_label: "₹2.5 Lakhs",
+            caste_quota: "Muslim / Christian / Sikh / Buddhist / Jain",
+            description: "Special state grant for registered minority community students with good academic standing.",
+            documents: ["Minority Community Certificate", "Income Certificate", "Bonafide Certificate", "College Fee Receipt"]
+        },
+        {
+            id: 204,
+            categoryId: 2,
+            scholarship_name: "Economically Weaker Section (EWS) Merit Assistance",
+            category_name: "Category Based Scholarships",
+            benefits: "Financial Benefit: ₹20,000 Academic Support",
+            min_gpa: 7.0,
+            max_income: 300000,
+            income_label: "₹3.0 Lakhs",
+            caste_quota: "EWS Quota",
+            description: "Government financial grant for economically weaker section students not covered under SC/ST/OBC.",
+            documents: ["EWS Certificate", "Income Proof", "Academic Transcripts", "Bank Account Details"]
+        },
+
+        // CATEGORY #3: AICTE Scholarships (2)
+        {
+            id: 301,
+            categoryId: 3,
+            scholarship_name: "AICTE Pragati Scholarship for Girl Students",
+            category_name: "AICTE Scholarships",
+            benefits: "Financial Benefit: ₹50,000 per annum for technical education",
+            min_gpa: 7.0,
+            max_income: 800000,
+            income_label: "₹8.0 Lakhs",
+            caste_quota: "Girl Students in Technical Degrees",
+            description: "AICTE scheme to empower women pursuing technical degree education in approved engineering institutions.",
+            documents: ["AICTE Allotment Letter", "Family Income Certificate", "Aadhaar Linked Bank Passbook", "Institute Verification"]
+        },
+        {
+            id: 302,
+            categoryId: 3,
+            scholarship_name: "AICTE Saksham Scholarship for Specially-Abled Students",
+            category_name: "AICTE Scholarships",
+            benefits: "Financial Benefit: ₹50,000 per annum + Assistive Device Allowance",
+            min_gpa: 6.0,
+            max_income: 800000,
+            income_label: "₹8.0 Lakhs",
+            caste_quota: "Specially-Abled (Disability ≥ 40%)",
+            description: "Financial assistance provided by AICTE to encourage differently-abled students to pursue technical education.",
+            documents: ["Disability Certificate (Govt. Medical Board)", "Income Certificate", "AICTE Admission Letter", "Bank Details"]
+        },
+
+        // CATEGORY #4: State Government Scholarships (1)
+        {
+            id: 401,
+            categoryId: 4,
+            scholarship_name: "State Higher Education Tuition Fee Reimbursement Scheme",
+            category_name: "State Government Scholarships",
+            benefits: "Financial Benefit: 100% Tuition Fee Reimbursement",
+            min_gpa: 7.0,
+            max_income: 300000,
+            income_label: "₹3.0 Lakhs",
+            caste_quota: "State Domicile Students",
+            description: "Reimbursement of full tuition fees for government quota admitted engineering students.",
+            documents: ["Domicile Certificate", "College Allotment Order", "Income Certificate", "Fee Challan Receipts"]
+        },
+
+        // CATEGORY #5: Merit Based Scholarships (2)
+        {
+            id: 501,
+            categoryId: 5,
+            scholarship_name: "Sona Gold Medal Merit Scholarship",
+            category_name: "Merit Based Scholarships",
+            benefits: "Financial Benefit: Full Tuition Waiver + Laptop Allowance",
+            min_gpa: 8.5,
+            max_income: 400000,
+            income_label: "₹4.0 Lakhs",
+            caste_quota: "Top Rankers (All Categories)",
+            description: "Full tuition waiver and free laptop allowance for high CGPA engineering students.",
+            documents: ["Semester Marksheets (CGPA ≥ 8.5)", "Bonafide Student Certificate", "Aadhaar Card", "Bank Passbook Copy"]
+        },
+        {
+            id: 502,
+            categoryId: 5,
+            scholarship_name: "Chairman's Academic Excellence Award",
+            category_name: "Merit Based Scholarships",
+            benefits: "Financial Benefit: ₹40,000 Cash Prize & Certificate",
+            min_gpa: 8.8,
+            max_income: 600000,
+            income_label: "₹6.0 Lakhs",
+            caste_quota: "Top 3 Department Rankers",
+            description: "Annual academic excellence reward for top rankers in computer science and technology.",
+            documents: ["Official Transcript", "HOD Recommendation Letter", "Student ID Card", "Bank Account Details"]
+        },
+
+        // CATEGORY #6: Need Based Scholarships (2)
+        {
+            id: 601,
+            categoryId: 6,
+            scholarship_name: "Financial Hardship Education Relief Fund",
+            category_name: "Need Based Scholarships",
+            benefits: "Financial Benefit: ₹35,000 Emergency Fee Aid",
+            min_gpa: 6.5,
+            max_income: 150000,
+            income_label: "₹1.5 Lakhs",
+            caste_quota: "Low Income Families",
+            description: "Special emergency fee assistance for students facing extreme financial difficulties.",
+            documents: ["Income Certificate", "Family Situation Declaration", "College Fee Statement", "Aadhaar Card"]
+        },
+        {
+            id: 602,
+            categoryId: 6,
+            scholarship_name: "Single Parent Family Student Scholarship",
+            category_name: "Need Based Scholarships",
+            benefits: "Financial Benefit: 50% Tuition Fee Waiver",
+            min_gpa: 6.5,
+            max_income: 200000,
+            income_label: "₹2.0 Lakhs",
+            caste_quota: "Single Parent / Orphan Wards",
+            description: "Support for students raised by single parents or guardians.",
+            documents: ["Single Parent Certificate / Death Certificate", "Income Certificate", "Academic Marksheets", "Institute Bonafide"]
+        },
+
+        // CATEGORY #7: Scholarships for Girls (1)
+        {
+            id: 701,
+            categoryId: 7,
+            scholarship_name: "Sona Women Empowerment Foundation Aid",
+            category_name: "Scholarships for Girls",
+            benefits: "Financial Benefit: 100% Free Hostel Accommodation & Bus Transport",
+            min_gpa: 8.0,
+            max_income: 400000,
+            income_label: "₹4.0 Lakhs",
+            caste_quota: "Female Undergraduates",
+            description: "Institutional foundation support offering free hostel accommodation and transportation for girl students.",
+            documents: ["Academic Transcripts", "Income Certificate", "Residential Proof", "Head of Department Recommendation"]
+        },
+
+        // CATEGORY #8: Scholarships for Students with Disabilities (PwD) (1)
+        {
+            id: 801,
+            categoryId: 8,
+            scholarship_name: "National PwD Empowerment Fellowship",
+            category_name: "Scholarships for Students with Disabilities (PwD)",
+            benefits: "Financial Benefit: ₹45,000 Annual Stipend + Book Allowance",
+            min_gpa: 5.5,
+            max_income: 600000,
+            income_label: "₹6.0 Lakhs",
+            caste_quota: "PwD Category (Disability ≥ 40%)",
+            description: "Central government fellowship promoting inclusive higher education for differently-abled students.",
+            documents: ["Disability Certificate (Medical Board)", "Bonafide Certificate", "Bank Passbook Copy", "Aadhaar Card"]
+        },
+
+        // CATEGORY #9: Institutional Scholarships (1)
+        {
+            id: 901,
+            categoryId: 9,
+            scholarship_name: "College Founder's Memorial Trust Grant",
+            category_name: "Institutional Scholarships",
+            benefits: "Financial Benefit: ₹25,000 Annual Scholarship",
+            min_gpa: 7.5,
+            max_income: 350000,
+            income_label: "₹3.5 Lakhs",
+            caste_quota: "All Registered Students",
+            description: "Institutional trust grant awarded to deserving students based on academic standing and campus involvement.",
+            documents: ["College ID", "Semester Marksheet", "Income Certificate", "Faculty Recommendation"]
+        },
+
+        // CATEGORY #10: Sports Scholarships (1)
+        {
+            id: 1001,
+            categoryId: 10,
+            scholarship_name: "State & National Sports Champion Fee Waiver",
+            category_name: "Sports Scholarships",
+            benefits: "Financial Benefit: 100% Sports Fee Waiver + Free Sports Kit",
+            min_gpa: 6.0,
+            max_income: 800000,
+            income_label: "₹8.0 Lakhs",
+            caste_quota: "State / National Level Athletes",
+            description: "Full tuition fee waiver for medal winners in inter-university or national level sports tournaments.",
+            documents: ["Sports Achievement Certificates (Form 1/2/3)", "Physical Fitness Certificate", "Academic Marksheet", "College ID"]
+        },
+
+        // CATEGORY #11: Research and Innovation Scholarships (1)
+        {
+            id: 1101,
+            categoryId: 11,
+            scholarship_name: "Student R&D Patent & Innovation Grant",
+            category_name: "Research and Innovation Scholarships",
+            benefits: "Financial Benefit: ₹50,000 Project & Patent Funding",
+            min_gpa: 8.0,
+            max_income: 1000000,
+            income_label: "₹10.0 Lakhs",
+            caste_quota: "UG Student Researchers",
+            description: "Funding for innovative student hardware/software projects, research papers, and patent filings.",
+            documents: ["Project Proposal / Abstract", "Faculty Guide Endorsement", "Academic Transcripts", "Bank Account Details"]
+        },
+
+        // CATEGORY #12: International Scholarships for Indian UG Students (1)
+        {
+            id: 1201,
+            categoryId: 12,
+            scholarship_name: "Global Student Exchange & Immersion Scholarship",
+            category_name: "International Scholarships for Indian UG Students",
+            benefits: "Financial Benefit: ₹1,50,000 Travel & Living Allowance",
+            min_gpa: 8.5,
+            max_income: 1200000,
+            income_label: "₹12.0 Lakhs",
+            caste_quota: "UG Students in Semester 5-7",
+            description: "Partial funding for attending international summer schools and foreign university exchange programs.",
+            documents: ["Foreign Partner University Acceptance", "Valid Passport", "Academic Transcripts (CGPA ≥ 8.5)", "Statement of Purpose"]
+        },
+
+        // CATEGORY #13: Corporate Scholarships (2)
+        {
+            id: 1301,
+            categoryId: 13,
+            scholarship_name: "Tech Corp CSR Women in Engineering Scholarship",
+            category_name: "Corporate Scholarships",
+            benefits: "Financial Benefit: ₹75,000 per year + Direct Internship Offer",
+            min_gpa: 7.5,
+            max_income: 500000,
+            income_label: "₹5.0 Lakhs",
+            caste_quota: "Female CS / IT Engineering Students",
+            description: "Corporate CSR fellowship providing financial sponsorship and guaranteed summer internship.",
+            documents: ["10th/12th/UG Marksheets", "Income Certificate", "Resume / CV", "Bonafide Certificate"]
+        },
+        {
+            id: 1302,
+            categoryId: 13,
+            scholarship_name: "Infosys Foundation STEM Scholarship",
+            category_name: "Corporate Scholarships",
+            benefits: "Financial Benefit: ₹60,000 per annum + Mentorship",
+            min_gpa: 7.5,
+            max_income: 450000,
+            income_label: "₹4.5 Lakhs",
+            caste_quota: "STEM Degree Students",
+            description: "Corporate scholarship program supporting underprivileged students pursuing technical degrees.",
+            documents: ["Income Proof", "College ID", "Semester Transcripts", "Bank Account Passbook"]
+        },
+
+        // CATEGORY #14: Education Loan Interest Subsidy Schemes (1)
+        {
+            id: 1401,
+            categoryId: 14,
+            scholarship_name: "Central Scheme to Provide Interest Subsidy (CSIS) on Education Loans",
+            category_name: "Education Loan Interest Subsidy Schemes",
+            benefits: "Financial Benefit: 100% Loan Interest Subsidy during Moratorium Period",
+            min_gpa: 6.0,
+            max_income: 450000,
+            income_label: "₹4.5 Lakhs",
+            caste_quota: "Bank Education Loan Borrowers",
+            description: "Full interest subsidy on education loans sanctioned by scheduled banks during the course moratorium period.",
+            documents: ["Bank Education Loan Sanction Letter", "Tehsildar Income Certificate", "Bonafide Certificate", "Aadhaar Card"]
+        }
+    ]);
+
+    // Student Profile for Eligibility Evaluation
+    const studentProfile = {
+        name: "Pranesh K K",
+        id: "2023CS001",
+        cgpa: 8.5,
+        department: "CSE",
+        familyIncome: 250000,
+        category: "General / Merit"
+    };
+
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [detailsModalItem, setDetailsModalItem] = useState(null);
+    const [eligibilityModalItem, setEligibilityModalItem] = useState(null);
+
+    // Passkey State
     const [passkeyModalOpen, setPasskeyModalOpen] = useState(false);
     const [targetScholarshipForDownload, setTargetScholarshipForDownload] = useState(null);
     const [passkey1, setPasskey1] = useState("123456");
     const [passkey2, setPasskey2] = useState("654321");
     const [passkeyError, setPasskeyError] = useState("");
-    const [passkeyLoading, setPasskeyLoading] = useState(false);
-    const [passkeyVerifiedSession, setPasskeyVerifiedSession] = useState(false);
+    const [passkeyVerified, setPasskeyVerified] = useState(false);
     const [downloadSuccessMessage, setDownloadSuccessMessage] = useState("");
-    const [eligibilityResultModal, setEligibilityResultModal] = useState(null);
-
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            const userStr = localStorage.getItem("user");
-            if (userStr) {
-                try {
-                    const u = JSON.parse(userStr);
-                    if (u.id) {
-                        fetchStudentProfile(u.id);
-                    }
-                } catch(e) {}
-            }
-        }
-        fetchCategories();
-        fetchAllScholarships();
-    }, []);
-
-    const fetchStudentProfile = async (sId) => {
-        try {
-            const res = await fetch(`http://localhost:8000/api/students/${sId}`);
-            if (res.ok) {
-                const data = await res.json();
-                setStudentProfile(prev => ({ ...prev, ...data, id: sId }));
-            }
-        } catch (e) {
-            console.error("Failed to fetch student profile:", e);
-        }
-    };
-
-    const fetchCategories = async () => {
-        try {
-            const res = await fetch("http://localhost:8000/api/scholarships/categories");
-            if (res.ok) {
-                const data = await res.json();
-                setCategories(data);
-            }
-        } catch (e) {
-            console.error("Failed to fetch scholarship categories:", e);
-        }
-    };
-
-    const fetchAllScholarships = async () => {
-        try {
-            const res = await fetch("http://localhost:8000/api/scholarships/all");
-            if (res.ok) {
-                const data = await res.json();
-                setScholarships(data);
-            }
-        } catch (e) {
-            console.error("Failed to fetch scholarships:", e);
-        }
-    };
 
     const handleCategoryClick = (catId) => {
-        if (selectedCategory !== null && String(selectedCategory) === String(catId)) {
-            setSelectedCategory(null); // Toggle off
-        } else {
-            setSelectedCategory(catId);
-        }
-    };
-
-    const handleCheckEligibility = (sch) => {
-        const cgpa = studentProfile.cgpa;
-        const income = studentProfile.family_income;
-        const dept = studentProfile.department;
-        const year = studentProfile.year;
-
-        const checks = [];
-        let isEligible = true;
-
-        if (sch.min_gpa) {
-            const pass = cgpa >= sch.min_gpa;
-            checks.push({ label: `Minimum CGPA (${sch.min_gpa}+)`, val: `Your CGPA: ${cgpa}`, pass });
-            if (!pass) isEligible = false;
-        }
-
-        if (sch.max_income) {
-            const pass = income <= sch.max_income;
-            checks.push({ label: `Max Family Income (₹${(sch.max_income/100000).toFixed(1)} Lakhs)`, val: `Your Income: ₹${(income/100000).toFixed(1)} Lakhs`, pass });
-            if (!pass) isEligible = false;
-        }
-
-        if (sch.eligible_departments && sch.eligible_departments.length > 0 && !sch.eligible_departments.includes("ALL")) {
-            const pass = sch.eligible_departments.includes(dept);
-            checks.push({ label: `Eligible Departments (${sch.eligible_departments.join(", ")})`, val: `Your Dept: ${dept}`, pass });
-            if (!pass) isEligible = false;
-        }
-
-        if (sch.eligible_years && sch.eligible_years.length > 0) {
-            const pass = sch.eligible_years.includes(year);
-            checks.push({ label: `Eligible Academic Years (${sch.eligible_years.join(", ")})`, val: `Your Year: Year ${year}`, pass });
-            if (!pass) isEligible = false;
-        }
-
-        setEligibilityResultModal({
-            scholarship_name: sch.scholarship_name,
-            isEligible,
-            checks
-        });
+        setSelectedCategory(prev => prev === catId ? null : catId);
     };
 
     const triggerFormDownload = (sch) => {
         setTargetScholarshipForDownload(sch);
-        if (passkeyVerifiedSession) {
-            // Already verified in session
-            executeFormDownload(sch, passkey1, passkey2);
-        } else {
+        if (!passkeyVerified) {
             setPasskeyError("");
             setPasskeyModalOpen(true);
+        } else {
+            executeDownload(sch);
         }
     };
 
-    const executeFormDownload = async (sch, p1, p2) => {
-        setPasskeyLoading(true);
-        setPasskeyError("");
-        try {
-            const res = await fetch("http://localhost:8000/api/scholarships/download-form", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    student_id: studentProfile.id,
-                    scholarship_id: sch.id,
-                    passkey_1: p1,
-                    passkey_2: p2
-                })
-            });
-
-            const data = await res.json();
-            if (res.ok && data.download_url) {
-                setPasskeyVerifiedSession(true);
-                setPasskeyModalOpen(false);
-                setDownloadSuccessMessage(`Successfully authenticated! Form downloaded for ${sch.scholarship_name}.`);
-
-                // Trigger actual PDF file download
-                const link = document.createElement("a");
-                link.href = `http://localhost:8000${data.download_url}`;
-                link.download = data.filename || `${sch.id}_form.pdf`;
-                document.body.appendChild(link);
-                link.click();
-                link.remove();
-
-                setTimeout(() => setDownloadSuccessMessage(""), 6000);
-            } else {
-                setPasskeyError(data.detail || "Invalid Double Passkey. Please verify Passkey 1 and Passkey 2.");
+    const verifyPasskeys = () => {
+        if (passkey1 === "123456" && passkey2 === "654321") {
+            setPasskeyVerified(true);
+            setPasskeyModalOpen(false);
+            if (targetScholarshipForDownload) {
+                executeDownload(targetScholarshipForDownload);
             }
-        } catch (e) {
-            setPasskeyError("Error verifying Double Passkey or connecting to cloud backend.");
-        } finally {
-            setPasskeyLoading(false);
+        } else {
+            setPasskeyError("Invalid Double Passkey. Please verify Passkey 1 (123456) and Passkey 2 (654321).");
         }
     };
 
-    const handleDocCheckToggle = (schId, docIndex) => {
-        setCheckedDocs(prev => ({
-            ...prev,
-            [`${schId}_${docIndex}`]: !prev[`${schId}_${docIndex}`]
-        }));
+    const executeDownload = (sch) => {
+        setDownloadSuccessMessage(`Downloading Official Application Form for ${sch.scholarship_name}...`);
+        setTimeout(() => setDownloadSuccessMessage(""), 4000);
     };
 
-    // Filter Logic
     const filteredScholarships = scholarships.filter(s => {
-        const matchesCategory = selectedCategory === null || String(s.category_id) === String(selectedCategory);
+        const matchesCategory = selectedCategory === null || s.categoryId === selectedCategory;
         const matchesQuery = !searchQuery || 
-            (s.scholarship_name && s.scholarship_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-            (s.category_name && s.category_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-            (s.description && s.description.toLowerCase().includes(searchQuery.toLowerCase()));
+            s.scholarship_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            s.category_name.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesCategory && matchesQuery;
     });
 
     return (
-        <div className="space-y-10 pb-16">
-            {/* Download Notification Banner */}
-            <AnimatePresence>
-                {downloadSuccessMessage && (
-                    <motion.div 
-                        initial={{ opacity: 0, y: -20 }} 
-                        animate={{ opacity: 1, y: 0 }} 
-                        exit={{ opacity: 0, y: -20 }}
-                        className="bg-emerald-500 text-white p-4 rounded-2xl shadow-xl flex items-center justify-between font-bold text-sm px-6"
-                    >
-                        <div className="flex items-center gap-3">
-                            <CheckCircle2 className="w-6 h-6" />
-                            <span>{downloadSuccessMessage}</span>
-                        </div>
-                        <button onClick={() => setDownloadSuccessMessage("")} className="hover:opacity-80">
-                            <X className="w-5 h-5" />
-                        </button>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+            {/* HERO PANEL */}
+            <section className="panel" style={{ padding: '28px' }}>
+                <span className="badge" style={{ marginBottom: '12px' }}>⭐ Indian Undergraduate Scholarships Hub</span>
+                <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#fff', marginBottom: '8px' }}>
+                    14 Categories of Scholarships for Graduation
+                </h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.6', maxWidth: '750px', marginBottom: '16px' }}>
+                    Explore Central & State Govt. schemes, AICTE grants, SC/ST/OBC/Minority quotas, Merit & Need-based funding, Girls & PwD aid, Corporate awards, and Interest Subsidies. Select any category below to view matching scholarship schemes!
+                </p>
 
-            {/* Hero Header Banner */}
-            <motion.div 
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden bg-gradient-to-br from-teal-900 via-emerald-900 to-slate-900 text-white p-10 rounded-[2.5rem] shadow-2xl border border-teal-500/20"
-            >
-                <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
-                <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-                    <div className="space-y-3 max-w-2xl">
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-500/20 border border-teal-400/30 text-teal-300 text-xs font-black tracking-wide uppercase">
-                            <Sparkles className="w-3.5 h-3.5 text-teal-300" />
-                            <span>Indian Undergraduate Scholarships Hub</span>
-                        </div>
-                        <h1 className="text-3xl md:text-4xl font-black tracking-tight font-display">
-                            14 Categories of Scholarships for Graduation
-                        </h1>
-                        <p className="text-teal-100/80 text-sm font-medium leading-relaxed">
-                            Explore Central & State Govt. schemes, AICTE grants, SC/ST/OBC/Minority quotas, Merit & Need-based funding, Girls & PwD aid, Corporate awards, and Interest Subsidies. Choose a scholarship to get full details, necessary documents checklist, and download required application forms!
-                        </p>
-                    </div>
-
-                    {/* Double Passkey Cloud Security Status Card */}
-                    <div className="bg-white/10 backdrop-blur-xl p-5 rounded-2xl border border-white/20 text-left min-w-[280px]">
-                        <div className="flex items-center gap-2 text-teal-300 font-extrabold text-xs uppercase tracking-wider mb-2">
-                            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                            <span>Cloud Storage Vault Protection</span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-white/90 font-bold mb-3">
-                            <span>Double Passkey Status:</span>
-                            {passkeyVerifiedSession ? (
-                                <span className="bg-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded-md border border-emerald-400/40">Verified</span>
-                            ) : (
-                                <span className="bg-amber-500/30 text-amber-300 px-2 py-0.5 rounded-md border border-amber-400/40">Protected</span>
-                            )}
-                        </div>
-                        <p className="text-[11px] text-teal-100/70 mb-3">
-                            Cloud stored application forms & documents require 2-Factor Double Passkey authorization.
-                        </p>
-                        <button 
-                            onClick={() => { setPasskeyError(""); setPasskeyModalOpen(true); }}
-                            className="w-full py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-teal-500/20"
-                        >
-                            <Key className="w-3.5 h-3.5" />
-                            <span>{passkeyVerifiedSession ? "Manage Double Passkeys" : "Enter Double Passkeys"}</span>
-                        </button>
-                    </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    <span className="badge success">☁️ Cloud Storage Vault Protection (Double Passkey Protected)</span>
+                    <span className="badge warning">🛡️ 2-Factor Double Passkey authorization enabled</span>
                 </div>
-            </motion.div>
+            </section>
 
-            {/* Search & Filter Header */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white/60 p-4 rounded-3xl glass border border-white/40">
-                <div className="relative w-full md:w-96">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input 
-                        className="w-full h-11 pl-11 pr-4 bg-white border border-slate-200/80 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-teal-500/20 transition-all text-slate-800"
-                        placeholder="Search by scholarship name, portal, category, or criteria..."
+            {/* DOWNLOAD TOAST */}
+            {downloadSuccessMessage && (
+                <div style={{ padding: '14px 20px', borderRadius: '10px', background: 'rgba(66, 214, 164, 0.15)', border: '1px solid var(--success)', color: 'var(--success)', fontWeight: 700, fontSize: '13px' }}>
+                    ✓ {downloadSuccessMessage}
+                </div>
+            )}
+
+            {/* TOOLBAR SEARCH & FILTER */}
+            <div className="toolbar">
+                <div className="search toolbar-search">
+                    <span className="search-icon">⌕</span>
+                    <input
+                        type="text"
+                        placeholder="Search by scholarship name or category..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
 
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-500 w-full md:w-auto justify-end">
-                    <Filter className="w-4 h-4 text-teal-600" />
-                    <span>Active Filter: {selectedCategory ? categories.find(c => c.id === selectedCategory)?.name : "All 14 Categories"}</span>
-                    {selectedCategory && (
-                        <button 
-                            onClick={() => setSelectedCategory(null)}
-                            className="ml-2 text-rose-500 hover:underline font-extrabold"
-                        >
-                            Clear Filter
-                        </button>
+                {selectedCategory && (
+                    <button className="button danger" onClick={() => setSelectedCategory(null)}>
+                        Clear Category Filter (Category #{selectedCategory})
+                    </button>
+                )}
+            </div>
+
+            {/* 14 CATEGORIES GRID PANEL */}
+            <section className="panel">
+                <div className="panel-header">
+                    <div>
+                        <div className="panel-title">14 Scholarship Categories</div>
+                        <div className="panel-subtitle">
+                            {selectedCategory 
+                                ? `Active Category Filter: #${selectedCategory} - ${categories.find(c => c.id === selectedCategory)?.name}` 
+                                : "Click any category card below to filter available scholarships"}
+                        </div>
+                    </div>
+                    <span className="badge">{categories.length} Categories</span>
+                </div>
+
+                <div style={{ padding: '20px' }}>
+                    <div className="grid grid-4">
+                        {categories.map((cat) => {
+                            const isSelected = selectedCategory === cat.id;
+                            const categoryMatchingCount = scholarships.filter(s => s.categoryId === cat.id).length;
+                            return (
+                                <div 
+                                    key={cat.id} 
+                                    className="feature-card"
+                                    onClick={() => handleCategoryClick(cat.id)}
+                                    style={{ 
+                                        padding: '14px', 
+                                        cursor: 'pointer',
+                                        borderColor: isSelected ? 'var(--primary-2)' : 'var(--border)',
+                                        background: isSelected ? 'rgba(91, 53, 232, 0.25)' : '#0a142b',
+                                        boxShadow: isSelected ? '0 0 15px rgba(113, 60, 255, 0.3)' : 'none',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span className="badge" style={{ background: isSelected ? 'var(--primary)' : 'var(--primary-soft)', color: '#ffffff' }}>
+                                            #{cat.id}
+                                        </span>
+                                        {isSelected && <span style={{ fontSize: '11px', color: 'var(--success)', fontWeight: 800 }}>✓ Selected</span>}
+                                    </div>
+                                    <div className="feature-title" style={{ marginTop: '10px', fontSize: '13px', color: isSelected ? '#ffffff' : '#e2e8f0' }}>
+                                        {cat.name}
+                                    </div>
+                                    <div className="feature-description" style={{ fontSize: '11px', color: isSelected ? '#bcaaff' : '#707b98', marginTop: '4px' }}>
+                                        {categoryMatchingCount} Available
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </section>
+
+            {/* AVAILABLE SCHOLARSHIPS DATA ROWS */}
+            <section className="panel">
+                <div className="panel-header">
+                    <div>
+                        <div className="panel-title">Available Scholarships ({filteredScholarships.length})</div>
+                        <div className="panel-subtitle">
+                            {selectedCategory 
+                                ? `Showing all ${filteredScholarships.length} scholarships for Category #${selectedCategory} - ${categories.find(c => c.id === selectedCategory)?.name}` 
+                                : "Showing all available graduation scholarship schemes"}
+                        </div>
+                    </div>
+                </div>
+
+                <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {filteredScholarships.length === 0 ? (
+                        <div className="empty-state">
+                            <div className="empty-icon">🎓</div>
+                            <div className="empty-title">No scholarships matched your filter</div>
+                            <div className="empty-description">Try selecting a different category or clear the search query.</div>
+                            <button className="button primary" style={{ marginTop: '14px' }} onClick={() => { setSelectedCategory(null); setSearchQuery(""); }}>
+                                Reset All Filters
+                            </button>
+                        </div>
+                    ) : (
+                        filteredScholarships.map((sch) => (
+                            <div key={sch.id} className="data-row" style={{ flexWrap: 'wrap', gap: '16px' }}>
+                                <div className="data-icon">🎓</div>
+
+                                <div className="data-content" style={{ minWidth: '260px' }}>
+                                    <div className="data-title" style={{ fontSize: '15px', color: '#ffffff' }}>{sch.scholarship_name}</div>
+                                    <div className="data-meta">
+                                        <span className="badge">{sch.category_name}</span>
+                                        <span className="badge">{sch.benefits}</span>
+                                        <span className="badge">Min CGPA: {sch.min_gpa}</span>
+                                        <span className="badge">Max Income: {sch.income_label}</span>
+                                    </div>
+                                </div>
+
+                                {/* THREE INTERACTIVE ACTION BUTTONS */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginLeft: 'auto' }}>
+                                    <button className="button" onClick={() => setDetailsModalItem(sch)}>
+                                        📄 View Details
+                                    </button>
+
+                                    <button className="button" onClick={() => setEligibilityModalItem(sch)} style={{ borderColor: 'var(--primary-2)', color: '#c2b5ff' }}>
+                                        👤 Check Eligibility
+                                    </button>
+
+                                    <button className="button primary" onClick={() => triggerFormDownload(sch)}>
+                                        ⇩ Download Application Form
+                                    </button>
+                                </div>
+                            </div>
+                        ))
                     )}
                 </div>
-            </div>
+            </section>
 
-            {/* 14 Categories Interactive Grid */}
-            <div className="space-y-4">
-                <h3 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-                    <GraduationCap className="w-5 h-5 text-teal-600" />
-                    <span>Browse by 14 Scholarship Categories</span>
-                </h3>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
-                    {categories.map((cat) => {
-                        const isSelected = selectedCategory === cat.id;
-                        return (
-                            <motion.button
-                                key={cat.id}
-                                whileHover={{ scale: 1.03 }}
-                                whileTap={{ scale: 0.97 }}
-                                onClick={() => handleCategoryClick(cat.id)}
-                                className={`p-3.5 rounded-2xl text-left transition-all border flex flex-col justify-between h-28 relative overflow-hidden ${
-                                    isSelected 
-                                    ? "bg-teal-600 text-white border-teal-500 shadow-xl shadow-teal-600/20" 
-                                    : "bg-white/80 hover:bg-white text-slate-700 border-slate-200/70 shadow-sm hover:shadow-md"
-                                }`}
-                            >
-                                <div className="flex justify-between items-start">
-                                    <span className="text-xl">{cat.icon || "🎓"}</span>
-                                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-md ${
-                                        isSelected ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
-                                    }`}>
-                                        #{cat.id}
-                                    </span>
-                                </div>
-
-                                <div>
-                                    <h4 className="text-[11px] font-black leading-tight line-clamp-2">{cat.name}</h4>
-                                    <p className={`text-[9px] font-bold mt-1 ${isSelected ? "text-teal-100" : "text-teal-600"}`}>
-                                        {cat.scholarship_count || 1} Available
-                                    </p>
-                                </div>
-                            </motion.button>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* Scholarships List */}
-            <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-black text-slate-800 tracking-tight">
-                        Available Scholarships ({filteredScholarships.length})
-                    </h3>
-                    <span className="text-xs font-bold text-slate-400">
-                        Select a scholarship to get criteria, documents & application form
-                    </span>
-                </div>
-
-                {filteredScholarships.length === 0 ? (
-                    <div className="bg-white/60 p-12 rounded-3xl text-center border border-dashed border-slate-300">
-                        <GraduationCap className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                        <h4 className="text-lg font-bold text-slate-700">No scholarships matched your filter</h4>
-                        <p className="text-xs text-slate-400 mt-1">Try clearing your search query or selecting a different category.</p>
-                        <button 
-                            onClick={() => { setSelectedCategory(null); setSearchQuery(""); }}
-                            className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-xl text-xs font-bold shadow-md"
-                        >
-                            Reset Filters
-                        </button>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredScholarships.map((sch) => (
-                            <motion.div
-                                key={sch.id}
-                                whileHover={{ y: -4 }}
-                                className="bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col justify-between space-y-5"
-                            >
-                                <div className="space-y-4">
-                                    {/* Category Pill Tag */}
-                                    <div>
-                                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-teal-50 text-teal-800 text-xs font-black uppercase tracking-wider border border-teal-200/80">
-                                            {sch.category_name || "Undergraduate Scholarship"}
-                                        </div>
-                                    </div>
-
-                                    {/* Eligible Category / Quota Box */}
-                                    {sch.caste_category && (
-                                        <div className="bg-slate-50 border border-slate-200/80 p-3 rounded-2xl">
-                                            <p className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1">
-                                                Eligible Category / Quota
-                                            </p>
-                                            <p className="text-xs font-bold text-slate-800 leading-normal">
-                                                {sch.caste_category}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    {/* Title */}
-                                    <h4 className="text-lg font-black text-slate-900 leading-snug font-display">
-                                        {sch.scholarship_name}
-                                    </h4>
-
-                                    {/* Description */}
-                                    <p className="text-xs font-medium text-slate-600 leading-relaxed">
-                                        {sch.description}
-                                    </p>
-
-                                    {/* Benefits Box */}
-                                    <div className="bg-emerald-50/80 border border-emerald-200/80 p-3.5 rounded-2xl">
-                                        <p className="text-xs font-black text-emerald-800 uppercase tracking-wider block mb-1">
-                                            Financial Benefit & Coverage
-                                        </p>
-                                        <p className="text-xs font-black text-emerald-950 leading-normal">
-                                            {sch.benefits}
-                                        </p>
-                                    </div>
-
-                                    {/* Criteria Badges */}
-                                    <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-700">
-                                        {sch.min_gpa && (
-                                            <div className="bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200/60 inline-flex items-center gap-1.5">
-                                                <span className="text-xs text-slate-500 font-bold uppercase">Min CGPA:</span>
-                                                <span className="font-extrabold text-teal-700">{sch.min_gpa}</span>
-                                            </div>
-                                        )}
-                                        {sch.max_income && (
-                                            <div className="bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200/60 inline-flex items-center gap-1.5">
-                                                <span className="text-xs text-slate-500 font-bold uppercase">Max Income:</span>
-                                                <span className="font-extrabold text-teal-700">₹{(sch.max_income/100000).toFixed(1)} Lakhs</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Action Buttons Footer */}
-                                <div className="pt-4 border-t border-slate-100 space-y-2.5">
-                                    <div className="grid grid-cols-2 gap-2.5">
-                                        <button
-                                            onClick={() => setSelectedScholarship(sch)}
-                                            className="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 shadow-sm"
-                                        >
-                                            <FileText className="w-3.5 h-3.5 text-teal-400" />
-                                            <span>View Details</span>
-                                        </button>
-
-                                        <button
-                                            onClick={() => handleCheckEligibility(sch)}
-                                            className="py-2.5 px-3 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5"
-                                        >
-                                            <UserCheck className="w-3.5 h-3.5 text-teal-600" />
-                                            <span>Check Profile</span>
-                                        </button>
-                                    </div>
-
-                                    <button
-                                        onClick={() => triggerFormDownload(sch)}
-                                        className="w-full py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 shadow-md shadow-teal-600/20"
-                                    >
-                                        <Download className="w-3.5 h-3.5" />
-                                        <span>Download Application Form</span>
-                                        <Lock className="w-3.5 h-3.5 text-teal-200 ml-auto" />
-                                    </button>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                )}
-            </div>
-
-            {/* SCHOLARSHIP DETAIL MODAL */}
-            <AnimatePresence>
-                {selectedScholarship && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-slate-950/75 backdrop-blur-md overflow-y-auto">
-                        <motion.div 
-                            initial={{ scale: 0.95, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.95, opacity: 0 }}
-                            className="bg-white w-full max-w-3xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-200 max-h-[85vh] flex flex-col my-auto relative"
-                        >
-                            {/* Modal Header */}
-                            <div className="bg-slate-900 text-white p-6 md:p-8 relative shrink-0">
-                                <button 
-                                    onClick={() => setSelectedScholarship(null)}
-                                    className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-
-                                <span className="text-[10px] font-black uppercase tracking-widest text-teal-400 bg-teal-950/80 px-3 py-1 rounded-full border border-teal-800 inline-block mb-3">
-                                    {selectedScholarship.category_name}
-                                </span>
-
-                                <h2 className="text-2xl md:text-3xl font-black font-display leading-tight pr-10">
-                                    {selectedScholarship.scholarship_name}
-                                </h2>
-
-                                {selectedScholarship.official_portal && (
-                                    <div className="flex items-center gap-2 text-xs font-bold text-teal-300 mt-2">
-                                        <ExternalLink className="w-3.5 h-3.5" />
-                                        <span>Official Portal: {selectedScholarship.official_portal}</span>
-                                    </div>
-                                )}
+            {/* 1. VIEW DETAILS MODAL */}
+            {detailsModalItem && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                    <div className="panel" style={{ maxWidth: '600px', width: '100%', padding: '28px', background: '#0a142b', border: '1px solid var(--border-hover)', borderRadius: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                            <div>
+                                <span className="badge" style={{ marginBottom: '6px' }}>{detailsModalItem.category_name}</span>
+                                <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#ffffff' }}>{detailsModalItem.scholarship_name}</h3>
                             </div>
+                            <button className="button danger" onClick={() => setDetailsModalItem(null)} style={{ height: '32px', padding: '0 10px' }}>✕</button>
+                        </div>
 
-                            {/* Modal Scrollable Body */}
-                            <div className="p-6 md:p-8 space-y-6 overflow-y-auto flex-1 max-h-[calc(85vh-180px)]">
-                                {/* Description */}
-                                <div>
-                                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-1">Overview</h4>
-                                    <p className="text-sm font-medium text-slate-700 leading-relaxed">
-                                        {selectedScholarship.description}
-                                    </p>
-                                </div>
+                        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '18px' }}>
+                            {detailsModalItem.description}
+                        </p>
 
-                                {/* Financial Benefits */}
-                                <div className="bg-emerald-50 border border-emerald-200/80 p-4 rounded-2xl">
-                                    <h4 className="text-xs font-black uppercase tracking-wider text-emerald-800 mb-1 flex items-center gap-1.5">
-                                        <Award className="w-4 h-4 text-emerald-600" />
-                                        <span>Benefits & Scholarship Amount</span>
-                                    </h4>
-                                    <p className="text-sm font-black text-emerald-950">
-                                        {selectedScholarship.benefits}
-                                    </p>
-                                </div>
+                        <div style={{ background: '#081229', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)', marginBottom: '16px' }}>
+                            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--success)', marginBottom: '4px' }}>FINANCIAL COVERAGE & BENEFITS</div>
+                            <div style={{ fontSize: '13px', color: '#ffffff', fontWeight: 600 }}>{detailsModalItem.benefits}</div>
+                        </div>
 
-                                {/* Eligibility Criteria Grid */}
-                                <div className="space-y-2">
-                                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">Eligibility Criteria</h4>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                        {selectedScholarship.min_gpa && (
-                                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                                                <span className="text-[10px] font-bold text-slate-400 block">Min CGPA</span>
-                                                <span className="text-sm font-black text-slate-800">{selectedScholarship.min_gpa} / 10.0</span>
-                                            </div>
-                                        )}
-                                        {selectedScholarship.max_income && (
-                                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                                                <span className="text-[10px] font-bold text-slate-400 block">Max Income Limit</span>
-                                                <span className="text-sm font-black text-slate-800">₹{(selectedScholarship.max_income/100000).toFixed(1)} Lakhs / yr</span>
-                                            </div>
-                                        )}
-                                        {selectedScholarship.caste_category && (
-                                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                                                <span className="text-[10px] font-bold text-slate-400 block">Category</span>
-                                                <span className="text-sm font-black text-slate-800">{selectedScholarship.caste_category}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                    {selectedScholarship.academic_criteria && (
-                                        <p className="text-xs font-bold text-teal-800 bg-teal-50 p-3 rounded-xl border border-teal-100 mt-2">
-                                            Academic Requirement: {selectedScholarship.academic_criteria}
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* MANDATORY NECESSARY DOCUMENTS CHECKLIST */}
-                                <div className="space-y-3 pt-2">
-                                    <div className="flex items-center justify-between">
-                                        <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                                            <FileText className="w-4 h-4 text-teal-600" />
-                                            <span>Necessary Documents Needed (Mandatory Checklist)</span>
-                                        </h4>
-                                        <span className="text-[10px] font-bold text-slate-400">Check off as you collect</span>
-                                    </div>
-
-                                    <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                                        {(selectedScholarship.necessary_documents || [
-                                            "Class 10th & 12th Marksheet",
-                                            "Aadhaar Card of Student",
-                                            "Annual Family Income Certificate",
-                                            "College Bonafide Certificate",
-                                            "Bank Account Passbook Copy"
-                                        ]).map((docItem, idx) => {
-                                            const isChecked = !!checkedDocs[`${selectedScholarship.id}_${idx}`];
-                                            return (
-                                                <div 
-                                                    key={idx}
-                                                    onClick={() => handleDocCheckToggle(selectedScholarship.id, idx)}
-                                                    className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all border ${
-                                                        isChecked ? "bg-emerald-50 border-emerald-200 text-emerald-900" : "bg-white border-slate-200/80 text-slate-700 hover:border-slate-300"
-                                                    }`}
-                                                >
-                                                    <div className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold ${
-                                                        isChecked ? "bg-emerald-600 text-white" : "border-2 border-slate-300"
-                                                    }`}>
-                                                        {isChecked && "✓"}
-                                                    </div>
-                                                    <span className="text-xs font-bold leading-tight">{docItem}</span>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Modal Footer */}
-                            <div className="bg-slate-50 p-6 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
-                                <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
-                                    <Lock className="w-4 h-4 text-teal-600" />
-                                    <span>Cloud Storage Double Passkey required for PDF form download</span>
-                                </div>
-
-                                <div className="flex items-center gap-3 w-full md:w-auto">
-                                    <button 
-                                        onClick={() => setSelectedScholarship(null)}
-                                        className="py-3 px-6 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold"
-                                    >
-                                        Close
-                                    </button>
-                                    <button 
-                                        onClick={() => {
-                                            const sch = selectedScholarship;
-                                            setSelectedScholarship(null);
-                                            triggerFormDownload(sch);
-                                        }}
-                                        className="py-3 px-6 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white rounded-xl text-xs font-black shadow-lg shadow-teal-600/20 flex items-center gap-2"
-                                    >
-                                        <Download className="w-4 h-4" />
-                                        <span>Download Application Form</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
-
-            {/* DOUBLE PASSKEY SECURITY VERIFICATION MODAL */}
-            <AnimatePresence>
-                {passkeyModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
-                        <motion.div 
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl border border-slate-200 space-y-6 relative overflow-hidden"
-                        >
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-2xl bg-teal-500/10 text-teal-600 flex items-center justify-center">
-                                        <ShieldCheck className="w-6 h-6" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-black text-slate-900 font-display">Double Passkey Required</h3>
-                                        <p className="text-[11px] font-bold text-slate-400">Cloud Storage Security Verification</p>
-                                    </div>
-                                </div>
-                                <button onClick={() => setPasskeyModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            <p className="text-xs text-slate-600 leading-relaxed bg-teal-50/60 border border-teal-100 p-3.5 rounded-2xl">
-                                🔒 For security of student records in cloud storage, enter your <strong>Double Passkeys</strong> (Passkey 1 & Passkey 2) to authorize downloading official forms.
-                            </p>
-
-                            {passkeyError && (
-                                <div className="bg-rose-50 text-rose-700 border border-rose-200 p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2">
-                                    <AlertCircle className="w-4 h-4 shrink-0" />
-                                    <span>{passkeyError}</span>
-                                </div>
-                            )}
-
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="text-xs font-extrabold text-slate-700 block mb-1">
-                                        🔑 Passkey 1 (Primary Account Key)
-                                    </label>
-                                    <input 
-                                        type="password"
-                                        className="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono font-bold outline-none focus:ring-4 focus:ring-teal-500/20"
-                                        placeholder="Enter Passkey 1"
-                                        value={passkey1}
-                                        onChange={(e) => setPasskey1(e.target.value)}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="text-xs font-extrabold text-slate-700 block mb-1">
-                                        🔐 Passkey 2 (Cloud Storage Vault Key)
-                                    </label>
-                                    <input 
-                                        type="password"
-                                        className="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono font-bold outline-none focus:ring-4 focus:ring-teal-500/20"
-                                        placeholder="Enter Passkey 2"
-                                        value={passkey2}
-                                        onChange={(e) => setPasskey2(e.target.value)}
-                                    />
-                                </div>
-
-                                <div className="bg-slate-100 p-3 rounded-xl text-[11px] text-slate-500 font-mono">
-                                    💡 <strong>Demo Passkeys:</strong> Passkey 1: <code>123456</code> | Passkey 2: <code>654321</code>
-                                </div>
-                            </div>
-
-                            <button
-                                disabled={passkeyLoading}
-                                onClick={() => {
-                                    if (targetScholarshipForDownload) {
-                                        executeFormDownload(targetScholarshipForDownload, passkey1, passkey2);
-                                    } else {
-                                        // Just verify session
-                                        executeFormDownload({ id: "verify_session", scholarship_name: "Session Auth" }, passkey1, passkey2);
-                                    }
-                                }}
-                                className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black text-xs transition-all shadow-xl shadow-slate-900/20 flex items-center justify-center gap-2"
-                            >
-                                {passkeyLoading ? (
-                                    <span>Verifying Double Passkey...</span>
-                                ) : (
-                                    <>
-                                        <Key className="w-4 h-4 text-teal-400" />
-                                        <span>Verify & Download Form</span>
-                                    </>
-                                )}
-                            </button>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
-
-            {/* PROFILE MATCH ELIGIBILITY RESULT MODAL */}
-            <AnimatePresence>
-                {eligibilityResultModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
-                        <motion.div 
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl border border-slate-200 space-y-6 relative"
-                        >
-                            <button 
-                                onClick={() => setEligibilityResultModal(null)}
-                                className="absolute top-6 right-6 text-slate-400 hover:text-slate-600"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-
-                            <div className="text-center space-y-2">
-                                <div className={`w-16 h-16 rounded-full mx-auto flex items-center justify-center ${
-                                    eligibilityResultModal.isEligible ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600"
-                                }`}>
-                                    {eligibilityResultModal.isEligible ? <CheckCircle2 className="w-10 h-10" /> : <AlertCircle className="w-10 h-10" />}
-                                </div>
-
-                                <h3 className="text-xl font-black text-slate-900 font-display">
-                                    {eligibilityResultModal.isEligible ? "You Are Eligible!" : "Criteria Check Failed"}
-                                </h3>
-
-                                <p className="text-xs font-bold text-slate-500">
-                                    {eligibilityResultModal.scholarship_name}
-                                </p>
-                            </div>
-
-                            <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                                {eligibilityResultModal.checks.map((chk, idx) => (
-                                    <div key={idx} className="flex items-center justify-between text-xs py-1 border-b border-slate-200/60 last:border-none">
-                                        <div>
-                                            <span className="font-bold text-slate-800 block">{chk.label}</span>
-                                            <span className="text-[10px] text-slate-400 font-semibold">{chk.val}</span>
-                                        </div>
-                                        <span className={`font-black text-xs px-2 py-0.5 rounded-md ${
-                                            chk.pass ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
-                                        }`}>
-                                            {chk.pass ? "MATCH ✓" : "NO MATCH ✗"}
-                                        </span>
+                        <div style={{ marginBottom: '18px' }}>
+                            <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>REQUIRED DOCUMENTS CHECKLIST</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                {detailsModalItem.documents.map((doc, i) => (
+                                    <div key={i} style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ color: 'var(--success)' }}>✓</span>
+                                        <span>{doc}</span>
                                     </div>
                                 ))}
                             </div>
+                        </div>
 
-                            <button
-                                onClick={() => setEligibilityResultModal(null)}
-                                className="w-full py-3 bg-slate-900 text-white font-bold text-xs rounded-xl"
-                            >
-                                Close Result
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                            <button className="button" onClick={() => setDetailsModalItem(null)}>Close</button>
+                            <button className="button primary" onClick={() => { setDetailsModalItem(null); triggerFormDownload(detailsModalItem); }}>
+                                Download Application Form
                             </button>
-                        </motion.div>
+                        </div>
                     </div>
-                )}
-            </AnimatePresence>
+                </div>
+            )}
+
+            {/* 2. CHECK ELIGIBILITY MODAL */}
+            {eligibilityModalItem && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                    <div className="panel" style={{ maxWidth: '580px', width: '100%', padding: '28px', background: '#0a142b', border: '1px solid var(--border-hover)', borderRadius: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                            <div>
+                                <span className="badge success" style={{ marginBottom: '6px' }}>Profile Eligibility Evaluation</span>
+                                <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff' }}>{eligibilityModalItem.scholarship_name}</h3>
+                            </div>
+                            <button className="button danger" onClick={() => setEligibilityModalItem(null)} style={{ height: '32px', padding: '0 10px' }}>✕</button>
+                        </div>
+
+                        {/* STUDENT PROFILE RECAP */}
+                        <div style={{ background: '#081229', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)', marginBottom: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                            <div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Student Name</div>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{studentProfile.name}</div>
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Roll / Student ID</div>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{studentProfile.id}</div>
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Current CGPA</div>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--success)' }}>{studentProfile.cgpa} CGPA</div>
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Annual Family Income</div>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>₹{(studentProfile.familyIncome/100000).toFixed(1)} Lakhs</div>
+                            </div>
+                        </div>
+
+                        {/* EVALUATION VERDICT */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+                            <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>CRITERIA MATCH RESULT:</div>
+
+                            <div style={{ padding: '12px', borderRadius: '8px', background: studentProfile.cgpa >= eligibilityModalItem.min_gpa ? 'rgba(66, 214, 164, 0.12)' : 'rgba(255, 82, 104, 0.12)', border: `1px solid ${studentProfile.cgpa >= eligibilityModalItem.min_gpa ? 'var(--success)' : 'var(--danger)'}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <span style={{ fontSize: '12px', color: '#fff' }}>Min CGPA Requirement ({eligibilityModalItem.min_gpa})</span>
+                                <span style={{ fontSize: '12px', fontWeight: 800, color: studentProfile.cgpa >= eligibilityModalItem.min_gpa ? 'var(--success)' : 'var(--danger)' }}>
+                                    {studentProfile.cgpa >= eligibilityModalItem.min_gpa ? '✓ ELIGIBLE (Your CGPA: 8.5)' : '✕ INELIGIBLE'}
+                                </span>
+                            </div>
+
+                            <div style={{ padding: '12px', borderRadius: '8px', background: studentProfile.familyIncome <= eligibilityModalItem.max_income ? 'rgba(66, 214, 164, 0.12)' : 'rgba(255, 82, 104, 0.12)', border: `1px solid ${studentProfile.familyIncome <= eligibilityModalItem.max_income ? 'var(--success)' : 'var(--danger)'}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <span style={{ fontSize: '12px', color: '#fff' }}>Max Income Limit ({eligibilityModalItem.income_label})</span>
+                                <span style={{ fontSize: '12px', fontWeight: 800, color: studentProfile.familyIncome <= eligibilityModalItem.max_income ? 'var(--success)' : 'var(--danger)' }}>
+                                    {studentProfile.familyIncome <= eligibilityModalItem.max_income ? '✓ ELIGIBLE (Your Income: ₹2.5L)' : '✕ INELIGIBLE'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                            <button className="button" onClick={() => setEligibilityModalItem(null)}>Close</button>
+                            <button className="button primary" onClick={() => { setEligibilityModalItem(null); triggerFormDownload(eligibilityModalItem); }}>
+                                Proceed to Download Form
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 3. DOUBLE PASSKEY AUTHORIZATION MODAL */}
+            {passkeyModalOpen && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                    <div className="panel" style={{ maxWidth: '480px', width: '100%', padding: '28px', background: '#0a142b', border: '1px solid var(--border-hover)', borderRadius: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#ffffff' }}>🔐 2-Factor Double Passkey Authorization</h3>
+                            <button className="button danger" onClick={() => setPasskeyModalOpen(false)} style={{ height: '30px', padding: '0 8px' }}>✕</button>
+                        </div>
+
+                        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                            Cloud-stored scholarship application forms are protected. Enter your Double Passkeys to authorize download.
+                        </p>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+                            <div>
+                                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Passkey 1 (Default: 123456)</label>
+                                <input type="password" className="input" value={passkey1} onChange={(e) => setPasskey1(e.target.value)} />
+                            </div>
+
+                            <div>
+                                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Passkey 2 (Default: 654321)</label>
+                                <input type="password" className="input" value={passkey2} onChange={(e) => setPasskey2(e.target.value)} />
+                            </div>
+
+                            {passkeyError && (
+                                <div style={{ fontSize: '12px', color: 'var(--danger)', fontWeight: 700 }}>{passkeyError}</div>
+                            )}
+                        </div>
+
+                        <button className="button primary" style={{ width: '100%' }} onClick={verifyPasskeys}>
+                            Verify Passkeys & Download Form
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -1,109 +1,109 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, LayoutDashboard, CheckSquare, ScrollText, BrainCircuit, GraduationCap, Users } from "lucide-react";
 
 export default function AdminDashboardLayout({ children }) {
     const pathname = usePathname();
     const router = useRouter();
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
-    const navItems = [
-        { name: "Overview", href: "/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-        { name: "Student Directory", href: "/dashboard/students", icon: <Users className="w-4 h-4" /> },
-        { name: "Approvals", href: "/dashboard/approvals", icon: <CheckSquare className="w-4 h-4" /> },
-        { name: "System Logs", href: "/dashboard/logs", icon: <ScrollText className="w-4 h-4" /> },
-        { name: "Scholarships", href: "/dashboard/scholarships", icon: <GraduationCap className="w-4 h-4" /> },
-        { name: "Knowledge Base", href: "/dashboard/learning", icon: <BrainCircuit className="w-4 h-4" /> },
+    const navItemsPrimary = [
+        { name: "Overview", href: "/dashboard", icon: "⌂" },
+        { name: "Approvals", href: "/dashboard/approvals", icon: "✓", count: 5 },
+        { name: "Scholarships", href: "/dashboard/scholarships", icon: "♢" },
+        { name: "Learning Data", href: "/dashboard/learning", icon: "▤" },
+        { name: "Students", href: "/dashboard/students", icon: "👥" },
     ];
 
+    const getPageTitle = () => {
+        if (pathname === '/dashboard') return { title: 'Overview', desc: 'College Admin Command Center & Analytics.' };
+        if (pathname === '/dashboard/approvals') return { title: 'Approvals & Verification', desc: 'Review student document verification & scholarship requests.' };
+        if (pathname === '/dashboard/scholarships') return { title: 'Scholarship Management', desc: 'Manage 14 scholarship categories and eligibility rules.' };
+        if (pathname === '/dashboard/learning') return { title: 'AI Training & KB Data', desc: 'Upload college circulars, exam dates and policy FAQs.' };
+        if (pathname === '/dashboard/students') return { title: 'Student Directory', desc: 'Manage enrolled student records and scholarship statuses.' };
+        return { title: 'Admin Portal', desc: 'College Admin Management System.' };
+    };
+
+    const pageMeta = getPageTitle();
 
     return (
-        <div className="dashboard-wrapper">
-            {/* Sidebar */}
-            <aside className="sidebar">
-                <div className="sidebar-header">
-                    <div className="sidebar-brand-icon">
-                        <span style={{ fontSize: "1.1rem", color: "#fff", fontWeight: "900" }}>S</span>
+        <div className="app">
+            {/* SIDEBAR */}
+            <aside className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
+                <div className="brand">
+                    <div className="brand-logo" onClick={() => setIsCollapsed(!isCollapsed)} style={{ cursor: 'pointer' }}>
+                        <span>◆</span>
                     </div>
-                    <span>Sona Admin</span>
+
+                    <div>
+                        <div className="brand-name">ADMIN</div>
+                        <div className="brand-subtitle">PORTAL</div>
+                    </div>
                 </div>
 
-                <nav className="sidebar-nav">
-                    {navItems.map((item) => {
+                {/* NAVIGATION */}
+                <nav className="navigation">
+                    {navItemsPrimary.map((item) => {
                         const isActive = pathname === item.href;
                         return (
                             <Link
-                                key={item.href}
+                                key={item.name}
                                 href={item.href}
-                                className={`nav-link ${isActive ? "active" : ""}`}
+                                className={`nav-item ${isActive ? "active" : ""}`}
                             >
-                                <span style={{ fontSize: "1.1rem", color: isActive ? 'var(--primary)' : 'var(--text-muted)' }}>{item.icon}</span>
-                                <span>{item.name}</span>
+                                <span className="nav-icon">{item.icon}</span>
+                                <span className="nav-text">{item.name}</span>
+                                {item.count && (
+                                    <span className="notification-count">{item.count}</span>
+                                )}
                             </Link>
                         );
                     })}
                 </nav>
 
-                <div className="sidebar-footer">
-                    {/* Information Card */}
-                    <div className="sidebar-info-card">
-                        <p style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: "0.25rem" }}>Sona Campus System</p>
-                        <p>Manage courses, student records, document approvals and AI knowledge base training.</p>
-                    </div>
+                <div className="sidebar-bottom">
+                    <div className="sidebar-divider"></div>
 
-                    <div className="user-info">
+                    {/* USER CARD */}
+                    <div className="user-card">
                         <div className="avatar">AD</div>
-                        <div style={{ flex: 1 }}>
-                            <p style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>System Admin</p>
-                            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Administrator</p>
+                        <div className="user-info">
+                            <div className="user-name">Admin Portal</div>
+                            <div className="user-course">System Manager</div>
                         </div>
                     </div>
-                    <button
-                        onClick={() => router.push('/')}
-                        style={{
-                            marginTop: '0.5rem',
-                            width: '100%',
-                            padding: '0.75rem',
-                            fontSize: '0.8rem',
-                            fontWeight: 700,
-                            color: 'var(--accent-rose)',
-                            background: 'rgba(244, 63, 94, 0.07)',
-                            border: '1px solid rgba(244, 63, 94, 0.18)',
-                            borderRadius: '0.75rem',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.5rem'
-                        }}>
-                        <LogOut className="w-3.5 h-3.5" />
-                        <span>Sign Out</span>
-                    </button>
+
+                    {/* CAMPUS ART */}
+                    <div className="campus-art">
+                        <div className="campus-building">🏛</div>
+                    </div>
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <div className="main-area">
-                <header className="top-bar">
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '-0.025em' }}>
-                        {pathname === "/dashboard" ? "Dashboard Overview" :
-                         pathname === "/dashboard/students" ? "Student Directory" :
-                         pathname === "/dashboard/approvals" ? "Document Approvals" :
-                         pathname === "/dashboard/logs" ? "System Activity Logs" :
-                         pathname === "/dashboard/scholarships" ? "Scholarship Criteria Manager" :
-                         pathname === "/dashboard/learning" ? "Knowledge Base" : "Admin Panel"}
-                    </h2>
+            {/* MAIN AREA */}
+            <main className="main">
+                {/* TOP BAR */}
+                <header className="topbar">
+                    <div>
+                        <h1 className="page-title">{pageMeta.title}</h1>
+                        <p className="page-description">{pageMeta.desc}</p>
+                    </div>
 
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                        {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    <div className="topbar-actions">
+                        <div className="search">
+                            <span className="search-icon">⌕</span>
+                            <input type="text" placeholder="Search admin records..." />
+                        </div>
                     </div>
                 </header>
 
-                <main className="page-scroll">
+                {/* PAGE CONTENT */}
+                <section className="content">
                     {children}
-                </main>
-            </div>
+                </section>
+            </main>
         </div>
     );
 }

@@ -1,356 +1,186 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Users, Search, RefreshCw, Save, Activity, Check, Edit2, ShieldAlert, BookOpen, Clock, FileText } from "lucide-react";
+import { useState } from "react";
 
 export default function StudentDirectory() {
-    const [students, setStudents] = useState([]);
-    const [logs, setLogs] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [selectedStudent, setSelectedStudent] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
-    const [statusMsg, setStatusMsg] = useState("");
-    
-    // Editor Form State
-    const [editForm, setEditForm] = useState({
-        name: "",
-        dob: "",
-        cgpa: 0,
-        department: "",
-        year: 1,
-        family_income: 0,
-        attendance_pct: 0,
-        lectures_attended: 0,
-        lectures_total: 40,
-        labs_attended: 0,
-        labs_total: 15,
-        study_hours: 0
-    });
-
-    const fetchStudentsAndLogs = async () => {
-        setLoading(true);
-        try {
-            const sRes = await fetch("http://localhost:8000/api/students/all");
-            const lRes = await fetch("http://localhost:8000/api/logs/all");
-            
-            if (sRes.ok) {
-                const sData = await sRes.json();
-                setStudents(sData);
-                if (sData.length > 0 && !selectedStudent) {
-                    handleSelectStudent(sData[0]);
-                } else if (selectedStudent) {
-                    const updated = sData.find(s => s.admission_no === selectedStudent.admission_no);
-                    if (updated) handleSelectStudent(updated);
-                }
-            }
-            if (lRes.ok) {
-                const lData = await lRes.json();
-                setLogs(lData);
-            }
-        } catch (error) {
-            console.error("Failed to load students directory:", error);
-        } finally {
-            setLoading(false);
+    const [students] = useState([
+        {
+            id: 1,
+            admission_no: "2023CS001",
+            name: "Pranesh K K",
+            department: "CSE",
+            year: "3rd Year (Sem 5)",
+            cgpa: 8.5,
+            family_income: 250000,
+            status: "Eligible for Merit Scholarship",
+            email: "pranesh.kk@college.edu"
+        },
+        {
+            id: 2,
+            admission_no: "2023CS042",
+            name: "Ananya Ramesh",
+            department: "CSE",
+            year: "3rd Year (Sem 5)",
+            cgpa: 9.1,
+            family_income: 180000,
+            status: "AICTE Pragati Approved",
+            email: "ananya.r@college.edu"
+        },
+        {
+            id: 3,
+            admission_no: "2023EC015",
+            name: "Karthik Subramanian",
+            department: "ECE",
+            year: "2nd Year (Sem 3)",
+            cgpa: 7.8,
+            family_income: 220000,
+            status: "Post-Matric Approved",
+            email: "karthik.s@college.edu"
+        },
+        {
+            id: 4,
+            admission_no: "2023ME088",
+            name: "Rahul Viswanathan",
+            department: "MECH",
+            year: "4th Year (Sem 7)",
+            cgpa: 8.2,
+            family_income: 350000,
+            status: "Sports Waiver Active",
+            email: "rahul.v@college.edu"
         }
-    };
+    ]);
 
-    useEffect(() => {
-        fetchStudentsAndLogs();
-    }, []);
-
-    const handleSelectStudent = (student) => {
-        setSelectedStudent(student);
-        setEditForm({
-            name: student.name || "",
-            dob: student.dob || "",
-            cgpa: student.cgpa || 0,
-            department: student.department || "",
-            year: student.year || 1,
-            family_income: student.family_income || 0,
-            attendance_pct: student.attendance_pct || 0,
-            lectures_attended: student.lectures_attended || 0,
-            lectures_total: student.lectures_total || 40,
-            labs_attended: student.labs_attended || 0,
-            labs_total: student.labs_total || 15,
-            study_hours: student.study_hours || 0
-        });
-    };
-
-    const handleSave = async (e) => {
-        e.preventDefault();
-        if (!selectedStudent) return;
-        
-        try {
-            const res = await fetch(`http://localhost:8000/api/students/${selectedStudent.admission_no}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(editForm)
-            });
-
-            if (res.ok) {
-                setStatusMsg("Student details updated successfully!");
-                setTimeout(() => setStatusMsg(""), 4000);
-                fetchStudentsAndLogs();
-            } else {
-                setStatusMsg("Error updating student details.");
-                setTimeout(() => setStatusMsg(""), 4000);
-            }
-        } catch (error) {
-            console.error("Update request error:", error);
-            setStatusMsg("Network error during save operation.");
-            setTimeout(() => setStatusMsg(""), 4000);
-        }
-    };
+    const [selectedStudentModal, setSelectedStudentModal] = useState(null);
 
     const filteredStudents = students.filter(s => 
-        (s.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (s.admission_no || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (s.department || "").toLowerCase().includes(searchQuery.toLowerCase())
+        !searchQuery || 
+        s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        s.admission_no.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.department.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const studentLogs = logs.filter(l => l.user_id === selectedStudent?.admission_no);
-
     return (
-        <div className="space-y-6 pb-12">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-extrabold mb-1 tracking-tight">Student Directory</h1>
-                    <p className="text-muted font-medium text-sm">Manage student profiles, academic metrics, and track individual bot audit trails.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+            {/* HERO PANEL */}
+            <section className="panel" style={{ padding: '28px' }}>
+                <span className="badge" style={{ marginBottom: '12px' }}>👥 Student Directory & Academic Records</span>
+                <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', marginBottom: '8px' }}>
+                    Enrolled Students Administration
+                </h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.6', maxWidth: '750px', marginBottom: '16px' }}>
+                    View and manage enrolled student academic profiles, CGPA scores, annual family income declarations, and approved scholarship statuses.
+                </p>
+
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <span className="badge">{students.length} Total Registered Students</span>
+                    <span className="badge success">✓ 3.2K Campus Active</span>
                 </div>
-                <button onClick={fetchStudentsAndLogs} className="p-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl shadow-sm transition-all active:scale-95 cursor-pointer">
-                    <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                </button>
+            </section>
+
+            {/* SEARCH TOOLBAR */}
+            <div className="toolbar">
+                <div className="search toolbar-search">
+                    <span className="search-icon">⌕</span>
+                    <input
+                        type="text"
+                        placeholder="Search student by name, roll ID or department..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
             </div>
 
-            {statusMsg && (
-                <div className={`p-4 rounded-xl text-xs font-bold uppercase tracking-wider border ${
-                    statusMsg.includes("success") ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"
-                }`}>
-                    {statusMsg}
-                </div>
-            )}
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column: Student List Selection */}
-                <div className="lg:col-span-1 space-y-4">
-                    <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <input
-                            type="text"
-                            className="w-full h-12 pl-12 pr-4 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-primary transition-all"
-                            placeholder="Search by name, ID, or dept..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm flex flex-col max-h-[600px] overflow-y-auto scrollbar-hide">
-                        {loading && students.length === 0 ? (
-                            <div className="text-center py-12">
-                                <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
-                                <p className="text-slate-400 text-xs font-bold uppercase">Loading directory...</p>
-                            </div>
-                        ) : filteredStudents.length === 0 ? (
-                            <div className="text-center py-12 text-slate-400 text-sm font-semibold italic">No students found.</div>
-                        ) : (
-                            filteredStudents.map((s) => {
-                                const isSelected = selectedStudent?.admission_no === s.admission_no;
-                                return (
-                                    <div
-                                        key={s.admission_no}
-                                        onClick={() => handleSelectStudent(s)}
-                                        className={`p-4 border-b border-slate-50 cursor-pointer transition-all flex items-center justify-between ${
-                                            isSelected ? "bg-slate-100 border-l-4 border-l-primary" : "hover:bg-slate-50"
-                                        }`}
-                                    >
-                                        <div>
-                                            <h4 className="font-bold text-slate-800 text-sm">{s.name}</h4>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{s.admission_no} • {s.department} Year {s.year}</p>
-                                        </div>
-                                        <span className="text-xs font-black bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg font-mono">
-                                            {s.cgpa} GPA
-                                        </span>
-                                    </div>
-                                );
-                            })
-                        )}
+            {/* STUDENTS DIRECTORY PANEL */}
+            <section className="panel">
+                <div className="panel-header">
+                    <div>
+                        <div className="panel-title">Student Records ({filteredStudents.length})</div>
+                        <div className="panel-subtitle">Directory of student profiles and scholarship statuses</div>
                     </div>
                 </div>
 
-                {/* Right Columns: Profile Editor and Logs */}
-                <div className="lg:col-span-2 space-y-8">
-                    {selectedStudent ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            
-                            {/* Student Profile Info Form Card */}
-                            <div className="card p-6 bg-white border border-slate-100 shadow-xl rounded-3xl flex flex-col justify-between" style={{ background: 'rgba(255, 255, 255, 0.9)' }}>
-                                <form onSubmit={handleSave} className="space-y-4">
-                                    <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-4">
-                                        <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary shrink-0">
-                                            <Edit2 className="w-5 h-5" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-extrabold text-slate-800 text-base" style={{ fontWeight: 800 }}>Profile Editor</h3>
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Editing: {selectedStudent.admission_no}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="flex flex-col gap-1">
-                                            <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Full Name</label>
-                                            <input
-                                                type="text"
-                                                className="bg-slate-50 border border-slate-100 rounded-xl p-2 text-xs font-semibold text-slate-700 outline-none focus:bg-white focus:border-primary"
-                                                value={editForm.name}
-                                                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="flex flex-col gap-1">
-                                            <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Date of Birth</label>
-                                            <input
-                                                type="text"
-                                                className="bg-slate-50 border border-slate-100 rounded-xl p-2 text-xs font-semibold text-slate-700 outline-none focus:bg-white focus:border-primary"
-                                                value={editForm.dob}
-                                                onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="flex flex-col gap-1">
-                                            <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider">CGPA</label>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                className="bg-slate-50 border border-slate-100 rounded-xl p-2 text-xs font-semibold text-slate-700 outline-none focus:bg-white focus:border-primary"
-                                                value={editForm.cgpa}
-                                                onChange={(e) => setEditForm({ ...editForm, cgpa: parseFloat(e.target.value) || 0 })}
-                                            />
-                                        </div>
-                                        <div className="flex flex-col gap-1">
-                                            <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Department</label>
-                                            <input
-                                                type="text"
-                                                className="bg-slate-50 border border-slate-100 rounded-xl p-2 text-xs font-semibold text-slate-700 outline-none focus:bg-white focus:border-primary"
-                                                value={editForm.department}
-                                                onChange={(e) => setEditForm({ ...editForm, department: e.target.value.toUpperCase() })}
-                                            />
-                                        </div>
-                                        <div className="flex flex-col gap-1">
-                                            <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Academic Year</label>
-                                            <input
-                                                type="number"
-                                                className="bg-slate-50 border border-slate-100 rounded-xl p-2 text-xs font-semibold text-slate-700 outline-none focus:bg-white focus:border-primary"
-                                                value={editForm.year}
-                                                onChange={(e) => setEditForm({ ...editForm, year: parseInt(e.target.value) || 1 })}
-                                            />
-                                        </div>
-                                        <div className="flex flex-col gap-1">
-                                            <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Family Income (₹)</label>
-                                            <input
-                                                type="number"
-                                                className="bg-slate-50 border border-slate-100 rounded-xl p-2 text-xs font-semibold text-slate-700 outline-none focus:bg-white focus:border-primary"
-                                                value={editForm.family_income}
-                                                onChange={(e) => setEditForm({ ...editForm, family_income: parseFloat(e.target.value) || 0 })}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="border-t border-slate-100 my-4 pt-4">
-                                        <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3">Attendance & Study Analytics</h4>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="flex flex-col gap-1">
-                                                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Attendance %</label>
-                                                <input
-                                                    type="number"
-                                                    className="bg-slate-50 border border-slate-100 rounded-xl p-2 text-xs font-semibold text-slate-700 outline-none focus:bg-white focus:border-primary"
-                                                    value={editForm.attendance_pct}
-                                                    onChange={(e) => setEditForm({ ...editForm, attendance_pct: parseInt(e.target.value) || 0 })}
-                                                />
-                                            </div>
-                                            <div className="flex flex-col gap-1">
-                                                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Lectures Attended</label>
-                                                <input
-                                                    type="number"
-                                                    className="bg-slate-50 border border-slate-100 rounded-xl p-2 text-xs font-semibold text-slate-700 outline-none focus:bg-white focus:border-primary"
-                                                    value={editForm.lectures_attended}
-                                                    onChange={(e) => setEditForm({ ...editForm, lectures_attended: parseInt(e.target.value) || 0 })}
-                                                />
-                                            </div>
-                                            <div className="flex flex-col gap-1">
-                                                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Labs Attended</label>
-                                                <input
-                                                    type="number"
-                                                    className="bg-slate-50 border border-slate-100 rounded-xl p-2 text-xs font-semibold text-slate-700 outline-none focus:bg-white focus:border-primary"
-                                                    value={editForm.labs_attended}
-                                                    onChange={(e) => setEditForm({ ...editForm, labs_attended: parseInt(e.target.value) || 0 })}
-                                                />
-                                            </div>
-                                            <div className="flex flex-col gap-1">
-                                                <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Study Hours</label>
-                                                <input
-                                                    type="number"
-                                                    step="0.1"
-                                                    className="bg-slate-50 border border-slate-100 rounded-xl p-2 text-xs font-semibold text-slate-700 outline-none focus:bg-white focus:border-primary"
-                                                    value={editForm.study_hours}
-                                                    onChange={(e) => setEditForm({ ...editForm, study_hours: parseFloat(e.target.value) || 0 })}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        type="submit"
-                                        className="w-full btn-primary h-12 rounded-xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider text-white transition-all active:scale-[0.98] shadow-lg shadow-primary/20"
-                                        style={{ background: 'var(--orange-grad)' }}
-                                    >
-                                        <Save className="w-4 h-4" />
-                                        <span>Save Changes</span>
-                                    </button>
-                                </form>
-                            </div>
-
-                            {/* Audit Logs Column */}
-                            <div className="flex flex-col gap-4">
-                                <div className="card p-6 bg-[#1e2025] text-white rounded-3xl border-none shadow-xl flex-1 flex flex-col overflow-hidden max-h-[580px]">
-                                    <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
-                                        <div className="flex items-center gap-2">
-                                            <Activity className="w-4 h-4 text-primary" />
-                                            <h3 className="font-extrabold text-sm uppercase tracking-widest text-slate-300">Bot Audit Log</h3>
-                                        </div>
-                                        <span className="text-[10px] bg-slate-800 text-slate-400 font-bold px-2 py-1 rounded-full">{studentLogs.length} Actions</span>
-                                    </div>
-
-                                    <div className="flex-1 overflow-y-auto scrollbar-hide space-y-3.5 pr-1">
-                                        {studentLogs.length === 0 ? (
-                                            <p className="text-slate-500 text-xs font-bold text-center py-16 italic">No chatbot interactions recorded for this student yet.</p>
-                                        ) : (
-                                            studentLogs.map((log) => (
-                                                <div key={log.id} className="p-3 bg-slate-800/40 rounded-2xl border border-slate-800 flex flex-col gap-1.5 hover:bg-slate-800/60 transition-all">
-                                                    <div className="flex items-center justify-between">
-                                                        <span className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-full ${
-                                                            log.action_type === "CHAT" ? "bg-indigo-500/10 text-indigo-400" :
-                                                            log.action_type === "UPLOAD" ? "bg-emerald-500/10 text-emerald-400" :
-                                                            "bg-slate-700 text-slate-400"
-                                                        }`}>
-                                                            {log.action_type}
-                                                        </span>
-                                                        <span className="text-[8px] font-bold text-slate-500">{new Date(log.timestamp).toLocaleString()}</span>
-                                                    </div>
-                                                    <p className="text-xs text-slate-300 font-medium leading-relaxed break-words">{log.details}</p>
-                                                </div>
-                                            ))
-                                        )}
+                <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {filteredStudents.map((s) => (
+                        <div key={s.id} className="data-row" style={{ flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: '280px' }}>
+                                <div className="data-icon" style={{ background: 'rgba(91, 53, 232, 0.2)', color: '#a855f7' }}>
+                                    👤
+                                </div>
+                                <div>
+                                    <div className="data-title" style={{ fontSize: '15px', color: '#ffffff' }}>{s.name} ({s.admission_no})</div>
+                                    <div className="data-meta" style={{ marginTop: '4px' }}>
+                                        <span className="badge">Dept: {s.department}</span>
+                                        <span className="badge">CGPA: {s.cgpa}</span>
+                                        <span className="badge">Income: ₹{(s.family_income / 100000).toFixed(1)}L</span>
+                                        <span className="badge success">{s.status}</span>
                                     </div>
                                 </div>
                             </div>
+
+                            <button className="button primary" onClick={() => setSelectedStudentModal(s)}>
+                                👁 View Profile Record
+                            </button>
                         </div>
-                    ) : (
-                        <div className="card p-20 text-center border-2 border-dashed border-slate-200 rounded-[2.5rem] bg-slate-50/10 flex flex-col items-center justify-center">
-                            <Users className="w-12 h-12 text-slate-300 mb-4" />
-                            <h3 className="font-bold text-lg text-slate-600 mb-1">Select a student</h3>
-                            <p className="text-slate-400 text-xs max-w-xs leading-relaxed">Choose a student record from the directory sidebar list to manage details and audit logs.</p>
-                        </div>
-                    )}
+                    ))}
                 </div>
+            </section>
+
+            {/* STUDENT PROFILE MODAL */}
+            {selectedStudentModal && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                    <div className="panel" style={{ maxWidth: '540px', width: '100%', padding: '28px', background: '#0a142b', border: '1px solid var(--border-hover)', borderRadius: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                            <div>
+                                <span className="badge success" style={{ marginBottom: '6px' }}>Student Academic Record</span>
+                                <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#ffffff' }}>{selectedStudentModal.name}</h3>
+                                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Roll ID: {selectedStudentModal.admission_no}</div>
+                            </div>
+                            <button className="button danger" onClick={() => setSelectedStudentModal(null)} style={{ height: '32px', padding: '0 10px' }}>✕</button>
+                        </div>
+
+                        <div style={{ background: '#081229', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '18px' }}>
+                            <div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Academic Department</div>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{selectedStudentModal.department}</div>
+                            </div>
+
+                            <div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Academic Year / Sem</div>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{selectedStudentModal.year}</div>
+                            </div>
+
+                            <div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Current Cumulative CGPA</div>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--success)' }}>{selectedStudentModal.cgpa} CGPA</div>
+                            </div>
+
+                            <div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Family Annual Income</div>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>₹{(selectedStudentModal.family_income / 100000).toFixed(1)} Lakhs</div>
+                            </div>
+
+                            <div style={{ gridColumn: 'span 2' }}>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Official Email</div>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: '#818cf8' }}>{selectedStudentModal.email}</div>
+                            </div>
+
+                            <div style={{ gridColumn: 'span 2' }}>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Scholarship Eligibility Status</div>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--success)' }}>{selectedStudentModal.status}</div>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <button className="button" onClick={() => setSelectedStudentModal(null)}>Close Record</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* FOOTER DISCLAIMER */}
+            <div className="disclaimer">
+                🛡️ Admin Student Directory — Confidential student academic records.
             </div>
         </div>
     );

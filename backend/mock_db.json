@@ -13,7 +13,11 @@
             "lectures_total": 40,
             "labs_attended": 10,
             "labs_total": 15,
-            "study_hours": 12.5
+            "study_hours": 12.5,
+            "password": "Pranesh@2005",
+            "passkey_1": "1234",
+            "passkey_2": "1234",
+            "has_custom_password": true
         },
         "2023CS002": {
             "name": "Alex Smith",
@@ -139,6 +143,1056 @@
             "action_type": "REQUEST",
             "details": "Method: POST | Path: /api/chat/student | Origin: None | Status: 200 | Duration: 0.0030s",
             "timestamp": "2026-07-17T18:21:10.109266"
+        },
+        "a8d22452-9ef7-4e8b-ad03-d4d62a321247": {
+            "user_id": "SYSTEM",
+            "action_type": "SEED",
+            "details": "Successfully seeded 14 categories scholarship database.",
+            "timestamp": "2026-08-08T09:27:38.562187"
+        },
+        "d4f17593-cff6-48e5-ade9-7d613f5ff3f0": {
+            "user_id": "SYSTEM",
+            "action_type": "SEED",
+            "details": "Successfully seeded 14 categories scholarship database.",
+            "timestamp": "2026-08-08T09:27:56.983551"
+        },
+        "3eec3494-1376-4f7e-be79-691d622bda2a": {
+            "user_id": "SYSTEM",
+            "action_type": "SEED",
+            "details": "Successfully seeded 14 categories scholarship database.",
+            "timestamp": "2026-08-08T09:31:05.710395"
+        },
+        "489a8c28-ce3f-4681-892b-271466b77ac0": {
+            "user_id": "SYSTEM",
+            "action_type": "SEED",
+            "details": "Successfully seeded 14 categories scholarship database.",
+            "timestamp": "2026-08-08T09:31:28.785597"
+        },
+        "8f44501d-30e2-4042-8305-bcd094f6c255": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/auth/student-status/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0020s",
+            "timestamp": "2026-08-08T09:33:00.190353"
+        },
+        "76d2f1f2-94a0-4324-a1c5-417d037d1471": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: OPTIONS | Path: /api/auth/student | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0002s",
+            "timestamp": "2026-08-08T09:33:01.661184"
+        },
+        "f2ee9148-9658-48bb-8550-3b4c46497472": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /api/auth/student | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0014s",
+            "timestamp": "2026-08-08T09:33:01.665848"
+        },
+        "7c716983-db03-4e3f-9946-09e01325d466": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: OPTIONS | Path: /api/auth/setup-credentials | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0002s",
+            "timestamp": "2026-08-08T09:33:12.481645"
+        },
+        "0fbaa62f-a5f2-428e-b6c0-d7dc5e480965": {
+            "user_id": "2023CS001",
+            "action_type": "AUTH_SETUP",
+            "details": "Configured custom password & Double Passkeys.",
+            "timestamp": "2026-08-08T09:33:12.487255"
+        },
+        "e2fb7127-0208-47e5-92f6-f5a40c17d9f1": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /api/auth/setup-credentials | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0049s",
+            "timestamp": "2026-08-08T09:33:12.489579"
+        },
+        "aa4c3a2e-d0c4-4411-a421-6652d97effb0": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0009s",
+            "timestamp": "2026-08-08T09:33:13.253404"
+        },
+        "99d807f2-fd11-47ab-8b89-a9825e5a78f3": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T09:33:13.257140"
+        },
+        "06d79476-47fa-4b91-9f6a-3e179a6aefd6": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0059s",
+            "timestamp": "2026-08-08T09:33:18.246258"
+        },
+        "d7e66898-0169-4b4a-9f7f-84be560c1813": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T09:33:18.249873"
+        },
+        "3b93e8fc-1dd6-4c12-a00f-366dcce866fe": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0008s",
+            "timestamp": "2026-08-08T09:33:20.695279"
+        },
+        "71d071a2-58dd-4dee-bbbd-e5453cac85d8": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0037s",
+            "timestamp": "2026-08-08T09:33:20.701926"
+        },
+        "68c3391c-9d03-425a-9647-02a97604eaa9": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0058s",
+            "timestamp": "2026-08-08T09:33:20.704104"
+        },
+        "f39800fb-a888-4457-84ce-149b5899ecb1": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0073s",
+            "timestamp": "2026-08-08T09:33:20.706409"
+        },
+        "d96f7816-364e-4e63-8fc4-29941872df89": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0022s",
+            "timestamp": "2026-08-08T09:33:20.711483"
+        },
+        "5ffe1fcb-92ff-42c6-a147-fd47bcf60f05": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0046s",
+            "timestamp": "2026-08-08T09:33:20.713827"
+        },
+        "e61236aa-b61c-40cf-9e35-05499f96b3b7": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0009s",
+            "timestamp": "2026-08-08T09:34:29.883744"
+        },
+        "c0504162-5d9c-4e98-959a-734e84c96df6": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T09:34:29.887323"
+        },
+        "d2a37192-e351-4582-bcb4-83c9b63cfd1a": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0024s",
+            "timestamp": "2026-08-08T09:58:43.703250"
+        },
+        "b343ad39-8da2-465c-a60c-6c46b9d63034": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0048s",
+            "timestamp": "2026-08-08T09:58:43.705741"
+        },
+        "7f69dd3d-b57d-4667-af1a-e786a9e59165": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0096s",
+            "timestamp": "2026-08-08T09:58:43.710608"
+        },
+        "074e897c-1c75-4bfd-b090-1da7bd50eb5d": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0050s",
+            "timestamp": "2026-08-08T09:58:43.715332"
+        },
+        "d91013b3-517c-4372-8984-4661d077ec16": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0043s",
+            "timestamp": "2026-08-08T09:58:43.717919"
+        },
+        "ef16ceeb-57eb-4624-9627-f52a419cf0b0": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0066s",
+            "timestamp": "2026-08-08T09:58:43.721530"
+        },
+        "f3fbd6b7-e93e-4732-852d-98c2069847df": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0016s",
+            "timestamp": "2026-08-08T09:58:49.222049"
+        },
+        "65f01359-f2be-488d-8a5d-7de66a7dcac4": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0052s",
+            "timestamp": "2026-08-08T09:58:49.225091"
+        },
+        "9fb9234a-d284-4b2a-997d-4c3f79ce6c49": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0071s",
+            "timestamp": "2026-08-08T09:58:49.227488"
+        },
+        "0afc12b4-ce15-4a58-a5af-bfc9732b0355": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0037s",
+            "timestamp": "2026-08-08T09:59:01.429148"
+        },
+        "1e7219aa-a336-4186-8f59-480b16494ed9": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0064s",
+            "timestamp": "2026-08-08T09:59:01.431975"
+        },
+        "a96344d1-2ec7-444e-9ba5-427e938d5737": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0091s",
+            "timestamp": "2026-08-08T09:59:01.434739"
+        },
+        "5fabc9bf-9ee0-41ce-8cc8-c2f5942ddeea": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0008s",
+            "timestamp": "2026-08-08T09:59:31.587164"
+        },
+        "d17cdbfa-d465-4ce2-923e-65028bd67a81": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T09:59:31.590938"
+        },
+        "a1d44527-9375-4535-809c-3714e9b1cc93": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0014s",
+            "timestamp": "2026-08-08T09:59:31.595547"
+        },
+        "68e6a025-3e03-4741-9087-e0cece4f45ba": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/logs/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0011s",
+            "timestamp": "2026-08-08T10:14:23.092529"
+        },
+        "b3ab1ef3-3468-44b2-9af8-dd7840f021b0": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/logs/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T10:14:23.097060"
+        },
+        "2128a180-4d1c-481b-96dc-3fe45edb6c07": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0009s",
+            "timestamp": "2026-08-08T10:14:32.010508"
+        },
+        "e25eed4e-9768-4eaa-9928-ba600a25f3d0": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T10:14:32.014390"
+        },
+        "973aea74-d69d-46e5-9799-df9412011a3e": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/logs/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T10:14:32.018010"
+        },
+        "5fa342c4-ebf7-4bba-a486-f32fc586fa7a": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/logs/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0005s",
+            "timestamp": "2026-08-08T10:14:32.021231"
+        },
+        "5872bc17-4b42-4919-8f6c-7d032c5517eb": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: OPTIONS | Path: /api/students/2023CS001 | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0002s",
+            "timestamp": "2026-08-08T10:14:35.679950"
+        },
+        "80692fa3-aaeb-4750-938b-94ef9e70576d": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: PUT | Path: /api/students/2023CS001 | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0053s",
+            "timestamp": "2026-08-08T10:14:35.688726"
+        },
+        "a743386f-e3e8-4d79-ab1c-d2a67166dacb": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T10:14:35.693210"
+        },
+        "276d3cb9-9cf7-419b-bb76-49f528763cf3": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/logs/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T10:14:35.697124"
+        },
+        "564c6447-0517-4510-a3ee-dc9a4e30b9d8": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/admin/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0009s",
+            "timestamp": "2026-08-08T10:14:38.821406"
+        },
+        "b6195e5e-6200-4608-a50f-b40c353ab096": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/admin/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T10:14:38.825573"
+        },
+        "d07edc19-97b3-4a5d-b5c5-ac1051ac7dae": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0017s",
+            "timestamp": "2026-08-08T10:14:47.793960"
+        },
+        "dba461f8-1994-48d1-b622-fa6d9f0f4410": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0016s",
+            "timestamp": "2026-08-08T10:14:47.799205"
+        },
+        "44b40964-b8fe-42a6-b604-f0dc59f47b1d": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /admin/learn/status | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0026s",
+            "timestamp": "2026-08-08T10:14:55.010281"
+        },
+        "4fc0ee56-6b77-4ec9-bcab-d1c6291d9b78": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /admin/learn/status | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T10:14:55.014479"
+        },
+        "5d1f1650-838b-4689-abe4-ecc1c8845569": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0062s",
+            "timestamp": "2026-08-08T11:38:50.194534"
+        },
+        "a9c2b72b-afcb-4c9b-8058-5fceccea9689": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T11:38:50.203179"
+        },
+        "589e9587-6d6e-4db0-8c35-085d14bbb8af": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/auth/student-status/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0013s",
+            "timestamp": "2026-08-08T11:38:56.674869"
+        },
+        "2b4448b5-6608-4c24-b05e-047a20d2e274": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/auth/student-status/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T11:38:56.679178"
+        },
+        "3fcfc23c-1810-4e66-9bc5-42c4f1f4798e": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: OPTIONS | Path: /api/auth/student | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0003s",
+            "timestamp": "2026-08-08T11:39:17.406855"
+        },
+        "3d501298-d249-4091-8313-b78672659b7c": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /api/auth/student | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0024s",
+            "timestamp": "2026-08-08T11:39:17.413247"
+        },
+        "696579c0-d998-493b-908e-b7929dea0ee8": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T11:39:17.464596"
+        },
+        "f7b8258f-aa65-4eda-b5df-75d522b9878a": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T11:39:17.468608"
+        },
+        "8614d4e4-d455-452e-a86d-0cfcda6271b5": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0014s",
+            "timestamp": "2026-08-08T11:39:59.036189"
+        },
+        "3f643e55-7644-4dcb-823f-9166fa31e3ff": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T11:39:59.041298"
+        },
+        "5f90ea36-0c27-4363-aeeb-c54989b77b96": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0008s",
+            "timestamp": "2026-08-08T11:40:08.083360"
+        },
+        "0451efc4-0c79-4475-ae20-e92a4b69031a": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0015s",
+            "timestamp": "2026-08-08T11:40:08.089039"
+        },
+        "f5ee0c3b-f4fa-49c6-81a9-5ed4a38754c0": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0019s",
+            "timestamp": "2026-08-08T11:40:08.095233"
+        },
+        "b438c09c-cca3-4d13-a96a-a750f3233c80": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T11:40:08.099683"
+        },
+        "4b1fbf1c-9f97-4dd3-bf0f-8c740dd0e95a": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0009s",
+            "timestamp": "2026-08-08T11:40:08.103733"
+        },
+        "4023da7b-67f6-4f22-8eaa-02bb4a4ac8d6": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0015s",
+            "timestamp": "2026-08-08T11:40:08.109641"
+        },
+        "e1c8b472-ad7c-4a2d-913c-a40b7413e68b": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0008s",
+            "timestamp": "2026-08-08T11:40:10.418201"
+        },
+        "d6beeb88-d280-425b-83ed-6c82545daa25": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T11:40:10.423382"
+        },
+        "dea5954a-2845-4963-9098-9c5c5efdb92e": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T11:40:14.009924"
+        },
+        "cd235f69-e23e-42f1-bc2a-e90a90c59e8f": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0078s",
+            "timestamp": "2026-08-08T11:40:14.021700"
+        },
+        "d1de6029-ff18-4d7b-a881-b89fc6e07f67": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0113s",
+            "timestamp": "2026-08-08T11:40:14.025259"
+        },
+        "60b7b5f8-caa7-4eea-8725-30fecf5f09e6": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0133s",
+            "timestamp": "2026-08-08T11:40:14.028129"
+        },
+        "79c35310-0238-4e23-ae99-c53b6e4ee029": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0018s",
+            "timestamp": "2026-08-08T11:40:14.033276"
+        },
+        "2e72061e-5490-4d01-971c-dc9149135575": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0051s",
+            "timestamp": "2026-08-08T11:40:14.036178"
+        },
+        "4e8cbb23-3951-454a-a331-a3c180e34696": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: OPTIONS | Path: /api/chat/student | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0002s",
+            "timestamp": "2026-08-08T11:41:01.091664"
+        },
+        "f905364b-fe6f-46a9-81a2-8754117f025b": {
+            "user_id": "2023CS001",
+            "action_type": "CHAT",
+            "details": "Query: Am I eligible for the AICTE Pragati Scholarship for Girl Students? | Response: I'm having trouble connecting to my brain right now. Please try again later.",
+            "timestamp": "2026-08-08T11:41:46.368266"
+        },
+        "4878e2a9-7c21-4163-ba7d-833a42caa4f2": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /api/chat/student | Origin: http://localhost:3000 | Status: 200 | Duration: 45.2745s",
+            "timestamp": "2026-08-08T11:41:46.370460"
+        },
+        "d58ae458-af39-42a5-8098-47bc39b472f2": {
+            "user_id": "2023CS001",
+            "action_type": "CHAT",
+            "details": "Query: Am I eligible for the AICTE Pragati Scholarship for Girl Students? | Response: I'm having trouble connecting to my brain right now. Please try again later.",
+            "timestamp": "2026-08-08T11:42:06.873609"
+        },
+        "582105d1-26c9-4733-af02-d13cf9d4caad": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /api/chat/student | Origin: http://localhost:3000 | Status: 200 | Duration: 13.0720s",
+            "timestamp": "2026-08-08T11:42:06.875627"
+        },
+        "50aced63-21f8-4a05-93bb-1f58a7d19e26": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /admin/learn/status | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0008s",
+            "timestamp": "2026-08-08T11:43:54.027724"
+        },
+        "f000a136-994f-4806-96c5-81a9e83f6552": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0037s",
+            "timestamp": "2026-08-08T11:47:10.174733"
+        },
+        "65112b7a-26ed-40a5-9e41-7ee3ada4f0d7": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0069s",
+            "timestamp": "2026-08-08T11:47:10.177997"
+        },
+        "9f3f885f-1a9e-4dec-a32a-c481ec08aac9": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0096s",
+            "timestamp": "2026-08-08T11:47:10.180808"
+        },
+        "035eae14-e27d-450c-a837-238e4fc103b3": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0023s",
+            "timestamp": "2026-08-08T11:47:10.186414"
+        },
+        "85f308bc-fff9-4d7e-8aab-45b9571b2c1d": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0057s",
+            "timestamp": "2026-08-08T11:47:10.189878"
+        },
+        "38bdf0f8-aeb2-40d1-a709-85ff92fe265e": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0082s",
+            "timestamp": "2026-08-08T11:47:10.192840"
+        },
+        "41c83fdc-5c69-408e-adfa-3dd9cf69cd48": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0008s",
+            "timestamp": "2026-08-08T11:47:11.279882"
+        },
+        "26b2f79b-92de-4d3c-bfd7-31406ccd8619": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0008s",
+            "timestamp": "2026-08-08T11:47:11.284876"
+        },
+        "aea7b7e2-4fff-4939-9830-d297d61e5cd3": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/logs/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0011s",
+            "timestamp": "2026-08-08T11:48:09.088174"
+        },
+        "f4395902-13b9-4e5f-a9bd-2574ef948980": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/logs/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0008s",
+            "timestamp": "2026-08-08T11:48:09.092952"
+        },
+        "77d13a03-4898-44e4-ad26-1b15ed8a0ec8": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0016s",
+            "timestamp": "2026-08-08T11:48:29.865161"
+        },
+        "ae094a71-aadf-477c-a06e-935ef426e904": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0014s",
+            "timestamp": "2026-08-08T11:48:29.870517"
+        },
+        "b8c8cc49-896c-4499-8f75-48198ba282ba": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0026s",
+            "timestamp": "2026-08-08T11:49:07.054328"
+        },
+        "509d4194-1cbc-4776-9d50-d5930de49eb6": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0146s",
+            "timestamp": "2026-08-08T11:49:07.066395"
+        },
+        "7b63a5a2-88c1-4f42-b376-315c60eeeb8f": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0200s",
+            "timestamp": "2026-08-08T11:49:07.071872"
+        },
+        "8c590422-5241-4c79-807f-53ef93cb3d18": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0026s",
+            "timestamp": "2026-08-08T11:49:07.077376"
+        },
+        "709ace73-f9a7-411a-b80b-0a94bfaee674": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0061s",
+            "timestamp": "2026-08-08T11:49:07.081590"
+        },
+        "6a3a3042-333d-4494-84f0-7a55a0496579": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0098s",
+            "timestamp": "2026-08-08T11:49:07.084524"
+        },
+        "379f4c91-98ab-4930-a8cd-3afbd123ea17": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0009s",
+            "timestamp": "2026-08-08T11:49:19.995692"
+        },
+        "0df00a1b-aa1c-450e-935b-2c7e7df4ac28": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0008s",
+            "timestamp": "2026-08-08T11:49:20.000712"
+        },
+        "400b1a35-a1ea-44b5-8a95-b654f341c1b7": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0008s",
+            "timestamp": "2026-08-08T11:50:04.373890"
+        },
+        "f7276a5c-d768-4552-9ee2-7389de1a2c51": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T11:50:04.378635"
+        },
+        "60f37ae7-2717-495b-9cb2-f23124e7dcf0": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/logs/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T11:50:04.382729"
+        },
+        "ca2d7424-6e09-4ffa-8dd9-53f58267e110": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/logs/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T11:50:04.386811"
+        },
+        "6b9cad0c-8001-4b41-859d-7fd3cf19118e": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/admin/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T11:50:14.947734"
+        },
+        "dd0cf94f-3c69-462b-b5a7-d318215f21e4": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/admin/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0005s",
+            "timestamp": "2026-08-08T11:50:14.952215"
+        },
+        "5dcc3de1-d381-4f10-867f-1bae7f638e20": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/auth/student-status/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T11:52:59.892728"
+        },
+        "6ec3eb14-ded8-4784-b586-925866c8a82f": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/auth/student-status/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T11:52:59.897227"
+        },
+        "388e1e33-daf1-4316-af7a-70f3c25619a5": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/auth/student-status/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T11:53:06.771422"
+        },
+        "e2529ba3-00ad-45db-8344-b20123530643": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/auth/student-status/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T11:53:06.776198"
+        },
+        "d96ec902-09e2-48be-8473-8ef119e0a5d6": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0035s",
+            "timestamp": "2026-08-08T11:56:12.857252"
+        },
+        "4332da2e-b671-49de-a3b0-4b6c3e64e5cf": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0061s",
+            "timestamp": "2026-08-08T11:56:12.860414"
+        },
+        "a8af48cc-9beb-4830-b077-803af39c22df": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0091s",
+            "timestamp": "2026-08-08T11:56:12.863497"
+        },
+        "07f3c56a-5f9a-406e-91b6-372bb51dcc27": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0022s",
+            "timestamp": "2026-08-08T11:56:12.869919"
+        },
+        "1012c1be-96b1-40bd-a2bf-3af758a4a000": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0098s",
+            "timestamp": "2026-08-08T11:56:12.877051"
+        },
+        "130c827b-052a-4715-9379-37dcf7ed3ae1": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0128s",
+            "timestamp": "2026-08-08T11:56:12.880596"
+        },
+        "e3ec312f-513a-495a-ab21-98efbbc3035e": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0033s",
+            "timestamp": "2026-08-08T11:57:26.348472"
+        },
+        "513770c5-d1cb-43dd-9c1c-cdf9994de289": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0065s",
+            "timestamp": "2026-08-08T11:57:26.351785"
+        },
+        "3752eec6-ddbc-4561-aa2c-31647c4f7c2f": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0102s",
+            "timestamp": "2026-08-08T11:57:26.355509"
+        },
+        "5b8d5555-6328-4db6-90ef-13764545fadb": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0034s",
+            "timestamp": "2026-08-08T12:01:25.622178"
+        },
+        "7f9b9c1e-a150-4e76-a8b1-406d82528752": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0070s",
+            "timestamp": "2026-08-08T12:01:25.625917"
+        },
+        "582fa3d4-fc2b-4eff-b47e-de18a6f63ca8": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0106s",
+            "timestamp": "2026-08-08T12:01:25.629516"
+        },
+        "dda03973-227d-4d62-b3a8-5754dbbc4776": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0013s",
+            "timestamp": "2026-08-08T12:01:25.635162"
+        },
+        "1faeb589-0d0e-42e3-b261-336cb3e33575": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/students/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0074s",
+            "timestamp": "2026-08-08T12:01:25.641800"
+        },
+        "bde924d0-e87d-48c8-ab4e-316ed667f134": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0111s",
+            "timestamp": "2026-08-08T12:01:25.645015"
+        },
+        "82f4e8be-aa63-466e-b389-1e8183ad0f91": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0014s",
+            "timestamp": "2026-08-08T12:06:39.399038"
+        },
+        "d02a9853-c553-4fa9-8b10-12708a599b88": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T12:06:39.403894"
+        },
+        "8fb94f1b-86c1-48f4-b878-ca0db0042c9e": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0027s",
+            "timestamp": "2026-08-08T12:09:40.455900"
+        },
+        "1778a22f-d84c-4615-b690-99c7c9ecb801": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0061s",
+            "timestamp": "2026-08-08T12:09:40.459389"
+        },
+        "08702b58-d5a9-4062-95a3-6405d740bd5f": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/all | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0018s",
+            "timestamp": "2026-08-08T12:09:40.465412"
+        },
+        "c58b7732-5d09-4fc4-a948-376a728804fc": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /api/scholarships/categories | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0053s",
+            "timestamp": "2026-08-08T12:09:40.468577"
+        },
+        "3ca5f171-fc41-4fc9-ae01-b4c2d4aac327": {
+            "user_id": "SYSTEM",
+            "action_type": "SEED",
+            "details": "Successfully seeded 14 categories scholarship database.",
+            "timestamp": "2026-08-08T12:12:36.075745"
+        },
+        "b2dad8e7-ea7a-42b0-8141-a4859fa28287": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/admin/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0191s",
+            "timestamp": "2026-08-08T12:14:32.737999"
+        },
+        "9457f9b5-f923-4891-9f34-a27214d280d9": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0012s",
+            "timestamp": "2026-08-08T12:15:55.700185"
+        },
+        "b33b5cbc-4102-4dc8-af74-f65f91783264": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T12:15:55.704962"
+        },
+        "9255a232-0dc1-4729-b111-19aec95671fa": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/admin/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T12:20:27.841241"
+        },
+        "294303c2-27a8-45b1-a6ce-e5c8165b0661": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T12:21:06.569270"
+        },
+        "c3bdd968-8e56-4fdf-bb86-01b1fe25660b": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T12:21:06.574351"
+        },
+        "54a2d62f-2059-40f8-9f63-75d41674cdcc": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T12:22:31.504552"
+        },
+        "215b8186-895e-4b84-aeb8-5e68877d92a5": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T12:22:31.509153"
+        },
+        "87433cc6-e4a7-40a9-acc9-dd29e4d10ac8": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0008s",
+            "timestamp": "2026-08-08T12:26:36.834533"
+        },
+        "d9766415-63e4-4f0e-a79c-89cbd2031864": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T12:26:36.839336"
+        },
+        "2cc69977-d180-4abc-9479-00d7740b83c2": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0008s",
+            "timestamp": "2026-08-08T12:26:53.022738"
+        },
+        "ca505e0a-b3b6-4320-a5ba-ea407eaa552a": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T12:26:53.027386"
+        },
+        "5ee6df7d-0ca7-44c3-9e54-a892ededafc0": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: OPTIONS | Path: /api/chat/student | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0002s",
+            "timestamp": "2026-08-08T12:28:56.392676"
+        },
+        "f47fb7e1-f9ef-4882-816e-d336a99107b4": {
+            "user_id": "2023CS001",
+            "action_type": "CHAT",
+            "details": "Query: 14 Scholarship Categories | Response: I'm having trouble connecting to my brain right now. Please try again later.",
+            "timestamp": "2026-08-08T12:29:12.951191"
+        },
+        "41e6c8e5-0bab-4a02-b676-13fb047c8fca": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /api/chat/student | Origin: http://localhost:3000 | Status: 200 | Duration: 16.5577s",
+            "timestamp": "2026-08-08T12:29:12.955010"
+        },
+        "198837bf-33b6-4d37-ac17-0bb8880f8143": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0008s",
+            "timestamp": "2026-08-08T12:29:55.996089"
+        },
+        "bbc59831-2a5c-4275-8b14-f94be74ba8f8": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T12:29:56.000887"
+        },
+        "011bbcde-841e-47f2-8172-81b6934c2653": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/admin/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T12:30:08.571696"
+        },
+        "6be6fdbc-4df8-44e4-9cfb-e172f9bb6ddd": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/admin/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0005s",
+            "timestamp": "2026-08-08T12:30:08.576484"
+        },
+        "a5934c0b-c6ec-454b-942f-229916a60f7c": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0008s",
+            "timestamp": "2026-08-08T12:31:19.314315"
+        },
+        "33119eaa-9107-4b1e-9039-8c5dcfd07b42": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0008s",
+            "timestamp": "2026-08-08T12:31:19.319439"
+        },
+        "bb15855f-12a4-4640-8e8e-ecf3b8b4127d": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0005s",
+            "timestamp": "2026-08-08T12:32:30.857128"
+        },
+        "f2130781-e34c-4763-959c-c2d6cf0b6877": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0005s",
+            "timestamp": "2026-08-08T12:32:30.860930"
+        },
+        "dcbef554-9a48-46be-9ee7-70effb0f07cc": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0008s",
+            "timestamp": "2026-08-08T12:32:32.557623"
+        },
+        "4393740e-b9cf-4f39-8729-0d7144b137c2": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/student/2023CS001 | Origin: http://localhost:3000 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T12:32:32.562660"
+        },
+        "ebaa5337-3e70-43d7-8132-8177258145a5": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/admin/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T12:35:03.337394"
+        },
+        "649777fe-e02c-4213-8a9d-efb8b172e83d": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/admin/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0005s",
+            "timestamp": "2026-08-08T12:35:03.342307"
+        },
+        "1e87a916-e308-4ef1-95f4-1de858958440": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/admin/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T12:36:13.989598"
+        },
+        "339173f9-ec37-4377-b3e7-78c3109420cf": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/admin/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0010s",
+            "timestamp": "2026-08-08T12:36:13.994798"
+        },
+        "d37691fd-df19-45c7-afce-0bc6bb1856dc": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /admin/learn/status | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0113s",
+            "timestamp": "2026-08-08T12:36:36.165348"
+        },
+        "e89f0d48-adba-4cbc-9d72-13ef7628e78e": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /admin/learn/status | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T12:36:36.170306"
+        },
+        "15133cfb-f06d-47ab-86bd-d24577257325": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/admin/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T12:36:58.734740"
+        },
+        "25773cb6-de63-46f2-b7e1-8bdd59fd543a": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/admin/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T12:36:58.739713"
+        },
+        "77ed09a2-adc8-4472-9388-b8fae793713d": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: OPTIONS | Path: /documents/approve/APP-101 | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0002s",
+            "timestamp": "2026-08-08T12:38:07.888195"
+        },
+        "430f62af-163e-4b80-83aa-a4ca9bb5746e": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /documents/approve/APP-101 | Origin: http://localhost:3001 | Status: 500 | Duration: 0.0010s",
+            "timestamp": "2026-08-08T12:38:07.894007"
+        },
+        "72de13d2-c8a5-4fef-b82b-b9b82b3ab5be": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: OPTIONS | Path: /documents/reject/APP-102 | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0002s",
+            "timestamp": "2026-08-08T12:38:16.289104"
+        },
+        "f5043d35-90ae-44bf-8d90-c7424b4a05e2": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: POST | Path: /documents/reject/APP-102 | Origin: http://localhost:3001 | Status: 500 | Duration: 0.0015s",
+            "timestamp": "2026-08-08T12:38:16.295266"
+        },
+        "05f8ac39-0661-4b78-81f0-e57f83bffe36": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/admin/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0007s",
+            "timestamp": "2026-08-08T12:38:17.207315"
+        },
+        "0eba4e1c-8734-4beb-8722-92a737d6a91e": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/admin/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T12:38:44.711403"
+        },
+        "7b85d640-c4ec-44f4-8b62-cf396102930f": {
+            "user_id": "SYSTEM",
+            "action_type": "REQUEST",
+            "details": "Method: GET | Path: /documents/admin/all | Origin: http://localhost:3001 | Status: 200 | Duration: 0.0006s",
+            "timestamp": "2026-08-08T12:38:44.716416"
         }
     },
     "documents": {},
@@ -175,6 +1229,788 @@
                 4
             ],
             "source_file": "test_scholarship.txt"
+        },
+        "pm_usp_csss": {
+            "id": "pm_usp_csss",
+            "category_id": 1,
+            "category_name": "Central Government Scholarships",
+            "scholarship_name": "PM-USP Central Sector Scholarship Scheme (CSSS)",
+            "min_gpa": 7.5,
+            "max_income": 800000.0,
+            "eligible_departments": [
+                "CSE",
+                "ECE",
+                "EEE",
+                "IT",
+                "CIVIL",
+                "MECH",
+                "BSC",
+                "BCOM",
+                "BA",
+                "LAW"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "benefits": "\u20b912,000/year (1st-3rd year), \u20b920,000/year in 4th year professional courses",
+            "caste_category": "All",
+            "gender": "All",
+            "academic_criteria": "Top 20 percentile in Class XII board examination",
+            "official_portal": "National Scholarship Portal (NSP - scholarships.gov.in)",
+            "necessary_documents": [
+                "Class 12th Board Marksheet & Passing Certificate",
+                "Aadhaar Card of Student (Linked with Active Bank Account)",
+                "Annual Family Income Certificate (Issued by Tehsildar/Competent Authority \u2264 \u20b98 Lakhs)",
+                "College Bonafide Student Certificate & Verification Form",
+                "Student Bank Account Passbook Copy (First page with IFSC & Account No.)",
+                "Passport Size Photograph"
+            ],
+            "description": "Provides financial assistance to meritorious students from low-income families to meet day-to-day expenses while pursuing higher studies."
+        },
+        "inspire_she": {
+            "id": "inspire_she",
+            "category_id": 1,
+            "category_name": "Central Government Scholarships",
+            "scholarship_name": "INSPIRE Scholarship (SHE)",
+            "min_gpa": 8.0,
+            "max_income": 1000000.0,
+            "eligible_departments": [
+                "BSC",
+                "INT_MSC",
+                "PHYSICS",
+                "CHEMISTRY",
+                "MATHS",
+                "BIOLOGY"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3
+            ],
+            "benefits": "\u20b980,000/year (\u20b960,000 cash stipend + \u20b920,000 summer research project mentorship grant)",
+            "caste_category": "All",
+            "gender": "All",
+            "academic_criteria": "Top 1% rank in Class XII Board or JEE Advanced / NEET top rankers",
+            "official_portal": "INSPIRE DST Portal (online-inspire.gov.in)",
+            "necessary_documents": [
+                "Class 12th Marksheet showing Top 1% rank endorsement",
+                "College Enrollment / Admission Verification Certificate",
+                "Aadhaar Card",
+                "Student Bank Account Details",
+                "SBI Bank Account Passbook",
+                "Category Certificate (if applicable)"
+            ],
+            "description": "Department of Science & Technology (DST) initiative to attract talented youth to study Natural and Basic Sciences at the undergraduate level."
+        },
+        "pm_scholarship_capf": {
+            "id": "pm_scholarship_capf",
+            "category_id": 1,
+            "category_name": "Central Government Scholarships",
+            "scholarship_name": "PM Scholarship Scheme (PMSS for Armed Forces & CAPF)",
+            "min_gpa": 6.0,
+            "max_income": 1200000.0,
+            "eligible_departments": [
+                "CSE",
+                "ECE",
+                "EEE",
+                "IT",
+                "CIVIL",
+                "MECH",
+                "MBBS",
+                "BPHARM",
+                "LAW"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "benefits": "\u20b92,500/month for Boys (\u20b930,000/yr), \u20b93,000/month for Girls (\u20b936,000/yr)",
+            "caste_category": "All",
+            "gender": "All",
+            "academic_criteria": "Minimum 60% marks in Class XII or Diploma",
+            "official_portal": "National Scholarship Portal / KSB / WARB Portal",
+            "necessary_documents": [
+                "Discharge Certificate / Service Certificate of Parent in Armed Forces / CAPF",
+                "Class 12th / Diploma Marksheet",
+                "Aadhaar Card",
+                "Bonafide Certificate from College Principal",
+                "Bank Account Passbook Copy"
+            ],
+            "description": "Encourages higher technical and professional education for wards and widows of deceased/ex-service personnel of Armed Forces and CAPF."
+        },
+        "sc_post_matric": {
+            "id": "sc_post_matric",
+            "category_id": 2,
+            "category_name": "Category-Based Scholarships",
+            "scholarship_name": "Post-Matric Scholarship for SC Students",
+            "min_gpa": 5.0,
+            "max_income": 250000.0,
+            "eligible_departments": [
+                "ALL"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "benefits": "100% Full Tuition Fee Reimbursement + Monthly Maintenance Allowance + Book Grant",
+            "caste_category": "SC",
+            "gender": "All",
+            "academic_criteria": "Passed Class 12th and admitted into recognized UG course",
+            "official_portal": "National Scholarship Portal & State Social Welfare Portals",
+            "necessary_documents": [
+                "SC Community / Caste Certificate issued by Revenue Authority",
+                "Income Certificate (Annual family income \u2264 \u20b92.5 Lakhs)",
+                "Class 10th and 12th Marksheets",
+                "Fee Receipt & Bonafide Certificate of Current Academic Year",
+                "Aadhaar Card linked to Bank Account (Aadhaar Seeding verification)",
+                "Hostel Stay Certificate (if residing in college hostel)"
+            ],
+            "description": "Centrally sponsored scheme enabling Scheduled Caste students to complete post-secondary and undergraduate education without financial hardship."
+        },
+        "st_top_class": {
+            "id": "st_top_class",
+            "category_id": 2,
+            "category_name": "Category-Based Scholarships",
+            "scholarship_name": "Top Class Education Scheme for ST Students",
+            "min_gpa": 6.0,
+            "max_income": 600000.0,
+            "eligible_departments": [
+                "ALL"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "benefits": "Full tuition fee up to \u20b92.0 Lakhs/yr + Living expense \u20b93,000/mo + Books \u20b95,000/yr + Computer allowance \u20b945,000",
+            "caste_category": "ST",
+            "gender": "All",
+            "academic_criteria": "Admission into notified premier institutes (IITs, NITs, IIMs, NIFTs, etc.)",
+            "official_portal": "Ministry of Tribal Affairs / NSP",
+            "necessary_documents": [
+                "ST Tribe Certificate",
+                "Income Certificate (\u2264 \u20b96 Lakhs)",
+                "JEE Main / Entrance Exam Rank Card",
+                "College Admission Letter & Fee Structure Breakdown",
+                "Aadhaar Card & Bank Passbook Copy"
+            ],
+            "description": "Provides full financial support to talented ST students pursuing studies in top recognized institutes across India."
+        },
+        "pm_yasasvi_obc": {
+            "id": "pm_yasasvi_obc",
+            "category_id": 2,
+            "category_name": "Category-Based Scholarships",
+            "scholarship_name": "PM-YASASVI Scholarship for OBC/EBC/DNT Students",
+            "min_gpa": 6.0,
+            "max_income": 250000.0,
+            "eligible_departments": [
+                "ALL"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "benefits": "Tuition Fee Reimbursement + Academic Allowance up to \u20b91,25,000/year",
+            "caste_category": "OBC/EBC/DNT",
+            "gender": "All",
+            "academic_criteria": "Passing YASASVI Entrance Test or Top ranking in Class 12th",
+            "official_portal": "NTA YASASVI Portal / NSP",
+            "necessary_documents": [
+                "OBC / EBC / DNT Category Certificate",
+                "Income Certificate (\u2264 \u20b92.5 Lakhs)",
+                "Class 12th Marksheet",
+                "YASASVI Scorecard / Entrance Rank Proof",
+                "Aadhaar Card and Student Bank Account Details"
+            ],
+            "description": "Scheme for Vibrant India for Awarding Scholarships for Knowledge to OBC and Other Categories."
+        },
+        "minority_mcm": {
+            "id": "minority_mcm",
+            "category_id": 2,
+            "category_name": "Category-Based Scholarships",
+            "scholarship_name": "Merit-cum-Means Scholarship for Minorities",
+            "min_gpa": 6.5,
+            "max_income": 250000.0,
+            "eligible_departments": [
+                "CSE",
+                "ECE",
+                "EEE",
+                "IT",
+                "CIVIL",
+                "MECH",
+                "MBBS",
+                "BPHARM"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "benefits": "Course Fee Reimbursement up to \u20b920,000/year + Maintenance Allowance \u20b91,000/month",
+            "caste_category": "Minority (Muslim, Christian, Sikh, Buddhist, Jain, Parsi)",
+            "gender": "All",
+            "academic_criteria": "Minimum 50% marks in Class 12th / Previous Exam",
+            "official_portal": "National Scholarship Portal (NSP)",
+            "necessary_documents": [
+                "Self-Declaration of Minority Community Status",
+                "Income Certificate (\u2264 \u20b92.5 Lakhs)",
+                "Class 12th / Last Qualifying Exam Marksheet",
+                "Bonafide Certificate & Paid Fee Receipt",
+                "Aadhaar Card & Bank Passbook Copy"
+            ],
+            "description": "Provides financial aid to poor and meritorious students belonging to minority communities to pursue professional and technical UG courses."
+        },
+        "aicte_pragati": {
+            "id": "aicte_pragati",
+            "category_id": 3,
+            "category_name": "AICTE Scholarships",
+            "scholarship_name": "AICTE Pragati Scholarship for Girl Students",
+            "min_gpa": 6.0,
+            "max_income": 800000.0,
+            "eligible_departments": [
+                "CSE",
+                "ECE",
+                "EEE",
+                "IT",
+                "CIVIL",
+                "MECH",
+                "BPHARM"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "benefits": "\u20b950,000/year (for tuition fee, books, equipment, laptop, competitive exam fees)",
+            "caste_category": "All",
+            "gender": "Female",
+            "academic_criteria": "Admitted to 1st year Degree/Diploma course or 2nd year via Lateral Entry in AICTE approved institute",
+            "official_portal": "AICTE Portal / National Scholarship Portal",
+            "necessary_documents": [
+                "Class 10th & 12th Marksheet",
+                "Family Income Certificate (\u2264 \u20b98 Lakhs)",
+                "AICTE College Admission Allotment Letter",
+                "Tuition Fee Paid Receipt",
+                "Aadhaar Card & Bank Account Passbook",
+                "Parents' Single Girl Child Affidavit (if applicable)"
+            ],
+            "description": "Empowers female students pursuing technical education by providing financial assistance up to 10,000 girl engineers every year."
+        },
+        "aicte_saksham": {
+            "id": "aicte_saksham",
+            "category_id": 3,
+            "category_name": "AICTE Scholarships",
+            "scholarship_name": "AICTE Saksham Scholarship for Differently Abled Students",
+            "min_gpa": 5.0,
+            "max_income": 800000.0,
+            "eligible_departments": [
+                "CSE",
+                "ECE",
+                "EEE",
+                "IT",
+                "CIVIL",
+                "MECH",
+                "BPHARM"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "benefits": "\u20b950,000/year for tuition, books, assistive devices, and laptop",
+            "caste_category": "All",
+            "gender": "All",
+            "academic_criteria": "Specially-abled students having disability not less than 40%",
+            "official_portal": "AICTE Portal / NSP",
+            "necessary_documents": [
+                "Disability Certificate issued by Competent Medical Authority (\u2265 40% Disability)",
+                "Class 10th & 12th Marksheets",
+                "Family Income Certificate (\u2264 \u20b98 Lakhs)",
+                "AICTE College Admission Letter",
+                "Aadhaar Card and Student Bank Account Details"
+            ],
+            "description": "Encourages specially-abled students to pursue technical education without financial hindrances."
+        },
+        "aicte_swanath": {
+            "id": "aicte_swanath",
+            "category_id": 3,
+            "category_name": "AICTE Scholarships",
+            "scholarship_name": "AICTE Swanath Scholarship Scheme",
+            "min_gpa": 5.0,
+            "max_income": 800000.0,
+            "eligible_departments": [
+                "CSE",
+                "ECE",
+                "EEE",
+                "IT",
+                "CIVIL",
+                "MECH",
+                "BPHARM"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "benefits": "\u20b950,000/year lump sum grant per annum",
+            "caste_category": "All",
+            "gender": "All",
+            "academic_criteria": "Orphans, Wards of Armed Forces/Paramilitary martyrs, or children of parents who died due to COVID-19",
+            "official_portal": "AICTE Portal / NSP",
+            "necessary_documents": [
+                "Death Certificate of Parents (COVID-19 death proof or Orphanage Cert / Martyr Cert)",
+                "Class 10th and 12th Marksheet",
+                "Income Certificate (\u2264 \u20b98 Lakhs)",
+                "AICTE Approved Institute Bonafide Certificate",
+                "Aadhaar Card & Bank Passbook"
+            ],
+            "description": "Financial support to orphans, wards of martyred soldiers, and COVID-19 affected students to pursue technical degrees."
+        },
+        "tn_first_grad": {
+            "id": "tn_first_grad",
+            "category_id": 4,
+            "category_name": "State Government Scholarships",
+            "scholarship_name": "Tamil Nadu First Graduate & BC/MBC/DNC Scholarship",
+            "min_gpa": 6.0,
+            "max_income": 250000.0,
+            "eligible_departments": [
+                "ALL"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "benefits": "\u20b920,000 - \u20b950,000/year Tuition Fee Waiver for First Graduates",
+            "caste_category": "BC / MBC / DNC / First Graduate",
+            "gender": "All",
+            "academic_criteria": "First person in family pursuing a graduation degree in Tamil Nadu",
+            "official_portal": "Tamil Nadu e-District Portal / TN Scholarship Portal",
+            "necessary_documents": [
+                "First Graduate Certificate signed by Tahsildar",
+                "Joint Declaration by Parents and Candidate",
+                "Community Certificate (BC/MBC/DNC)",
+                "Class 10th & 12th Marksheet",
+                "Income Certificate (\u2264 \u20b92.5 Lakhs)",
+                "Aadhaar Card & Passbook Copy"
+            ],
+            "description": "Waives tuition fees for first-generation college graduates admitted via single-window counseling in Tamil Nadu."
+        },
+        "maha_dbt": {
+            "id": "maha_dbt",
+            "category_id": 4,
+            "category_name": "State Government Scholarships",
+            "scholarship_name": "Maharashtra MahaDBT Rajarshi Shahu Maharaj Scholarship",
+            "min_gpa": 6.0,
+            "max_income": 800000.0,
+            "eligible_departments": [
+                "ALL"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "benefits": "50% to 100% Tuition Fee & Exam Fee Reimbursement",
+            "caste_category": "Open / EWS / SEBC / OBC",
+            "gender": "All",
+            "academic_criteria": "Admitted through CAP round in Maharashtra",
+            "official_portal": "MahaDBT Portal (mahadbt.maharashtra.gov.in)",
+            "necessary_documents": [
+                "Domicile Certificate of Maharashtra",
+                "Income Certificate issued by Collector / Tahsildar (\u2264 \u20b98 Lakhs)",
+                "CAP Allotment Letter",
+                "Class 10th & 12th Marksheet",
+                "Aadhaar Card Linked to Bank Account"
+            ],
+            "description": "Frees EWS and open category meritorious students in Maharashtra from heavy tuition fee burdens."
+        },
+        "central_sector_merit": {
+            "id": "central_sector_merit",
+            "category_id": 5,
+            "category_name": "Merit-Based Scholarships",
+            "scholarship_name": "University / National Merit Rank Scholarship",
+            "min_gpa": 8.5,
+            "max_income": 1000000.0,
+            "eligible_departments": [
+                "ALL"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "benefits": "\u20b910,000 to \u20b91,00,000/year (Full Tuition Fee + Merit Cash Award)",
+            "caste_category": "All",
+            "gender": "All",
+            "academic_criteria": "Top 3 Rank holders in University / Department Semester Exams",
+            "official_portal": "University Examination Branch / National Portal",
+            "necessary_documents": [
+                "Official Grade Sheet / Mark Card of Previous Semesters",
+                "Department Rank Certificate signed by HOD & Dean",
+                "Student College ID Card",
+                "Bank Account Details for Direct Benefit Transfer"
+            ],
+            "description": "Rewards academic excellence, consistency, and top department positions with prestigious merit stipends."
+        },
+        "tata_trust_need": {
+            "id": "tata_trust_need",
+            "category_id": 6,
+            "category_name": "Need-Based Scholarships",
+            "scholarship_name": "Tata Trust Medical & Engineering Scholarship",
+            "min_gpa": 7.0,
+            "max_income": 500000.0,
+            "eligible_departments": [
+                "CSE",
+                "ECE",
+                "EEE",
+                "IT",
+                "CIVIL",
+                "MECH",
+                "MBBS"
+            ],
+            "eligible_years": [
+                2,
+                3,
+                4
+            ],
+            "benefits": "30% to 80% of total annual college tuition fees",
+            "caste_category": "All",
+            "gender": "All",
+            "academic_criteria": "Family income under \u20b95 Lakhs and good academic standing",
+            "official_portal": "Tata Trusts Online Application Portal",
+            "necessary_documents": [
+                "Current Year Paid Fee Receipts",
+                "Annual Family Income Certificate / ITR of Parents",
+                "Class 10th, 12th & Semester Marksheets",
+                "Statement of Purpose (SOP) explaining financial need",
+                "Aadhaar Card and Student Cancelled Cheque"
+            ],
+            "description": "Supports undergraduate students facing severe financial constraints to complete professional degrees."
+        },
+        "sitaram_jindal": {
+            "id": "sitaram_jindal",
+            "category_id": 6,
+            "category_name": "Need-Based Scholarships",
+            "scholarship_name": "Sitaram Jindal Foundation Scholarship",
+            "min_gpa": 6.5,
+            "max_income": 400000.0,
+            "eligible_departments": [
+                "ALL"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "benefits": "\u20b91,500 to \u20b93,200/month stipend",
+            "caste_category": "All",
+            "gender": "All",
+            "academic_criteria": "Minimum 65% marks for boys, 60% for girls in qualifying exam",
+            "official_portal": "Sitaram Jindal Foundation (sitaramjindalfoundation.org)",
+            "necessary_documents": [
+                "Class 12th / Degree Marksheet",
+                "Income Certificate (\u2264 \u20b94 Lakhs/yr)",
+                "Certificate from College Principal",
+                "Physical Handicap Certificate (if applicable)",
+                "Aadhaar Card and Bank Account Copy"
+            ],
+            "description": "Long-running philanthropic scholarship providing monthly financial relief to economically underprivileged UG students."
+        },
+        "cbse_single_girl": {
+            "id": "cbse_single_girl",
+            "category_id": 7,
+            "category_name": "Scholarships for Girls",
+            "scholarship_name": "CBSE / UGC Single Girl Child Scholarship",
+            "min_gpa": 6.0,
+            "max_income": 1000000.0,
+            "eligible_departments": [
+                "ALL"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "benefits": "\u20b91,000/month (\u20b912,000/year) stipend for undergraduate studies",
+            "caste_category": "All",
+            "gender": "Female",
+            "academic_criteria": "Single Girl Child of parents who scored 60%+ in CBSE Class X/XII",
+            "official_portal": "CBSE Official Portal / UGC Portal",
+            "necessary_documents": [
+                "Affidavit on \u20b950 Stamp Paper duly attested by First Class Magistrate / SDM stating Single Girl Child status",
+                "Class 10th & 12th CBSE Marksheets",
+                "School / College Verification Form",
+                "Aadhaar Card & Student Bank Passbook"
+            ],
+            "description": "Recognizes the efforts of parents in promoting education among girls and provides monthly financial support."
+        },
+        "national_pwd": {
+            "id": "national_pwd",
+            "category_id": 8,
+            "category_name": "Scholarships for Students with Disabilities (PwD)",
+            "scholarship_name": "National Scholarship for Students with Disabilities",
+            "min_gpa": 5.0,
+            "max_income": 600000.0,
+            "eligible_departments": [
+                "ALL"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "benefits": "Tuition Fee + \u20b94,000/month living allowance + \u20b94,000/year book allowance + Assistive computer devices",
+            "caste_category": "All",
+            "gender": "All",
+            "academic_criteria": "Benchmark disability of 40% or more validated by medical board",
+            "official_portal": "National Scholarship Portal (NSP)",
+            "necessary_documents": [
+                "UDID Card / Disability Certificate (\u2265 40% disability)",
+                "Family Income Certificate (\u2264 \u20b96 Lakhs)",
+                "Class 10th and 12th Marksheets",
+                "Fee Receipt & Bonafide Certificate",
+                "Aadhaar Card & Bank Account Passbook"
+            ],
+            "description": "Comprehensive central assistance providing assistive tech, living stipends, and course fee waivers for disabled students."
+        },
+        "inst_iit_bits_merit": {
+            "id": "inst_iit_bits_merit",
+            "category_id": 9,
+            "category_name": "Institutional Scholarships",
+            "scholarship_name": "IIT / BITS / VIT Merit-cum-Means Institute Scholarship",
+            "min_gpa": 8.0,
+            "max_income": 500000.0,
+            "eligible_departments": [
+                "CSE",
+                "ECE",
+                "EEE",
+                "IT",
+                "CIVIL",
+                "MECH"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "benefits": "100% Tuition Fee Waiver + \u20b91,000/month pocket stipend",
+            "caste_category": "All",
+            "gender": "All",
+            "academic_criteria": "Minimum 8.0 CGPA and family income below institute threshold",
+            "official_portal": "Respective Institute Student Affairs Portal",
+            "necessary_documents": [
+                "Parents' Income Tax Returns (ITR V) / Salary Slip",
+                "Current Grade Card / CGPA Transcript",
+                "Institute Fee Receipt",
+                "Aadhaar Card"
+            ],
+            "description": "Internal institutional grants waiving tuition fees for top performing students with constrained family finances."
+        },
+        "sai_sports_grant": {
+            "id": "sai_sports_grant",
+            "category_id": 10,
+            "category_name": "Sports Scholarships",
+            "scholarship_name": "Sports Authority of India (SAI) & University Sports Quota Grant",
+            "min_gpa": 5.0,
+            "max_income": 1200000.0,
+            "eligible_departments": [
+                "ALL"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "benefits": "100% Free Hostel & Sports Kit Allowance + \u20b918,000 - \u20b950,000/year Cash Award",
+            "caste_category": "All",
+            "gender": "All",
+            "academic_criteria": "Represented State / Country in National or International Championships or All-India Inter-University Tournaments",
+            "official_portal": "Sports Authority of India (sportsauthorityofindia.nic.in)",
+            "necessary_documents": [
+                "National / International Sports Participation Certificates verified by Federation",
+                "Inter-University Medal Certificate",
+                "Medical Fitness Certificate from Sports Doctor",
+                "College Bonafide Certificate",
+                "Aadhaar Card & Bank Account Details"
+            ],
+            "description": "Supports student athletes who balance rigorous sports training alongside undergraduate academic degrees."
+        },
+        "aicte_idea_lab": {
+            "id": "aicte_idea_lab",
+            "category_id": 11,
+            "category_name": "Research and Innovation Scholarships",
+            "scholarship_name": "Student Innovation Fellowship & AICTE IDEA Lab Grant",
+            "min_gpa": 7.0,
+            "max_income": 1500000.0,
+            "eligible_departments": [
+                "CSE",
+                "ECE",
+                "EEE",
+                "IT",
+                "CIVIL",
+                "MECH"
+            ],
+            "eligible_years": [
+                2,
+                3,
+                4
+            ],
+            "benefits": "Up to \u20b91,00,000 seed grant for prototype development, 3D printing, and patent filing support",
+            "caste_category": "All",
+            "gender": "All",
+            "academic_criteria": "Winning National Hackathons or working on verified hardware/software innovation patent proposals",
+            "official_portal": "AICTE Innovation Cell / DST iDEX",
+            "necessary_documents": [
+                "Detailed Project Proposal & Prototype Design Document",
+                "Hackathon Winner / Finalist Certificate",
+                "Faculty Mentor Recommendation Letter",
+                "College Innovation Council Approval",
+                "Aadhaar Card and Student Bank Account"
+            ],
+            "description": "Fosters startup culture, prototyping, patenting, and hardware innovation among young engineering undergraduates."
+        },
+        "commonwealth_global_ug": {
+            "id": "commonwealth_global_ug",
+            "category_id": 12,
+            "category_name": "International Scholarships for Indian UG Students",
+            "scholarship_name": "Commonwealth / Global UGRAD Overseas Exchange Scholarship",
+            "min_gpa": 8.5,
+            "max_income": 1500000.0,
+            "eligible_departments": [
+                "ALL"
+            ],
+            "eligible_years": [
+                2,
+                3
+            ],
+            "benefits": "Full International Tuition Fee + Roundtrip Airfare + Monthly Living Allowance ($1,500/month) + Health Insurance",
+            "caste_category": "All",
+            "gender": "All",
+            "academic_criteria": "Top academic grades, TOEFL/IELTS score, and strong leadership portfolio",
+            "official_portal": "World Learning / Commonwealth Scholarship Commission",
+            "necessary_documents": [
+                "Valid Indian Passport",
+                "Official University Academic Transcripts (All Semesters)",
+                "IELTS / TOEFL English Proficiency Scorecard",
+                "Two Academic Letters of Recommendation (LOR)",
+                "Personal Statement of Purpose (SOP)",
+                "Aadhaar Card"
+            ],
+            "description": "Enables outstanding Indian undergraduate students to spend a semester or full degree program in top universities in the UK, USA, Germany, or New Zealand."
+        },
+        "reliance_foundation_ug": {
+            "id": "reliance_foundation_ug",
+            "category_id": 13,
+            "category_name": "Corporate Scholarships",
+            "scholarship_name": "Reliance Foundation Undergraduate Scholarship",
+            "min_gpa": 7.5,
+            "max_income": 1500000.0,
+            "eligible_departments": [
+                "ALL"
+            ],
+            "eligible_years": [
+                1
+            ],
+            "benefits": "Up to \u20b92,00,000 across the duration of the undergraduate degree",
+            "caste_category": "All",
+            "gender": "All",
+            "academic_criteria": "First year UG student scoring 60%+ in 12th standard and clearing Reliance Aptitude Test",
+            "official_portal": "Reliance Foundation Scholarship Portal (scholarships.reliancefoundation.org)",
+            "necessary_documents": [
+                "Class 12th Board Marksheet",
+                "Family Income Certificate / Salary Slip (Income < \u20b92.5L gets preference)",
+                "College Admission Proof & Fee Receipt",
+                "Aadhaar Card",
+                "Bank Account Details"
+            ],
+            "description": "Supports up to 5,000 meritorious Indian undergraduate students annually to pursue any discipline of higher education."
+        },
+        "hdfc_badhte_kadam": {
+            "id": "hdfc_badhte_kadam",
+            "category_id": 13,
+            "category_name": "Corporate Scholarships",
+            "scholarship_name": "HDFC Bank Parivartan's ECSS Scholarship",
+            "min_gpa": 6.0,
+            "max_income": 600000.0,
+            "eligible_departments": [
+                "ALL"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "benefits": "\u20b950,000/year for undergraduate students",
+            "caste_category": "All",
+            "gender": "All",
+            "academic_criteria": "Students facing personal or family financial crisis (e.g. loss of earning parent)",
+            "official_portal": "Buddy4Study / HDFC Parivartan Portal",
+            "necessary_documents": [
+                "Class 12th / Previous Semester Marksheet (Min 55% marks)",
+                "Proof of Family Crisis (Death cert of breadwinner / Job loss letter / Medical emergency bills)",
+                "Income Certificate (\u2264 \u20b96 Lakhs)",
+                "College Admission Letter & Fee Receipt",
+                "Aadhaar Card and Student Bank Passbook"
+            ],
+            "description": "Crisis support scholarship ensuring vulnerable students do not drop out due to sudden family hardship."
+        },
+        "csis_loan_subsidy": {
+            "id": "csis_loan_subsidy",
+            "category_id": 14,
+            "category_name": "Education Loan Interest Subsidy Schemes",
+            "scholarship_name": "Central Sector Interest Subsidy Scheme (CSIS)",
+            "min_gpa": 5.0,
+            "max_income": 450000.0,
+            "eligible_departments": [
+                "ALL"
+            ],
+            "eligible_years": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "benefits": "100% Interest Subsidy on Education Loans during the Moratorium Period (Course Duration + 1 Year)",
+            "caste_category": "Economically Weaker Sections (EWS)",
+            "gender": "All",
+            "academic_criteria": "Availing education loan from scheduled bank for professional UG degree",
+            "official_portal": "Canara Bank CSIS Portal / JanSamarth Portal (jansamarth.in)",
+            "necessary_documents": [
+                "Education Loan Sanction Letter from Bank",
+                "Income Certificate issued by designated State Authority (Family Income \u2264 \u20b94.5 Lakhs)",
+                "College Admission Letter & Bonafide Certificate",
+                "Class 10th and 12th Marksheets",
+                "Aadhaar Card of Student and Co-borrower Parent"
+            ],
+            "description": "Govt. of India pays full interest on education loans during the study period so low-income students bear zero interest debt until graduation."
         }
     }
 }

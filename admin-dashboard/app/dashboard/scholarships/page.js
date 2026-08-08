@@ -1,388 +1,511 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { GraduationCap, Save, Trash2, Plus, RefreshCw, AlertCircle, Sparkles, Building, Calendar, Wallet } from "lucide-react";
 
-export default function ScholarshipsManager() {
-    const [scholarships, setScholarships] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [actionMsg, setActionMsg] = useState("");
-    const [isCreating, setIsCreating] = useState(false);
+export default function AdminScholarshipsManager() {
+    const categories = [
+        { id: 1, name: "Central Government Scholarships" },
+        { id: 2, name: "Category Based Scholarships" },
+        { id: 3, name: "AICTE Scholarships" },
+        { id: 4, name: "State Government Scholarships" },
+        { id: 5, name: "Merit Based Scholarships" },
+        { id: 6, name: "Need Based Scholarships" },
+        { id: 7, name: "Scholarships for Girls" },
+        { id: 8, name: "Scholarships for Students with Disabilities (PwD)" },
+        { id: 9, name: "Institutional Scholarships" },
+        { id: 10, name: "Sports Scholarships" },
+        { id: 11, name: "Research and Innovation Scholarships" },
+        { id: 12, name: "International Scholarships for Indian UG Students" },
+        { id: 13, name: "Corporate Scholarships" },
+        { id: 14, name: "Education Loan Interest Subsidy Schemes" },
+    ];
 
-    // Form inputs for a new scholarship
-    const [newScholarship, setNewScholarship] = useState({
-        scholarship_name: "",
-        min_gpa: 8.0,
-        max_income: 250000,
-        eligible_departments: "CSE, ECE, IT",
-        eligible_years: "2, 3, 4"
-    });
-
-    const fetchScholarships = async () => {
-        setLoading(true);
-        try {
-            const res = await fetch("http://localhost:8000/api/scholarships/all");
-            if (res.ok) {
-                const data = await res.json();
-                setScholarships(data);
-            }
-        } catch (error) {
-            console.error("Failed to fetch scholarships:", error);
-        } finally {
-            setLoading(false);
+    const [scholarships, setScholarships] = useState([
+        {
+            id: 1,
+            categoryId: 1,
+            scholarship_name: "Central Sector Scheme of Scholarships for College Students",
+            category_name: "Central Government Scholarships",
+            benefits: "₹12,000 per annum for graduation studies",
+            min_gpa: 7.5,
+            max_income: 450000,
+            income_label: "₹4.5 Lakhs",
+            caste_quota: "Top 20th Percentile (All Categories)",
+            eligible_departments: "CSE, ECE, EEE, IT, MECH, CIVIL",
+            eligible_years: "1, 2, 3, 4",
+            documents: ["12th Marksheet", "Income Certificate", "Bonafide Student Certificate", "Aadhaar Linked Bank Passbook"]
+        },
+        {
+            id: 2,
+            categoryId: 2,
+            scholarship_name: "Post-Matric Scholarship Scheme for SC/ST Students",
+            category_name: "Category Based Scholarships",
+            benefits: "100% Tuition Fee Waiver + Monthly Maintenance Allowance",
+            min_gpa: 6.0,
+            max_income: 250000,
+            income_label: "₹2.5 Lakhs",
+            caste_quota: "Scheduled Caste (SC) / Scheduled Tribe (ST)",
+            eligible_departments: "ALL DEPARTMENTS",
+            eligible_years: "1, 2, 3, 4",
+            documents: ["Community Certificate (SC/ST)", "Income Certificate (Tehsildar)", "Previous Year Marksheets", "Institute Bonafide"]
+        },
+        {
+            id: 3,
+            categoryId: 3,
+            scholarship_name: "AICTE Pragati Scholarship for Girl Students",
+            category_name: "AICTE Scholarships",
+            benefits: "₹50,000 per annum for technical education",
+            min_gpa: 7.0,
+            max_income: 800000,
+            income_label: "₹8.0 Lakhs",
+            caste_quota: "Girl Students in Technical Degrees",
+            eligible_departments: "CSE, ECE, EEE, IT, MECH, CIVIL",
+            eligible_years: "1, 2, 3, 4",
+            documents: ["AICTE Allotment Letter", "Family Income Certificate", "Aadhaar Linked Bank Passbook", "Institute Verification"]
+        },
+        {
+            id: 4,
+            categoryId: 4,
+            scholarship_name: "State Higher Education Tuition Fee Reimbursement Scheme",
+            category_name: "State Government Scholarships",
+            benefits: "100% Tuition Fee Reimbursement",
+            min_gpa: 7.0,
+            max_income: 300000,
+            income_label: "₹3.0 Lakhs",
+            caste_quota: "State Domicile Students",
+            eligible_departments: "ALL ENGINEERING DEPARTMENTS",
+            eligible_years: "1, 2, 3, 4",
+            documents: ["Domicile Certificate", "College Allotment Order", "Income Certificate", "Fee Receipts"]
+        },
+        {
+            id: 5,
+            categoryId: 5,
+            scholarship_name: "Sona Gold Medal Merit Scholarship",
+            category_name: "Merit Based Scholarships",
+            benefits: "Full Tuition Waiver + Free Laptop Allowance",
+            min_gpa: 8.5,
+            max_income: 400000,
+            income_label: "₹4.0 Lakhs",
+            caste_quota: "Merit Rankers (Top 5%)",
+            eligible_departments: "CSE, ECE, IT",
+            eligible_years: "2, 3, 4",
+            documents: ["Semester Marksheets (CGPA ≥ 8.5)", "Bonafide Student Certificate", "Aadhaar Card", "Bank Passbook Copy"]
+        },
+        {
+            id: 6,
+            categoryId: 6,
+            scholarship_name: "Financial Hardship Education Relief Fund",
+            category_name: "Need Based Scholarships",
+            benefits: "₹35,000 Emergency Fee Assistance",
+            min_gpa: 6.5,
+            max_income: 150000,
+            income_label: "₹1.5 Lakhs",
+            caste_quota: "Low Income Families",
+            eligible_departments: "ALL DEPARTMENTS",
+            eligible_years: "1, 2, 3, 4",
+            documents: ["Income Certificate", "Family Situation Declaration", "College Fee Statement", "Aadhaar Card"]
+        },
+        {
+            id: 7,
+            categoryId: 7,
+            scholarship_name: "Sona Women Empowerment Foundation Aid",
+            category_name: "Scholarships for Girls",
+            benefits: "100% Free Hostel Accommodation & Bus Transport",
+            min_gpa: 8.0,
+            max_income: 400000,
+            income_label: "₹4.0 Lakhs",
+            caste_quota: "Female Undergraduates",
+            eligible_departments: "ALL DEPARTMENTS",
+            eligible_years: "1, 2, 3, 4",
+            documents: ["Academic Transcripts", "Income Certificate", "Residential Proof", "HOD Recommendation"]
+        },
+        {
+            id: 8,
+            categoryId: 8,
+            scholarship_name: "National PwD Empowerment Fellowship",
+            category_name: "Scholarships for Students with Disabilities (PwD)",
+            benefits: "₹45,000 Annual Stipend + Assistive Book Allowance",
+            min_gpa: 5.5,
+            max_income: 600000,
+            income_label: "₹6.0 Lakhs",
+            caste_quota: "PwD Category (Disability ≥ 40%)",
+            eligible_departments: "ALL DEPARTMENTS",
+            eligible_years: "1, 2, 3, 4",
+            documents: ["Disability Certificate (Medical Board)", "Bonafide Certificate", "Bank Passbook Copy", "Aadhaar Card"]
+        },
+        {
+            id: 9,
+            categoryId: 9,
+            scholarship_name: "College Founder's Memorial Trust Grant",
+            category_name: "Institutional Scholarships",
+            benefits: "₹25,000 Annual Institutional Scholarship",
+            min_gpa: 7.5,
+            max_income: 350000,
+            income_label: "₹3.5 Lakhs",
+            caste_quota: "All Registered Students",
+            eligible_departments: "ALL DEPARTMENTS",
+            eligible_years: "1, 2, 3, 4",
+            documents: ["College ID", "Semester Marksheet", "Income Certificate", "Faculty Recommendation"]
+        },
+        {
+            id: 10,
+            categoryId: 10,
+            scholarship_name: "State & National Sports Champion Fee Waiver",
+            category_name: "Sports Scholarships",
+            benefits: "100% Sports Fee Waiver + Free Sports Kit",
+            min_gpa: 6.0,
+            max_income: 800000,
+            income_label: "₹8.0 Lakhs",
+            caste_quota: "State / National Level Athletes",
+            eligible_departments: "ALL DEPARTMENTS",
+            eligible_years: "1, 2, 3, 4",
+            documents: ["Sports Achievement Certificates (Form 1/2/3)", "Physical Fitness Certificate", "Academic Marksheet", "College ID"]
+        },
+        {
+            id: 11,
+            categoryId: 11,
+            scholarship_name: "Student R&D Patent & Innovation Grant",
+            category_name: "Research and Innovation Scholarships",
+            benefits: "₹50,000 Project & Patent Filing Subsidy",
+            min_gpa: 8.0,
+            max_income: 1000000,
+            income_label: "₹10.0 Lakhs",
+            caste_quota: "UG Student Researchers",
+            eligible_departments: "CSE, ECE, MECH, IT",
+            eligible_years: "3, 4",
+            documents: ["Project Proposal / Abstract", "Faculty Guide Endorsement", "Academic Transcripts", "Bank Account Details"]
+        },
+        {
+            id: 12,
+            categoryId: 12,
+            scholarship_name: "Global Student Exchange & Immersion Scholarship",
+            category_name: "International Scholarships for Indian UG Students",
+            benefits: "₹1,50,000 Travel & Foreign Living Stipend",
+            min_gpa: 8.5,
+            max_income: 1200000,
+            income_label: "₹12.0 Lakhs",
+            caste_quota: "UG Students (Semester 5-7)",
+            eligible_departments: "CSE, ECE, IT",
+            eligible_years: "3, 4",
+            documents: ["Foreign Partner Acceptance", "Valid Passport", "Academic Transcripts (CGPA ≥ 8.5)", "Statement of Purpose"]
+        },
+        {
+            id: 13,
+            categoryId: 13,
+            scholarship_name: "Tech Corp CSR Women in Engineering Scholarship",
+            category_name: "Corporate Scholarships",
+            benefits: "₹75,000 per year + Direct Corporate Internship",
+            min_gpa: 7.5,
+            max_income: 500000,
+            income_label: "₹5.0 Lakhs",
+            caste_quota: "Female CS / IT Engineering Students",
+            eligible_departments: "CSE, IT, ECE",
+            eligible_years: "2, 3, 4",
+            documents: ["10th/12th/UG Marksheets", "Income Certificate", "Resume / CV", "Bonafide Certificate"]
+        },
+        {
+            id: 14,
+            categoryId: 14,
+            scholarship_name: "Central Scheme to Provide Interest Subsidy (CSIS) on Education Loans",
+            category_name: "Education Loan Interest Subsidy Schemes",
+            benefits: "100% Moratorium Interest Subsidy on Bank Education Loans",
+            min_gpa: 6.0,
+            max_income: 450000,
+            income_label: "₹4.5 Lakhs",
+            caste_quota: "Bank Loan Borrowers",
+            eligible_departments: "ALL DEPARTMENTS",
+            eligible_years: "1, 2, 3, 4",
+            documents: ["Bank Education Loan Sanction Letter", "Tehsildar Income Certificate", "Bonafide Certificate", "Aadhaar Card"]
         }
+    ]);
+
+    const [selectedCatFilter, setSelectedCatFilter] = useState("All");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [editModalItem, setEditModalItem] = useState(null);
+    const [createModalOpen, setCreateModalOpen] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
+
+    // Document checklist editing state in Modal
+    const [docInputText, setDocInputText] = useState("");
+
+    const handleEditOpen = (sch) => {
+        setEditModalItem({
+            ...sch,
+            documents: [...sch.documents]
+        });
+        setDocInputText("");
     };
 
-    useEffect(() => {
-        fetchScholarships();
-    }, []);
-
-    const showMessage = (msg) => {
-        setActionMsg(msg);
-        setTimeout(() => setActionMsg(""), 4000);
+    const handleAddDocumentItem = () => {
+        if (!docInputText.trim() || !editModalItem) return;
+        setEditModalItem({
+            ...editModalItem,
+            documents: [...editModalItem.documents, docInputText.trim()]
+        });
+        setDocInputText("");
     };
 
-    const handleSave = async (item) => {
-        try {
-            // Process departments and years strings into arrays
-            const eligible_departments = typeof item.eligible_departments === "string"
-                ? item.eligible_departments.split(",").map(d => d.trim().toUpperCase()).filter(Boolean)
-                : item.eligible_departments;
-
-            const eligible_years = typeof item.eligible_years === "string"
-                ? item.eligible_years.split(",").map(y => parseInt(y.trim())).filter(y => !isNaN(y))
-                : item.eligible_years;
-
-            const payload = {
-                ...item,
-                eligible_departments,
-                eligible_years,
-                min_gpa: parseFloat(item.min_gpa),
-                max_income: parseFloat(item.max_income)
-            };
-
-            const res = await fetch(`http://localhost:8000/api/scholarships/${item.id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-
-            if (res.ok) {
-                showMessage("Scholarship criteria updated successfully!");
-                fetchScholarships();
-            } else {
-                showMessage("Failed to update scholarship criteria.");
-            }
-        } catch (error) {
-            showMessage("Network error during save operation.");
-        }
-    };
-
-    const handleDelete = async (id) => {
-        if (!confirm("Are you sure you want to delete this scholarship? This is irreversible.")) return;
-        try {
-            const res = await fetch(`http://localhost:8000/api/scholarships/${id}`, {
-                method: "DELETE"
-            });
-            if (res.ok) {
-                showMessage("Scholarship deleted successfully.");
-                fetchScholarships();
-            } else {
-                showMessage("Failed to delete scholarship.");
-            }
-        } catch (error) {
-            showMessage("Network error during deletion.");
-        }
-    };
-
-    const handleCreate = async () => {
-        if (!newScholarship.scholarship_name.trim()) {
-            alert("Please enter a scholarship name.");
-            return;
-        }
-
-        try {
-            const eligible_departments = newScholarship.eligible_departments
-                .split(",")
-                .map(d => d.trim().toUpperCase())
-                .filter(Boolean);
-
-            const eligible_years = newScholarship.eligible_years
-                .split(",")
-                .map(y => parseInt(y.trim()))
-                .filter(y => !isNaN(y));
-
-            const payload = {
-                scholarship_name: newScholarship.scholarship_name,
-                min_gpa: parseFloat(newScholarship.min_gpa),
-                max_income: parseFloat(newScholarship.max_income),
-                eligible_departments,
-                eligible_years
-            };
-
-            const res = await fetch("http://localhost:8000/api/scholarships", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-
-            if (res.ok) {
-                showMessage("Scholarship created successfully!");
-                setIsCreating(false);
-                setNewScholarship({
-                    scholarship_name: "",
-                    min_gpa: 8.0,
-                    max_income: 250000,
-                    eligible_departments: "CSE, ECE, IT",
-                    eligible_years: "2, 3, 4"
-                });
-                fetchScholarships();
-            } else {
-                showMessage("Failed to create scholarship.");
-            }
-        } catch (error) {
-            showMessage("Network error during creation.");
-        }
-    };
-
-    const handleFieldChange = (idx, field, value) => {
-        setScholarships(prev => {
-            const updated = [...prev];
-            updated[idx] = { ...updated[idx], [field]: value };
-            return updated;
+    const handleRemoveDocumentItem = (index) => {
+        if (!editModalItem) return;
+        const updated = editModalItem.documents.filter((_, i) => i !== index);
+        setEditModalItem({
+            ...editModalItem,
+            documents: updated
         });
     };
 
+    const handleSaveEditSubmit = (e) => {
+        e.preventDefault();
+        if (!editModalItem) return;
+
+        setScholarships(prev => prev.map(s => s.id === editModalItem.id ? editModalItem : s));
+        setEditModalItem(null);
+
+        setToastMessage(`Successfully updated criteria & documents for "${editModalItem.scholarship_name}"!`);
+        setTimeout(() => setToastMessage(""), 4000);
+    };
+
+    const handleDeleteScheme = (id, name) => {
+        if (confirm(`Are you sure you want to delete scholarship scheme "${name}"?`)) {
+            setScholarships(prev => prev.filter(s => s.id !== id));
+            setToastMessage(`Deleted scheme "${name}".`);
+            setTimeout(() => setToastMessage(""), 4000);
+        }
+    };
+
+    const filteredScholarships = scholarships.filter(s => {
+        const matchesCat = selectedCatFilter === "All" || s.categoryId === parseInt(selectedCatFilter);
+        const matchesQuery = !searchQuery || 
+            s.scholarship_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            s.category_name.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCat && matchesQuery;
+    });
+
     return (
-        <div className="space-y-8 animate-fade-in pb-12">
-            {/* Header Title */}
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-extrabold mb-1 tracking-tight" style={{ letterSpacing: "-0.035em" }}>Scholarship Criteria Manager</h1>
-                    <p className="text-muted font-semibold text-sm">View, edit, or create structured eligibility rules for the conversational AI engine.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+            {/* HERO PANEL */}
+            <section className="panel" style={{ padding: '28px' }}>
+                <span className="badge" style={{ marginBottom: '12px' }}>⚙ Admin Scholarship Management & Eligibility Configurator</span>
+                <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', marginBottom: '8px' }}>
+                    14 Scholarship Schemes & Criteria Configuration
+                </h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.6', maxWidth: '750px', marginBottom: '16px' }}>
+                    Manage eligibility thresholds, Min CGPA requirements, Max family income limits, eligible departments, quota rules, and required document checklists for all 14 graduation scholarship programs.
+                </p>
+
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <span className="badge success">{scholarships.length} Schemes Active</span>
+                    <span className="badge">14 Categories Configured</span>
                 </div>
-                <div className="flex gap-3">
-                    <button 
-                        onClick={fetchScholarships} 
-                        className="p-3 bg-white/80 border border-slate-200/50 hover:bg-slate-50 text-slate-600 rounded-xl shadow-sm transition-all active:scale-95 cursor-pointer"
-                        title="Refresh"
-                    >
-                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                    </button>
-                    <button 
-                        onClick={() => setIsCreating(true)} 
-                        className="btn-primary flex items-center gap-2 text-xs font-black uppercase tracking-wider py-3.5 px-6 rounded-xl shadow-lg shadow-primary/20 hover:brightness-105 active:scale-95 cursor-pointer"
-                        style={{ background: 'var(--orange-grad)' }}
-                    >
-                        <Plus className="w-4 h-4" />
-                        <span>Create New</span>
-                    </button>
+            </section>
+
+            {/* TOAST MESSAGE */}
+            {toastMessage && (
+                <div style={{ padding: '14px 20px', borderRadius: '10px', background: 'rgba(66, 214, 164, 0.15)', border: '1px solid var(--success)', color: 'var(--success)', fontWeight: 700, fontSize: '13px' }}>
+                    ✓ {toastMessage}
                 </div>
+            )}
+
+            {/* SEARCH & CATEGORY FILTER TOOLBAR */}
+            <div className="toolbar">
+                <div className="search toolbar-search">
+                    <span className="search-icon">⌕</span>
+                    <input
+                        type="text"
+                        placeholder="Search scholarship by name or category..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+
+                <select
+                    className="input"
+                    value={selectedCatFilter}
+                    onChange={(e) => setSelectedCatFilter(e.target.value)}
+                    style={{ width: 'auto', background: '#081229', color: '#fff' }}
+                >
+                    <option value="All">All 14 Categories</option>
+                    {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>Category #{cat.id}: {cat.name}</option>
+                    ))}
+                </select>
             </div>
 
-            {actionMsg && (
-                <div className="p-4 bg-emerald-50 text-emerald-700 font-bold text-xs uppercase tracking-wider rounded-2xl border border-emerald-100/50 animate-pulse">
-                    {actionMsg}
+            {/* SCHOLARSHIP SCHEMES DATA ROWS */}
+            <section className="panel">
+                <div className="panel-header">
+                    <div>
+                        <div className="panel-title">Configured Scholarship Schemes ({filteredScholarships.length})</div>
+                        <div className="panel-subtitle">Manage criteria, income limits, and document checklists</div>
+                    </div>
                 </div>
-            )}
 
-            {/* Create New Scholarship section (AnimatePresence) */}
-            <AnimatePresence>
-                {isCreating && (
-                    <motion.div 
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="card p-6 border-2 border-primary/20 bg-primary/5 rounded-3xl overflow-hidden"
-                    >
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-extrabold text-base flex items-center gap-2" style={{ fontWeight: 800 }}>
-                                <Sparkles className="w-5 h-5 text-primary" />
-                                Add Custom Scholarship Rules
-                            </h3>
-                            <button onClick={() => setIsCreating(false)} className="text-xs font-bold text-slate-400 hover:text-slate-600 uppercase">Cancel</button>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">Scholarship Name</label>
-                                <input 
-                                    type="text" 
-                                    className="bg-white border border-slate-200/80 rounded-xl p-3 text-xs font-semibold text-slate-700 outline-none focus:border-primary"
-                                    placeholder="e.g. Sona Merit Scholarship"
-                                    value={newScholarship.scholarship_name}
-                                    onChange={(e) => setNewScholarship({...newScholarship, scholarship_name: e.target.value})}
-                                />
-                            </div>
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">Minimum GPA</label>
-                                <input 
-                                    type="number" 
-                                    step="0.1"
-                                    className="bg-white border border-slate-200/80 rounded-xl p-3 text-xs font-semibold text-slate-700 outline-none focus:border-primary"
-                                    value={newScholarship.min_gpa}
-                                    onChange={(e) => setNewScholarship({...newScholarship, min_gpa: e.target.value})}
-                                />
-                            </div>
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">Max Family Income Limit (₹)</label>
-                                <input 
-                                    type="number" 
-                                    className="bg-white border border-slate-200/80 rounded-xl p-3 text-xs font-semibold text-slate-700 outline-none focus:border-primary"
-                                    value={newScholarship.max_income}
-                                    onChange={(e) => setNewScholarship({...newScholarship, max_income: e.target.value})}
-                                />
-                            </div>
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">Eligible Departments (Comma-separated)</label>
-                                <input 
-                                    type="text" 
-                                    className="bg-white border border-slate-200/80 rounded-xl p-3 text-xs font-semibold text-slate-700 outline-none focus:border-primary"
-                                    placeholder="e.g. CSE, ECE, IT"
-                                    value={newScholarship.eligible_departments}
-                                    onChange={(e) => setNewScholarship({...newScholarship, eligible_departments: e.target.value})}
-                                />
-                            </div>
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">Eligible Academic Years (Comma-separated)</label>
-                                <input 
-                                    type="text" 
-                                    className="bg-white border border-slate-200/80 rounded-xl p-3 text-xs font-semibold text-slate-700 outline-none focus:border-primary"
-                                    placeholder="e.g. 2, 3, 4"
-                                    value={newScholarship.eligible_years}
-                                    onChange={(e) => setNewScholarship({...newScholarship, eligible_years: e.target.value})}
-                                />
-                            </div>
-                        </div>
-                        <button 
-                            onClick={handleCreate}
-                            className="btn-primary py-3.5 px-6 text-xs uppercase font-black tracking-wider"
-                        >
-                            Submit Scholarship
-                        </button>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* List Grid */}
-            {loading ? (
-                <div className="text-center py-16">
-                    <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Loading stored scholarship rules...</p>
-                </div>
-            ) : scholarships.length > 0 ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {scholarships.map((item, idx) => (
-                        <motion.div 
-                            key={item.id || idx}
-                            initial={{ opacity: 0, y: 15 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.05 }}
-                            className="card p-6 flex flex-col justify-between overflow-hidden relative border border-white/70"
-                            style={{ background: 'rgba(255, 255, 255, 0.75)' }}
-                        >
-                            <div>
-                                {/* Card Title Section */}
-                                <div className="flex justify-between items-start mb-6">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-                                            <GraduationCap className="w-5 h-5" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-extrabold text-slate-800 leading-snug" style={{ fontWeight: 800 }}>
-                                                {item.scholarship_name}
-                                            </h3>
-                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">ID: {item.id}</span>
-                                        </div>
-                                    </div>
-                                    <button 
-                                        onClick={() => handleDelete(item.id)}
-                                        className="p-2 bg-slate-100/50 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-all"
-                                        title="Delete Scholarship"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
+                <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {filteredScholarships.map((sch) => (
+                        <div key={sch.id} className="data-row" style={{ flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: '280px' }}>
+                                <div className="data-icon" style={{ background: 'rgba(91, 53, 232, 0.2)', color: '#a855f7' }}>
+                                    🎓
                                 </div>
-
-                                {/* Form Fields inputs for edit */}
-                                <div className="grid grid-cols-2 gap-4 mb-6">
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                                            <Sparkles className="w-3 h-3 text-amber-500" />
-                                            Minimum CGPA
-                                        </span>
-                                        <input 
-                                            type="number"
-                                            step="0.1"
-                                            className="bg-slate-50/50 border border-slate-200/40 focus:bg-white focus:border-primary rounded-xl p-2.5 text-xs font-semibold text-slate-700 outline-none"
-                                            value={item.min_gpa}
-                                            onChange={(e) => handleFieldChange(idx, "min_gpa", e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                                            <Wallet className="w-3 h-3 text-emerald-500" />
-                                            Income Limit (₹)
-                                        </span>
-                                        <input 
-                                            type="number"
-                                            className="bg-slate-50/50 border border-slate-200/40 focus:bg-white focus:border-primary rounded-xl p-2.5 text-xs font-semibold text-slate-700 outline-none"
-                                            value={item.max_income}
-                                            onChange={(e) => handleFieldChange(idx, "max_income", e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                                            <Building className="w-3 h-3 text-indigo-500" />
-                                            Eligible Depts
-                                        </span>
-                                        <input 
-                                            type="text"
-                                            className="bg-slate-50/50 border border-slate-200/40 focus:bg-white focus:border-primary rounded-xl p-2.5 text-xs font-semibold text-slate-700 outline-none"
-                                            value={Array.isArray(item.eligible_departments) ? item.eligible_departments.join(", ") : item.eligible_departments}
-                                            onChange={(e) => handleFieldChange(idx, "eligible_departments", e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                                            <Calendar className="w-3 h-3 text-orange-500" />
-                                            Eligible Years
-                                        </span>
-                                        <input 
-                                            type="text"
-                                            className="bg-slate-50/50 border border-slate-200/40 focus:bg-white focus:border-primary rounded-xl p-2.5 text-xs font-semibold text-slate-700 outline-none"
-                                            value={Array.isArray(item.eligible_years) ? item.eligible_years.join(", ") : item.eligible_years}
-                                            onChange={(e) => handleFieldChange(idx, "eligible_years", e.target.value)}
-                                        />
+                                <div>
+                                    <div className="data-title" style={{ fontSize: '15px', color: '#ffffff' }}>{sch.scholarship_name}</div>
+                                    <div className="data-meta" style={{ marginTop: '4px' }}>
+                                        <span className="badge" style={{ background: 'var(--primary-soft)', color: '#ffffff' }}>Cat #{sch.categoryId}: {sch.category_name}</span>
+                                        <span className="badge">Min CGPA: {sch.min_gpa}</span>
+                                        <span className="badge">Max Income: {sch.income_label || `₹${(sch.max_income/100000).toFixed(1)}L`}</span>
+                                        <span className="badge">Quota: {sch.caste_quota}</span>
+                                        <span className="badge success">{sch.documents.length} Docs Required</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <button 
-                                onClick={() => handleSave(item)}
-                                className="btn-secondary flex items-center justify-center gap-2 text-xs py-3 px-4 rounded-xl border border-slate-200 shadow-sm font-bold w-full transition-transform active:scale-[0.98]"
-                            >
-                                <Save className="w-3.5 h-3.5 text-primary" />
-                                <span>Save Changes</span>
-                            </button>
-                        </motion.div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <button className="button primary" onClick={() => handleEditOpen(sch)}>
+                                    ⚙ Edit Criteria & Documents
+                                </button>
+                                <button className="button danger" onClick={() => handleDeleteScheme(sch.id, sch.scholarship_name)}>
+                                    🗑 Delete
+                                </button>
+                            </div>
+                        </div>
                     ))}
                 </div>
-            ) : (
-                <div className="card p-12 text-center border-2 border-dashed border-slate-200 flex flex-col items-center justify-center">
-                    <AlertCircle className="w-12 h-12 text-slate-300 mb-3" />
-                    <p className="text-slate-500 font-bold mb-1">No Scholarship Rules Found</p>
-                    <p className="text-slate-400 text-xs max-w-sm mb-6 leading-relaxed">
-                        Upload official scholarship brochures in the Knowledge Base tab or click 'Create New' above to write rules.
-                    </p>
-                    <button 
-                        onClick={() => setIsCreating(true)}
-                        className="btn-primary py-3 px-6 text-xs uppercase font-black tracking-wider"
-                    >
-                        Create One Now
-                    </button>
+            </section>
+
+            {/* EDIT CRITERIA & DOCUMENTS MODAL */}
+            {editModalItem && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                    <div className="panel" style={{ maxWidth: '680px', width: '100%', padding: '28px', background: '#0a142b', border: '1px solid var(--border-hover)', borderRadius: '16px', maxHeight: '90vh', overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                            <div>
+                                <span className="badge warning" style={{ marginBottom: '6px' }}>Edit Criteria & Documents</span>
+                                <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#ffffff' }}>{editModalItem.scholarship_name}</h3>
+                            </div>
+                            <button className="button danger" onClick={() => setEditModalItem(null)} style={{ height: '32px', padding: '0 10px' }}>✕</button>
+                        </div>
+
+                        <form onSubmit={handleSaveEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            {/* SCHOLARSHIP NAME & BENEFIT */}
+                            <div>
+                                <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Scholarship Program Title</label>
+                                <input
+                                    type="text"
+                                    className="input"
+                                    value={editModalItem.scholarship_name}
+                                    onChange={(e) => setEditModalItem({ ...editModalItem, scholarship_name: e.target.value })}
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Financial Coverage & Benefits</label>
+                                <input
+                                    type="text"
+                                    className="input"
+                                    value={editModalItem.benefits}
+                                    onChange={(e) => setEditModalItem({ ...editModalItem, benefits: e.target.value })}
+                                    required
+                                />
+                            </div>
+
+                            {/* CRITERIA GRID */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                                <div>
+                                    <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Minimum CGPA Cutoff</label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        className="input"
+                                        value={editModalItem.min_gpa}
+                                        onChange={(e) => setEditModalItem({ ...editModalItem, min_gpa: parseFloat(e.target.value) })}
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Maximum Family Income (₹)</label>
+                                    <input
+                                        type="number"
+                                        className="input"
+                                        value={editModalItem.max_income}
+                                        onChange={(e) => setEditModalItem({ ...editModalItem, max_income: parseInt(e.target.value), income_label: `₹${(parseInt(e.target.value)/100000).toFixed(1)} Lakhs` })}
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Target Quota / Category</label>
+                                    <input
+                                        type="text"
+                                        className="input"
+                                        value={editModalItem.caste_quota}
+                                        onChange={(e) => setEditModalItem({ ...editModalItem, caste_quota: e.target.value })}
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Eligible Departments</label>
+                                    <input
+                                        type="text"
+                                        className="input"
+                                        value={editModalItem.eligible_departments}
+                                        onChange={(e) => setEditModalItem({ ...editModalItem, eligible_departments: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            {/* REQUIRED DOCUMENTS CHECKLIST EDITOR */}
+                            <div style={{ background: '#081229', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff', marginBottom: '10px' }}>
+                                    REQUIRED DOCUMENTS CHECKLIST ({editModalItem.documents.length})
+                                </div>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
+                                    {editModalItem.documents.map((doc, idx) => (
+                                        <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#0a142b', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                                            <span style={{ fontSize: '12px', color: '#ffffff' }}>✓ {doc}</span>
+                                            <button
+                                                type="button"
+                                                className="button danger"
+                                                onClick={() => handleRemoveDocumentItem(idx)}
+                                                style={{ height: '26px', padding: '0 8px', fontSize: '11px' }}
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <input
+                                        type="text"
+                                        className="input"
+                                        placeholder="Add required document name (e.g. Bonafide Letter)"
+                                        value={docInputText}
+                                        onChange={(e) => setDocInputText(e.target.value)}
+                                        style={{ flex: 1 }}
+                                    />
+                                    <button type="button" className="button primary" onClick={handleAddDocumentItem}>
+                                        + Add Doc
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px' }}>
+                                <button type="button" className="button" onClick={() => setEditModalItem(null)}>Cancel</button>
+                                <button type="submit" className="button primary">Save Criteria & Documents</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
+
+            {/* FOOTER DISCLAIMER */}
+            <div className="disclaimer">
+                🛡️ Criteria edits update student dashboard eligibility checks and AI chatbot knowledge base instantly.
+            </div>
         </div>
     );
 }

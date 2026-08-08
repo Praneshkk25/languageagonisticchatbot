@@ -1,338 +1,287 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-    Calendar, 
-    BookOpen, 
-    Clock, 
-    CreditCard, 
-    BarChart, 
-    FileText,
-    ArrowUpRight,
-    TrendingUp,
-    MessageSquare,
-    Bot,
-    Send,
-    HelpCircle,
-    User,
-    Sparkles,
-    Mic,
-    MicOff,
-    Volume2,
-    VolumeX
-} from "lucide-react";
-import { useLanguage } from "../LanguageContext";
-
-
-const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.1
-        }
-    }
-};
-
-const itemVariants = {
-    hidden: { opacity: 0, y: 25 },
-    show: { opacity: 1, y: 0 }
-};
+import { useRouter } from "next/navigation";
 
 export default function DashboardHome() {
-    const { t, language } = useLanguage();
-    
-    // Mini-Chatbot State
-    const [miniMessages, setMiniMessages] = useState([
-        { role: "user", text: "How are my academic stats looking?" },
-        { role: "bot", text: "You are doing great! You completed 3 assignments and attended 2 laboratory sessions this week." }
-    ]);
-    const [miniInput, setMiniInput] = useState("");
-    const [miniLoading, setMiniLoading] = useState(false);
-    const [isListening, setIsListening] = useState(false);
-    const [isTtsEnabled, setIsTtsEnabled] = useState(false);
-    const [miniContext, setMiniContext] = useState(() => {
+    const router = useRouter();
+
+    const handlePromptClick = (question) => {
         if (typeof window !== "undefined") {
-            const userStr = localStorage.getItem("user");
-            if (userStr) {
-                try {
-                    const u = JSON.parse(userStr);
-                    return { user_id: u.id };
-                } catch(e) {}
-            }
+            sessionStorage.setItem("pending_chat_query", question);
         }
-        return { user_id: "2023CS001" };
-    });
-    const chatEndRef = useRef(null);
-
-    const [profile, setProfile] = useState({
-        name: "Student",
-        admission_no: "2023CS001",
-        cgpa: 9.2,
-        department: "CSE",
-        year: 3,
-        attendance_pct: 85,
-        lectures_attended: 34,
-        lectures_total: 40,
-        labs_attended: 10,
-        labs_total: 15,
-        study_hours: 12.5
-    });
-
-    const speak = (text) => {
-        if (typeof window === "undefined" || !isTtsEnabled) return;
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        const langMap = {
-            "en": "en-US",
-            "hi": "hi-IN",
-            "ta": "ta-IN",
-            "te": "te-IN"
-        };
-        utterance.lang = langMap[language] || "en-US";
-        window.speechSynthesis.speak(utterance);
+        router.push("/dashboard/chat");
     };
-
-    useEffect(() => {
-        return () => {
-            if (typeof window !== "undefined") {
-                window.speechSynthesis.cancel();
-            }
-        };
-    }, []);
-
-    const fetchProfile = async () => {
-        const studentId = miniContext?.user_id || "2023CS001";
-        try {
-            const res = await fetch(`http://localhost:8000/api/students/${studentId}`);
-            if (res.ok) {
-                const data = await res.json();
-                setProfile(data);
-            }
-        } catch (err) {
-            console.error("Error fetching student profile:", err);
-        }
-    };
-
-    useEffect(() => {
-        fetchProfile();
-    }, [miniContext?.user_id]);
-
-    const startSpeechRecognition = () => {
-        if (typeof window === "undefined") return;
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            alert("Web Speech API is not supported in this browser. Please use Chrome, Edge or Safari.");
-            return;
-        }
-
-        const recognition = new SpeechRecognition();
-        const langMap = {
-            "en": "en-US",
-            "hi": "hi-IN",
-            "ta": "ta-IN",
-            "te": "te-IN"
-        };
-        recognition.lang = langMap[language] || "en-US";
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-
-        recognition.onstart = () => {
-            setIsListening(true);
-        };
-
-        recognition.onend = () => {
-            setIsListening(false);
-        };
-
-        recognition.onerror = (event) => {
-            console.error("Speech recognition error:", event.error);
-            setIsListening(false);
-        };
-
-        recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            setMiniInput(prev => prev ? prev + " " + transcript : transcript);
-        };
-
-        recognition.start();
-    };
-
-
-    const scrollToBottom = () => {
-        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [miniMessages]);
-
-    const handleMiniSend = async () => {
-        if (!miniInput.trim()) return;
-        const text = miniInput;
-        setMiniMessages(prev => [...prev, { role: "user", text }]);
-        setMiniInput("");
-        setMiniLoading(true);
-
-        try {
-            const res = await fetch("http://localhost:8000/api/chat/student", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: text, language, context: miniContext })
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setMiniMessages(prev => [...prev, { role: "bot", text: data.response }]);
-                speak(data.response);
-                if (data.context) {
-                    setMiniContext(data.context);
-                }
-            } else {
-                throw new Error();
-            }
-        } catch (e) {
-            setMiniMessages(prev => [...prev, { role: "bot", text: "I'm having trouble connecting right now. Try checking the portal chat page!" }]);
-        } finally {
-            setMiniLoading(false);
-        }
-    };
-
 
     return (
-        <motion.div 
-            initial="hidden"
-            animate="show"
-            variants={containerVariants}
-            className="w-full pb-12"
-        >
-            <div className="flex flex-col gap-6">
-                    
-                    {/* Header */}
-                    <motion.div variants={itemVariants}>
-                        <h1 className="text-4xl font-extrabold mb-1 tracking-tight" style={{ letterSpacing: "-0.035em" }}>Let's start strong!</h1>
-                        <p className="text-muted font-semibold text-sm">Welcome back, {profile.name}. Here is your overview for today.</p>
-                    </motion.div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%', maxWidth: '1200px', margin: '0 auto', paddingBottom: '32px' }}>
+            
+            {/* 1. HERO BANNER CARD */}
+            <div style={{
+                background: 'linear-gradient(135deg, #0e122b 0%, #17163a 50%, #121530 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '24px',
+                padding: '32px 36px',
+                display: 'flex',
+                alignItems: 'center',
+                justify: 'space-between',
+                gap: '24px',
+                position: 'relative',
+                overflow: 'hidden',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
+            }}>
+                {/* Hero Left Content */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '580px', zIndex: 2 }}>
+                    <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#ffffff', lineHeight: 1.25, letterSpacing: '-0.5px' }}>
+                        Your <span style={{ background: 'linear-gradient(90deg, #818cf8, #c084fc, #f472b6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Smart College</span> Assistant
+                    </h1>
+                    <p style={{ color: '#a5aec7', fontSize: '13px', lineHeight: 1.6, fontWeight: 500 }}>
+                        Get instant answers, find scholarships and upload documents - all in one place.
+                    </p>
+                    <div style={{ paddingTop: '6px' }}>
+                        <Link 
+                            href="/dashboard/chat" 
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                padding: '12px 24px',
+                                borderRadius: '12px',
+                                background: 'linear-gradient(90deg, #4f46e5, #7c3aed)',
+                                color: '#ffffff',
+                                fontSize: '13px',
+                                fontWeight: 700,
+                                textDecoration: 'none',
+                                boxShadow: '0 8px 20px rgba(79, 70, 229, 0.35)'
+                            }}
+                        >
+                            <span>Start Chatting</span>
+                            <span>→</span>
+                        </Link>
+                    </div>
+                </div>
 
-                    {/* Weekly Goal Progress Card */}
-                    <motion.div 
-                        variants={itemVariants} 
-                        className="card p-6" 
-                        style={{ background: 'rgba(255, 255, 255, 0.75)', border: '1px solid rgba(255, 255, 255, 0.7)' }}
-                    >
-                        <div className="flex justify-between items-center mb-4">
-                            <div>
-                                <p className="text-sm font-semibold text-slate-800">You're {profile.attendance_pct}% to your</p>
-                                <p className="text-lg font-bold text-slate-900" style={{ fontWeight: 800 }}>weekly attendance goal</p>
-                            </div>
-                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary" style={{ backgroundColor: 'var(--primary-glow)', color: 'var(--primary)' }}>
-                                <Sparkles className="w-5 h-5 fill-primary" />
-                            </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-4">
-                            <div className="flex-1 bg-slate-200/50 h-6 rounded-full overflow-hidden p-0.5 border border-white">
-                                <motion.div 
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${profile.attendance_pct}%` }}
-                                    transition={{ duration: 1 }}
-                                    className="bg-primary h-full rounded-full"
-                                    style={{ background: 'var(--orange-grad)' }}
-                                />
-                            </div>
-                            <span className="text-sm font-bold text-slate-800">{profile.lectures_attended}/{profile.lectures_total} hrs</span>
-                        </div>
-                    </motion.div>
+                {/* Hero Right Mascot & Speech Bubble */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', zIndex: 2, flexShrink: 0 }}>
+                    {/* Speech Bubble */}
+                    <div style={{
+                        padding: '12px 16px',
+                        borderRadius: '16px',
+                        background: 'rgba(255, 255, 255, 0.08)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        backdropFilter: 'blur(10px)',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: '#ffffff',
+                        maxWidth: '180px',
+                        lineHeight: 1.4
+                    }}>
+                        Hello! 👋<br/>
+                        <span style={{ color: '#a5aec7', fontSize: '11px', fontWeight: 400 }}>I'm your AI Assistant. How can I help you?</span>
+                    </div>
 
-
-
-                    {/* Summary Header */}
-                    <motion.div variants={itemVariants} className="flex items-center justify-between mt-2">
-                        <h2 className="text-xl font-bold tracking-tight" style={{ fontWeight: 800 }}>Summary</h2>
-                        <div className="flex gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shadow-inner">
-                            <span className="px-3 py-1 text-xs font-bold text-muted rounded-lg cursor-pointer">Daily</span>
-                            <span className="px-3 py-1 bg-white text-xs font-bold rounded-lg shadow-sm">Weekly</span>
-                            <span className="px-3 py-1 text-xs font-bold text-muted rounded-lg cursor-pointer">Monthly</span>
-                        </div>
-                    </motion.div>
-
-                    {/* Summary Widgets Grid */}
-                    <motion.div variants={containerVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        
-                        {/* Widget 1: Circular Attendance Arcs */}
-                        <div className="card p-5 flex flex-col justify-between" style={{ minHeight: '180px', border: '1px solid rgba(255,255,255,0.7)' }}>
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="relative w-16 h-16">
-                                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                                        <circle cx="50" cy="50" r="40" fill="transparent" stroke="rgba(0,0,0,0.03)" strokeWidth="8" />
-                                        <circle cx="50" cy="50" r="40" fill="transparent" stroke="url(#orangeAccent)" strokeWidth="8" strokeDasharray="251.2" strokeDashoffset={251.2 - (251.2 * profile.attendance_pct) / 100} strokeLinecap="round" />
-                                        <circle cx="50" cy="50" r="28" fill="transparent" stroke="rgba(0,0,0,0.03)" strokeWidth="8" />
-                                        <circle cx="50" cy="50" r="28" fill="transparent" stroke="#17181c" strokeWidth="8" strokeDasharray="175.8" strokeDashoffset={175.8 - (175.8 * (profile.labs_attended / profile.labs_total * 100)) / 100} strokeLinecap="round" />
-                                        <defs>
-                                            <linearGradient id="orangeAccent" x1="0%" y1="0%" x2="100%" y2="100%">
-                                                <stop offset="0%" stopColor="#ff5f36" />
-                                                <stop offset="100%" stopColor="#ff8340" />
-                                            </linearGradient>
-                                        </defs>
-                                    </svg>
-                                </div>
-                                <div style={{ textAlign: 'right' }}>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Attendance</span>
-                                    <h3 className="text-xl font-bold text-slate-800">{profile.attendance_pct}%</h3>
-                                </div>
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                <div className="flex items-center gap-1.5">
-                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#ff5f36" }} />
-                                    <span className="text-[10px] font-semibold text-slate-500">Lectures: {profile.lectures_attended}/{profile.lectures_total} hr</span>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#17181c" }} />
-                                    <span className="text-[10px] font-semibold text-slate-500">Lab session: {profile.labs_attended}/{profile.labs_total} hr</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Widget 2: Weekly Hours Activity */}
-                        <div className="card p-5 flex flex-col justify-between" style={{ minHeight: '180px', border: '1px solid rgba(255,255,255,0.7)' }}>
-                            <div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Study Hours</span>
-                                <h3 className="text-xl font-bold text-slate-800 mb-2">{profile.study_hours} hrs</h3>
-                            </div>
-                            <div className="flex items-end justify-between h-14 w-full px-1">
-                                {[35, 60, 25, 85, 45, 15, 30].map((h, idx) => (
-                                    <div key={idx} className="w-1.5 bg-slate-100 rounded-full h-full relative overflow-hidden">
-                                        <div 
-                                            className="absolute bottom-0 left-0 w-full rounded-full" 
-                                            style={{ 
-                                                height: `${h}%`, 
-                                                background: idx === 3 ? '#17181c' : 'var(--orange-grad)' 
-                                            }} 
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Widget 3: GPA Performance splines (Dark Card) */}
-                        <div className="card p-5 flex flex-col justify-between" style={{ minHeight: '180px', background: '#2d2f34', border: 'none', color: '#fff' }}>
-                            <div className="flex flex-col gap-0.5">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest" style={{ color: '#a1a1aa' }}>Performance</span>
-                                <h3 className="text-2xl font-black tracking-tight" style={{ fontWeight: 800 }}>{profile.cgpa} CGPA</h3>
-                            </div>
-                            <div className="h-10 w-full mt-3">
-                                <svg className="w-full h-full" viewBox="0 0 100 40" fill="none">
-                                    <path d="M0,32 C20,10 40,30 60,8 C80,25 90,5 100,18" stroke="#ff5f36" strokeWidth="3" strokeLinecap="round" />
-                                </svg>
-                            </div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2" style={{ color: '#a1a1aa' }}>Class Rank: 4th</span>
-                        </div>
-                    </motion.div>
-
+                    {/* Fixed Size Robot SVG Mascot */}
+                    <div style={{ width: '140px', height: '140px', maxWidth: '140px', maxHeight: '140px', flexShrink: 0, overflow: 'hidden' }}>
+                        <svg width="140" height="140" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '140px', height: '140px', display: 'block' }}>
+                            <rect x="50" y="40" width="100" height="75" rx="24" fill="url(#botHeadGrad)" stroke="#6366f1" strokeWidth="2" />
+                            <circle cx="100" cy="25" r="7" fill="#818cf8" />
+                            <line x1="100" y1="25" x2="100" y2="40" stroke="#818cf8" strokeWidth="3" />
+                            <circle cx="42" cy="77" r="7" fill="#4f46e5" />
+                            <circle cx="158" cy="77" r="7" fill="#4f46e5" />
+                            <rect x="62" y="52" width="76" height="50" rx="16" fill="#090b15" />
+                            <circle cx="82" cy="75" r="7" fill="#38bdf8" />
+                            <circle cx="118" cy="75" r="7" fill="#38bdf8" />
+                            <circle cx="84" cy="73" r="2.5" fill="#ffffff" />
+                            <circle cx="120" cy="73" r="2.5" fill="#ffffff" />
+                            <path d="M90 88 C95 94, 105 94, 110 88" stroke="#38bdf8" strokeWidth="3" strokeLinecap="round" />
+                            <rect x="60" y="122" width="80" height="60" rx="20" fill="url(#botHeadGrad)" stroke="#6366f1" strokeWidth="2" />
+                            <circle cx="100" cy="152" r="14" fill="#4f46e5" />
+                            <path d="M94 152 H106 M97 148 V156 M103 149 V155" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" />
+                            <path d="M140 135 Q165 110 170 95" stroke="#818cf8" strokeWidth="10" strokeLinecap="round" />
+                            <circle cx="170" cy="95" r="8" fill="#a855f7" />
+                            <defs>
+                                <linearGradient id="botHeadGrad" x1="50" y1="40" x2="150" y2="115" gradientUnits="userSpaceOnUse">
+                                    <stop stopColor="#ffffff" />
+                                    <stop offset="0.7" stopColor="#e0e7ff" />
+                                    <stop offset="1" stopColor="#c7d2fe" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                </div>
             </div>
-        </motion.div>
+
+            {/* 2. QUICK ACCESS GRID */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ color: '#a855f7' }}>⚡</span>
+                    <span>Quick Access</span>
+                </div>
+
+                <div className="grid grid-3">
+                    {/* Card 1: AI Assistant */}
+                    <div className="feature-card" onClick={() => router.push('/dashboard/chat')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <div>
+                            <div className="feature-icon" style={{ background: 'rgba(139, 92, 246, 0.2)', color: '#a855f7' }}>🤖</div>
+                            <div className="feature-title" style={{ fontSize: '15px', marginTop: '10px' }}>AI Assistant</div>
+                            <div className="feature-description">Ask me anything about college, admissions, events, or policies.</div>
+                        </div>
+                        <div style={{ marginTop: '16px', fontSize: '12px', fontWeight: 700, color: '#bcaaff', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span>Chat Now</span>
+                            <span>→</span>
+                        </div>
+                    </div>
+
+                    {/* Card 2: Scholarship */}
+                    <div className="feature-card" onClick={() => router.push('/dashboard/scholarships')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <div>
+                            <div className="feature-icon" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399' }}>🎓</div>
+                            <div className="feature-title" style={{ fontSize: '15px', marginTop: '10px' }}>Scholarship</div>
+                            <div className="feature-description">Find and apply for the best scholarships available.</div>
+                        </div>
+                        <div style={{ marginTop: '16px', fontSize: '12px', fontWeight: 700, color: '#bcaaff', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span>Explore Now</span>
+                            <span>→</span>
+                        </div>
+                    </div>
+
+                    {/* Card 3: Documents Upload */}
+                    <div className="feature-card" onClick={() => router.push('/dashboard/documents')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <div>
+                            <div className="feature-icon" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa' }}>📄</div>
+                            <div className="feature-title" style={{ fontSize: '15px', marginTop: '10px' }}>Documents Upload</div>
+                            <div className="feature-description">Upload and verify your important documents securely.</div>
+                        </div>
+                        <div style={{ marginTop: '16px', fontSize: '12px', fontWeight: 700, color: '#bcaaff', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span>Upload Now</span>
+                            <span>→</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 3. ANNOUNCEMENT BANNER */}
+            <div style={{
+                background: '#091329',
+                border: '1px solid var(--border)',
+                borderRadius: '14px',
+                padding: '18px 24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '16px'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(168, 85, 247, 0.2)', color: '#c084fc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                        📢
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>Latest Announcement</div>
+                        <div style={{ fontSize: '12px', color: '#a5aec7', marginTop: '2px' }}>Scholarship portal for the year 2025-26 is now open.</div>
+                    </div>
+                </div>
+
+                <button className="button" onClick={() => router.push('/dashboard/scholarships')}>
+                    View Details
+                </button>
+            </div>
+
+            {/* 4. OVERVIEW STATS GRID */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>Overview</div>
+
+                <div className="grid grid-4">
+                    <div className="feature-card">
+                        <div className="feature-icon" style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#c084fc' }}>💬</div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff' }}>128</div>
+                        <div className="feature-description" style={{ marginTop: '4px' }}>Questions Answered This Month</div>
+                    </div>
+
+                    <div className="feature-card">
+                        <div className="feature-icon" style={{ background: 'rgba(52, 211, 153, 0.2)', color: '#34d399' }}>🎓</div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff' }}>24</div>
+                        <div className="feature-description" style={{ marginTop: '4px' }}>Scholarships Available</div>
+                    </div>
+
+                    <div className="feature-card">
+                        <div className="feature-icon" style={{ background: 'rgba(251, 146, 60, 0.2)', color: '#fb923c' }}>📄</div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff' }}>15</div>
+                        <div className="feature-description" style={{ marginTop: '4px' }}>Documents Uploaded</div>
+                    </div>
+
+                    <div className="feature-card">
+                        <div className="feature-icon" style={{ background: 'rgba(96, 165, 250, 0.2)', color: '#60a5fa' }}>👥</div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff' }}>3.2K</div>
+                        <div className="feature-description" style={{ marginTop: '4px' }}>Active Students</div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 5. TRY ASKING PROMPTS */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between' }}>
+                    <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff', flex: 1 }}>Try Asking</div>
+                    <Link href="/dashboard/chat" style={{ fontSize: '12px', fontWeight: 700, color: '#818cf8', textDecoration: 'none' }}>
+                        See all suggestions →
+                    </Link>
+                </div>
+
+                <div className="grid grid-2">
+                    <div className="data-row" onClick={() => handlePromptClick("What are the upcoming events in college?")} style={{ cursor: 'pointer', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div className="data-icon">📅</div>
+                            <div className="data-title">What are the upcoming events in college?</div>
+                        </div>
+                        <span style={{ color: '#707b98' }}>→</span>
+                    </div>
+
+                    <div className="data-row" onClick={() => handlePromptClick("Tell me about the placement cell.")} style={{ cursor: 'pointer', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div className="data-icon">💼</div>
+                            <div className="data-title">Tell me about the placement cell.</div>
+                        </div>
+                        <span style={{ color: '#707b98' }}>→</span>
+                    </div>
+
+                    <div className="data-row" onClick={() => handlePromptClick("How can I apply for a scholarship?")} style={{ cursor: 'pointer', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div className="data-icon">🎓</div>
+                            <div className="data-title">How can I apply for a scholarship?</div>
+                        </div>
+                        <span style={{ color: '#707b98' }}>→</span>
+                    </div>
+
+                    <div className="data-row" onClick={() => handlePromptClick("How can I get my TC?")} style={{ cursor: 'pointer', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div className="data-icon">📄</div>
+                            <div className="data-title">How can I get my TC?</div>
+                        </div>
+                        <span style={{ color: '#707b98' }}>→</span>
+                    </div>
+
+                    <div className="data-row" onClick={() => handlePromptClick("What documents are required for Bonafide?")} style={{ cursor: 'pointer', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div className="data-icon">📄</div>
+                            <div className="data-title">What documents are required for Bonafide?</div>
+                        </div>
+                        <span style={{ color: '#707b98' }}>→</span>
+                    </div>
+
+                    <div className="data-row" onClick={() => handlePromptClick("Where can I find the academic calendar?")} style={{ cursor: 'pointer', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div className="data-icon">📅</div>
+                            <div className="data-title">Where can I find the academic calendar?</div>
+                        </div>
+                        <span style={{ color: '#707b98' }}>→</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* 6. FOOTER DISCLAIMER */}
+            <div className="disclaimer">
+                🛡️ Your data is secure and confidential
+            </div>
+        </div>
     );
 }
-
-

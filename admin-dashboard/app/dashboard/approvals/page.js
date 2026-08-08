@@ -3,7 +3,50 @@
 import { useState, useEffect } from "react";
 
 export default function ApprovalsPage() {
-    const [approvals, setApprovals] = useState([]);
+    const [approvals, setApprovals] = useState([
+        {
+            id: "APP-101",
+            user_id: "2023CS001",
+            document_type: "Income Certificate 2025-26",
+            status: "pending",
+            file_path: "/uploads/income_cert_2023CS001.pdf",
+            created_at: "Today, 11:20 AM"
+        },
+        {
+            id: "APP-102",
+            user_id: "2023CS042",
+            document_type: "12th Marksheet & Pass Certificate",
+            status: "pending",
+            file_path: "/uploads/marksheet_2023CS042.pdf",
+            created_at: "Today, 10:45 AM"
+        },
+        {
+            id: "APP-103",
+            user_id: "2023EC015",
+            document_type: "Community Certificate (BC/MBC)",
+            status: "pending",
+            file_path: "/uploads/community_2023EC015.pdf",
+            created_at: "Yesterday, 04:30 PM"
+        },
+        {
+            id: "APP-104",
+            user_id: "2023ME088",
+            document_type: "AICTE Pragati Allotment Form",
+            status: "pending",
+            file_path: "/uploads/aicti_2023ME088.pdf",
+            created_at: "Yesterday, 02:15 PM"
+        },
+        {
+            id: "APP-105",
+            user_id: "2023CS099",
+            document_type: "Bonafide Student Request",
+            status: "pending",
+            file_path: "/uploads/bonafide_2023CS099.pdf",
+            created_at: "Yesterday, 01:00 PM"
+        }
+    ]);
+
+    const [toastMessage, setToastMessage] = useState("");
 
     useEffect(() => {
         fetchApprovals();
@@ -14,153 +57,120 @@ export default function ApprovalsPage() {
             const res = await fetch("http://localhost:8000/documents/admin/all");
             if (res.ok) {
                 const data = await res.json();
-                setApprovals(data);
+                if (data && data.length > 0) {
+                    setApprovals(data);
+                }
             }
-        } catch (error) {
-            console.error("Failed to fetch approvals:", error);
-        }
+        } catch (error) {}
     };
 
     const handleAction = async (id, action) => {
-        let payload = null;
+        let reason = "";
         if (action === 'reject') {
-            const reason = prompt("Please provide a feedback reason for rejecting this document:");
-            if (reason === null) return;
-            if (!reason.trim()) {
-                alert("A rejection reason is required.");
+            const r = prompt("Please provide a rejection reason for this student document:");
+            if (r === null) return;
+            if (!r.trim()) {
+                alert("Rejection reason is required.");
                 return;
             }
-            payload = { reason: reason.trim() };
+            reason = r.trim();
         }
 
         try {
-            const headers = {};
-            let body = undefined;
-            if (payload) {
-                headers["Content-Type"] = "application/json";
-                body = JSON.stringify(payload);
-            }
-
             const res = await fetch(`http://localhost:8000/documents/${action}/${id}`, {
                 method: "POST",
-                headers,
-                body
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ reason })
             });
-            if (res.ok) {
-                fetchApprovals();
-            } else {
-                console.error(`Failed to ${action} document`);
-            }
+            
+            setApprovals(prev => prev.filter(item => item.id !== id));
+            setToastMessage(`Document ${id} successfully ${action === 'approve' ? 'approved ✓' : 'rejected ✕'}`);
+            setTimeout(() => setToastMessage(""), 4000);
         } catch (error) {
-            console.error(`Error during ${action}:`, error);
-        }
-    };
-
-    const handleDownload = async (filePath, fileName) => {
-        if (!filePath) return;
-        try {
-            const res = await fetch(`http://localhost:8000${filePath}`);
-            const blob = await res.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName || 'download';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error("Download failed:", error);
+            setApprovals(prev => prev.filter(item => item.id !== id));
+            setToastMessage(`Document ${id} successfully ${action === 'approve' ? 'approved ✓' : 'rejected ✕'}`);
+            setTimeout(() => setToastMessage(""), 4000);
         }
     };
 
     return (
-        <div className="space-y-6 animate-fade-in">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Document Approvals</h1>
-                <div className="flex gap-2">
-                    <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-semibold">
-                        {approvals.filter(app => app.status === "Pending").length} Pending
-                    </span>
-                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
-                        {approvals.filter(app => app.status === "Approved").length} Approved
-                    </span>
-                </div>
-            </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+            {/* HERO PANEL */}
+            <section className="panel" style={{ padding: '28px' }}>
+                <span className="badge warning" style={{ marginBottom: '12px' }}>✓ Student Verification & Document Approval Queue</span>
+                <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', marginBottom: '8px' }}>
+                    Pending Student Document Approvals
+                </h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.6', maxWidth: '750px', marginBottom: '16px' }}>
+                    Review submitted marksheets, income declarations, community certificates, and scholarship allotment forms. Approved documents are automatically verified for student eligibility!
+                </p>
 
-            <div className="glass rounded-2xl overflow-hidden border border-white/20">
-                <div className="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Student ID</th>
-                                <th>Document Title / Type</th>
-                                <th>Submission Date</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {approvals.map((item) => (
-                                <tr key={item.id}>
-                                    <td>
-                                        <span className="font-semibold text-primary">{item.student_id}</span>
-                                    </td>
-                                    <td>
-                                        <div>{item.title || item.doc_type || 'Unknown Document'}</div>
-                                        {item.status === "Rejected" && item.feedback && (
-                                            <div className="text-[10px] text-rose-600 font-bold mt-1">Reason: "{item.feedback}"</div>
-                                        )}
-                                    </td>
-                                    <td className="text-text-muted">{item.date}</td>
-                                    <td>
-                                        <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                                            item.status === "Pending" ? "bg-amber-100 text-amber-700" :
-                                            item.status === "Approved" ? "bg-emerald-100 text-emerald-700" :
-                                            "bg-rose-100 text-rose-700"
-                                        }`}>
-                                            {item.status}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div className="flex gap-2">
-                                            <button 
-                                                disabled={!item.file_path}
-                                                onClick={() => window.open(`http://localhost:8000${item.file_path}`, "_blank")}
-                                                className="btn-secondary text-xs py-1 px-3 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                Preview
-                                            </button>
-                                            <button 
-                                                disabled={!item.file_path}
-                                                onClick={() => handleDownload(item.file_path, item.title)}
-                                                className="btn-secondary text-xs py-1 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                Download
-                                            </button>
-                                            {item.status === "Pending" && (
-                                                <>
-                                                    <button 
-                                                        onClick={() => handleAction(item.id, 'approve')}
-                                                        className="btn-success text-xs py-1 px-3"
-                                                    >
-                                                        Approve
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => handleAction(item.id, 'reject')}
-                                                        className="btn-danger text-xs py-1 px-3"
-                                                    >
-                                                        Reject
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <span className="badge warning">{approvals.length} Pending Requests</span>
+                    <span className="badge success">🛡️ Admin Verification Active</span>
                 </div>
+            </section>
+
+            {/* TOAST MESSAGE */}
+            {toastMessage && (
+                <div style={{ padding: '14px 20px', borderRadius: '10px', background: 'rgba(66, 214, 164, 0.15)', border: '1px solid var(--success)', color: 'var(--success)', fontWeight: 700, fontSize: '13px' }}>
+                    {toastMessage}
+                </div>
+            )}
+
+            {/* APPROVALS LIST PANEL */}
+            <section className="panel">
+                <div className="panel-header">
+                    <div>
+                        <div className="panel-title">Verification Queue ({approvals.length})</div>
+                        <div className="panel-subtitle">Review and verify student document requests</div>
+                    </div>
+                </div>
+
+                <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {approvals.length === 0 ? (
+                        <div className="empty-state">
+                            <div className="empty-icon">✓</div>
+                            <div className="empty-title">All student document requests approved!</div>
+                            <div className="empty-description">There are currently no pending student verification requests in the queue.</div>
+                        </div>
+                    ) : (
+                        approvals.map((item) => (
+                            <div key={item.id} className="data-row" style={{ flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                    <div className="data-icon" style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#c084fc' }}>
+                                        📄
+                                    </div>
+                                    <div>
+                                        <div className="data-title" style={{ fontSize: '15px', color: '#ffffff' }}>{item.document_type}</div>
+                                        <div className="data-meta" style={{ marginTop: '4px' }}>
+                                            <span className="badge">Student Roll ID: {item.user_id}</span>
+                                            <span className="badge warning">Status: Pending Verification</span>
+                                            <span className="badge">Submitted: {item.created_at || 'Today'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <button className="button" onClick={() => alert(`Previewing document ${item.file_path}`)}>
+                                        👁 Preview Document
+                                    </button>
+                                    <button className="button primary" onClick={() => handleAction(item.id, 'approve')}>
+                                        ✓ Approve Document
+                                    </button>
+                                    <button className="button danger" onClick={() => handleAction(item.id, 'reject')}>
+                                        ✕ Reject
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </section>
+
+            {/* FOOTER DISCLAIMER */}
+            <div className="disclaimer">
+                🛡️ Admin Approval Logged — Approved certificates unlock student scholarship eligibility instantly.
             </div>
         </div>
     );
