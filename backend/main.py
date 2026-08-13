@@ -67,6 +67,14 @@ class SetupCredentialsRequest(BaseModel):
     passkey_1: str
     passkey_2: str
 
+class ForgotPasswordRequest(BaseModel):
+    admission_no: str
+    mobile_no: str
+    otp: str
+    new_password: str
+    passkey_1: str
+    passkey_2: str
+
 class ChatRequest(BaseModel):
     message: str
     language: str = "en"
@@ -99,6 +107,17 @@ class StudentUpdate(BaseModel):
     passkey_1: Optional[str] = None
     passkey_2: Optional[str] = None
     has_custom_password: Optional[bool] = None
+    gender: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    guardian_name: Optional[str] = None
+    guardian_mobile: Optional[str] = None
+    caste_category: Optional[str] = None
+    address: Optional[str] = None
+    bank_account_no: Optional[str] = None
+    bank_name: Optional[str] = None
+    ifsc_code: Optional[str] = None
+    bio: Optional[str] = None
 
 class DoublePasskeyVerify(BaseModel):
     student_id: str = "2023CS001"
@@ -229,7 +248,61 @@ def setup_credentials(req: SetupCredentialsRequest):
         }
     }
 
+@app.post("/api/auth/forgot-password")
+def reset_forgot_password(req: ForgotPasswordRequest):
+    adm_no = req.admission_no.strip()
+    student_ref = db.collection("students").document(adm_no)
+    student_doc = student_ref.get()
+    if not student_doc.exists:
+        raise HTTPException(status_code=404, detail="Student record not found.")
+
+    sdata = student_doc.to_dict()
+    mobile_input = req.mobile_no.strip()
+    
+    if len(mobile_input) < 10:
+        raise HTTPException(status_code=400, detail="Please enter a valid 10-digit registered mobile number.")
+
+    if len(req.otp.strip()) < 4:
+        raise HTTPException(status_code=400, detail="Invalid Mobile OTP code entered.")
+
+    new_pw = req.new_password.strip()
+    p1 = req.passkey_1.strip()
+    p2 = req.passkey_2.strip()
+
+    if len(new_pw) < 4:
+        raise HTTPException(status_code=400, detail="New password must be at least 4 characters long.")
+
+    if not p1 or not p2:
+        raise HTTPException(status_code=400, detail="Both Passkey 1 and Passkey 2 are required.")
+
+    updated_data = {
+        "password": new_pw,
+        "passkey_1": p1,
+        "passkey_2": p2,
+        "mobile": mobile_input,
+        "has_custom_password": True
+    }
+
+    student_ref.update(updated_data)
+    logger.log(adm_no, "FORGOT_PASSWORD_RESET", f"Reset password & passkeys via Mobile OTP ({mobile_input}).")
+
+    return {
+        "status": "success",
+        "message": "Password and Passkeys reset successfully! You can now sign in with your new credentials.",
+        "user": {
+            "name": sdata.get("name", "Student"),
+            "id": adm_no
+        }
+    }
+
 from chatbot_logic import predict_response
+
+class SaveSessionRequest(BaseModel):
+    session_id: str
+    student_id: str
+    title: str
+    timestamp: Optional[str] = None
+    messages: List[dict]
 
 @app.post("/api/chat/student")
 def student_chat(req: ChatRequest):
@@ -248,6 +321,60 @@ def student_chat(req: ChatRequest):
 def general_chat(req: ChatRequest):
     response, updated_context = predict_response(req.message, req.language, req.context)
     return {"response": response, "context": updated_context}
+
+@app.get("/api/chat/history/{student_id}")
+def get_student_chat_history(student_id: str):
+    """Retrieves all saved chat sessions for a student."""
+    try:
+        docs = db.collection("chat_sessions").where("student_id", "==", student_id).stream()
+        results = []
+        for d in docs:
+            data = d.to_dict()
+            results.append(data)
+        results.sort(key=lambda x: x.get("timestamp") or "", reverse=True)
+        return results
+    except Exception as e:
+        print(f"Error fetching chat history: {e}")
+        return []
+
+@app.post("/api/chat/history/save")
+def save_student_chat_session(req: SaveSessionRequest):
+    """Saves or updates a chat session for a student."""
+    try:
+        now_str = req.timestamp or datetime.now().strftime("%b %d, %Y, %I:%M %p")
+        doc_data = {
+            "session_id": req.session_id,
+            "id": req.session_id,
+            "student_id": req.student_id,
+            "title": req.title,
+            "timestamp": now_str,
+            "messages": req.messages
+        }
+        db.collection("chat_sessions").document(req.session_id).set(doc_data)
+        return {"status": "success", "session": doc_data}
+    except Exception as e:
+        print(f"Error saving chat session: {e}")
+        return {"status": "error", "message": str(e)}
+
+@app.delete("/api/chat/history/session/{session_id}")
+def delete_chat_session(session_id: str):
+    """Deletes a specific chat session by session_id."""
+    try:
+        db.collection("chat_sessions").document(session_id).delete()
+        return {"status": "success", "message": f"Deleted session {session_id}"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.delete("/api/chat/history/clear/{student_id}")
+def clear_all_student_chat_history(student_id: str):
+    """Clears all saved chat history for a student."""
+    try:
+        docs = db.collection("chat_sessions").where("student_id", "==", student_id).stream()
+        for d in docs:
+            db.collection("chat_sessions").document(d.id).delete()
+        return {"status": "success", "message": f"Cleared chat history for {student_id}"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.get("/api/logs/all")
 def get_all_logs():
@@ -487,15 +614,64 @@ def update_student_by_id(student_id: str, s: StudentUpdate):
     try:
         ref = db.collection("students").document(student_id)
         doc = ref.get()
-        if doc.exists:
-            current_data = doc.to_dict()
-            update_data = s.dict(exclude_unset=True)
-            current_data.update(update_data)
-            ref.set(current_data)
-            return {"status": "success", "message": f"Student '{student_id}' updated."}
-        raise HTTPException(status_code=404, detail="Student not found")
-    except HTTPException as he:
-        raise he
+        current_data = doc.to_dict() if doc.exists else {"admission_no": student_id, "name": "Student"}
+        update_data = s.dict(exclude_unset=True)
+        current_data.update(update_data)
+        ref.set(current_data)
+        return {"status": "success", "message": f"Student '{student_id}' updated."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Notification Endpoints
+import datetime
+
+@app.get("/api/notifications/student/{student_id}")
+def get_student_notifications(student_id: str):
+    try:
+        ref = db.collection("notifications").where("student_id", "==", student_id).stream()
+        results = []
+        for doc in ref:
+            d = doc.to_dict()
+            time_str = "Recently"
+            raw_time = d.get("created_at")
+            if isinstance(raw_time, datetime.datetime):
+                time_str = raw_time.strftime("%Y-%m-%d %H:%M")
+            elif raw_time:
+                time_str = str(raw_time)[:16]
+
+            results.append({
+                "id": doc.id,
+                "title": d.get("title", "Notification"),
+                "desc": d.get("desc", ""),
+                "category": d.get("category", "system"),
+                "unread": d.get("unread", True),
+                "icon": d.get("icon", "🔔"),
+                "time": time_str,
+                "created_at": str(raw_time or "")
+            })
+        results.sort(key=lambda x: x.get("created_at") or "", reverse=True)
+        return results
+    except Exception as e:
+        print(f"Error fetching notifications: {e}")
+        return []
+
+@app.post("/api/notifications/read-all/{student_id}")
+def mark_notifications_read(student_id: str):
+    try:
+        ref = db.collection("notifications").where("student_id", "==", student_id).stream()
+        for doc in ref:
+            db.collection("notifications").document(doc.id).update({"unread": False})
+        return {"status": "success", "message": "All notifications marked as read."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/api/notifications/clear/{student_id}")
+def clear_student_notifications(student_id: str):
+    try:
+        ref = db.collection("notifications").where("student_id", "==", student_id).stream()
+        for doc in ref:
+            db.collection("notifications").document(doc.id).delete()
+        return {"status": "success", "message": "Notifications cleared."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

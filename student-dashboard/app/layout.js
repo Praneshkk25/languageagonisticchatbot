@@ -36,27 +36,37 @@ export default function RootLayout({ children }) {
                 top: 0px !important;
                 position: static !important;
               }
-              .skiptranslate {
+              #google_translate_element,
+              .goog-te-gadget,
+              .goog-te-gadget-simple,
+              .goog-te-combo,
+              .goog-te-banner-frame,
+              .goog-te-menu-frame,
+              .goog-te-menu2,
+              .goog-te-balloon-frame,
+              #goog-gt-tt,
+              .goog-te-spinner-pos,
+              .goog-te-spinner,
+              .skiptranslate,
+              iframe.skiptranslate,
+              .VIpgJd-Z9-xU-sLm,
+              body > .skiptranslate,
+              body > div[id*="goog"] {
                 display: none !important;
-              }
-              iframe.skiptranslate {
-                display: none !important;
-              }
-              #goog-gt-tt {
-                display: none !important;
-              }
-              .goog-te-banner-frame.skiptranslate {
-                display: none !important;
-              }
-              .goog-te-banner-frame {
-                display: none !important;
-              }
-              .goog-te-balloon-frame {
-                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                height: 0 !important;
+                width: 0 !important;
+                max-height: 0 !important;
+                overflow: hidden !important;
+                pointer-events: none !important;
               }
               .goog-text-highlight {
                 background: none !important;
                 box-shadow: none !important;
+              }
+              font[style*="vertical-align: inherit"] {
+                vertical-align: baseline !important;
               }
             `,
           }}

@@ -31,24 +31,41 @@ class CollegeChatbot:
         logger.info("Initializing Qwen Hybrid Chatbot...")
         self.tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL, trust_remote_code=True)
         
-        # Quantization Config for low VRAM (4-bit)
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_use_double_quant=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.bfloat16
-        )
+        # Load Base Model: check CUDA GPU vs CPU
+        if torch.cuda.is_available():
+            try:
+                logger.info("CUDA detected. Loading model with 4-bit quantization...")
+                bnb_config = BitsAndBytesConfig(
+                    load_in_4bit=True,
+                    bnb_4bit_use_double_quant=True,
+                    bnb_4bit_quant_type="nf4",
+                    bnb_4bit_compute_dtype=torch.bfloat16
+                )
+                self.base_model = AutoModelForCausalLM.from_pretrained(
+                    BASE_MODEL,
+                    quantization_config=bnb_config,
+                    device_map="auto",
+                    trust_remote_code=True
+                )
+            except Exception as e:
+                logger.warning(f"Failed 4-bit GPU quantization: {e}. Falling back to standard CPU model loading.")
+                self.base_model = AutoModelForCausalLM.from_pretrained(
+                    BASE_MODEL,
+                    dtype=torch.float32,
+                    device_map="cpu",
+                    trust_remote_code=True
+                )
+        else:
+            logger.info("CUDA GPU not detected. Loading Qwen model on CPU (float32)...")
+            self.base_model = AutoModelForCausalLM.from_pretrained(
+                BASE_MODEL,
+                dtype=torch.float32,
+                device_map="cpu",
+                trust_remote_code=True
+            )
 
-        # Load Base Model
-        self.base_model = AutoModelForCausalLM.from_pretrained(
-            BASE_MODEL,
-            quantization_config=bnb_config,
-            device_map="auto",
-            trust_remote_code=True
-        )
         logger.info(f"Model loaded on device: {self.base_model.device}")
 
-        
         # Load Adapters if they exist
         if os.path.exists(LORA_PATH):
             self.model = PeftModel.from_pretrained(self.base_model, LORA_PATH)
@@ -57,25 +74,39 @@ class CollegeChatbot:
             self.model = self.base_model
             logger.warning(f"Fine-tuned weights not found at {LORA_PATH}. Using base model.")
 
-        self.embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+        from utils_learning import safe_init_embeddings, learning_system
+        self.embeddings = learning_system.embeddings if hasattr(learning_system, 'embeddings') else safe_init_embeddings("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
         self.vector_db = None
         self.retriever = None
         self.refresh_retriever()
 
-        
     def refresh_retriever(self):
-        """Reloads the FAISS index from disk."""
-        if os.path.exists(VECTOR_DB_PATH):
-            logger.info(f"Loading FAISS index from {VECTOR_DB_PATH}")
-            vdb = FAISS.load_local(VECTOR_DB_PATH, self.embeddings, allow_dangerous_deserialization=True)
-            if vdb:
-                self.vector_db = vdb
-                self.retriever = vdb.as_retriever(search_kwargs={"k": 3})
-            else:
+        """Reloads the FAISS index from disk safely, building it if missing."""
+        try:
+            from utils_learning import learning_system
+            learning_system.ensure_faiss_index_built()
+        except Exception as e:
+            logger.error(f"Could not check or build initial FAISS index: {e}")
+
+        faiss_index_file = os.path.join(VECTOR_DB_PATH, "index.faiss")
+        faiss_pkl_file = os.path.join(VECTOR_DB_PATH, "index.pkl")
+
+        if os.path.exists(faiss_index_file) and os.path.exists(faiss_pkl_file):
+            try:
+                logger.info(f"Loading FAISS index from {VECTOR_DB_PATH}")
+                vdb = FAISS.load_local(VECTOR_DB_PATH, self.embeddings, allow_dangerous_deserialization=True)
+                if vdb:
+                    self.vector_db = vdb
+                    self.retriever = vdb.as_retriever(search_kwargs={"k": 3})
+                else:
+                    self.vector_db = None
+                    self.retriever = None
+            except Exception as e:
+                logger.error(f"Error loading FAISS index: {e}")
                 self.vector_db = None
                 self.retriever = None
         else:
-            logger.warning("RAG Vector DB not found.")
+            logger.warning(f"FAISS index files missing in {VECTOR_DB_PATH}.")
             self.vector_db = None
             self.retriever = None
 
@@ -181,6 +212,132 @@ class CollegeChatbot:
             }
             return False, responses.get(language, responses["en"])
 
+    def format_full_scholarship_details(self, sch):
+        """Formats complete, detailed information for a scholarship."""
+        name = sch.get("scholarship_name", "Scholarship Scheme")
+        cat_id = sch.get("category_id", 1)
+        cat_name = sch.get("category_name", "Scholarship Category")
+        desc = sch.get("description", "")
+        benefits = sch.get("benefits", "Financial Assistance")
+        min_gpa = sch.get("min_gpa", "No min CGPA requirement")
+        max_income = sch.get("max_income")
+        inc_str = f"₹{(max_income/100000):.1f} Lakhs / year" if max_income else "No family income limit"
+        quota = sch.get("caste_category") or sch.get("caste_quota") or "All Categories"
+        depts_raw = sch.get("eligible_departments", ["ALL"])
+        depts = "ALL DEPARTMENTS" if "ALL" in [d.upper() for d in depts_raw] else ", ".join(depts_raw)
+        years = ", ".join(map(str, sch.get("eligible_years", [1, 2, 3, 4])))
+        portal = sch.get("official_portal", "National Scholarship Portal & College Student Portal")
+        
+        docs = sch.get("necessary_documents") or sch.get("documents") or [
+            "Class 10th & 12th Board Marksheets",
+            "Annual Family Income Certificate (Issued by Tehsildar)",
+            "Aadhaar Card (Bank Linked)",
+            "College Bonafide Student Certificate",
+            "Student Bank Passbook Copy"
+        ]
+        docs_formatted = "\n".join([f"    - 📄 {d}" for d in docs])
+
+        return (
+            f"### 🎓 **{name}**\n"
+            f"📌 **Category #{cat_id}**: {cat_name}\n\n"
+            f"  - 💡 **Description**: {desc}\n"
+            f"  - 💰 **Benefits & Financial Award**: {benefits}\n"
+            f"  - 📊 **Complete Eligibility Criteria**:\n"
+            f"      - **Minimum CGPA**: {min_gpa} CGPA\n"
+            f"      - **Maximum Family Income**: {inc_str}\n"
+            f"      - **Quota / Target Beneficiaries**: {quota}\n"
+            f"      - **Eligible Departments**: {depts}\n"
+            f"      - **Eligible Academic Years**: Year {years}\n"
+            f"  - 📋 **Necessary Documents Checklist**:\n{docs_formatted}\n"
+            f"  - 🌐 **Official Portal**: {portal}\n"
+            f"  - 📥 **Application Form Download**: Open the **Scholarships Hub** tab in your Student Dashboard to download official PDF forms with Double Passkey authorization."
+        )
+
+    def get_all_eligible_scholarships(self, student_profile, language="en"):
+        """Evaluates student parameters against ALL scholarships and returns full details for ALL matching schemes."""
+        cgpa = student_profile.get("cgpa", 8.5)
+        family_income = student_profile.get("family_income", 250000.0)
+        dept = (student_profile.get("department") or "CSE").upper()
+        
+        year_raw = student_profile.get("year") or 3
+        if isinstance(year_raw, str):
+            match = re.search(r'(\d)', str(year_raw))
+            year = int(match.group(1)) if match else 3
+        else:
+            try:
+                year = int(year_raw)
+            except:
+                year = 3
+
+        caste = (student_profile.get("caste_category") or "BC / MBC").upper()
+        gender = (student_profile.get("gender") or "All").capitalize()
+
+        from scholarships_data import ALL_SCHOLARSHIPS
+        
+        # Combine ALL_SCHOLARSHIPS from memory + custom Firestore scholarships
+        all_schemes = list(ALL_SCHOLARSHIPS)
+        try:
+            from database import db
+            docs = db.collection("scholarships").stream()
+            db_ids = {s["id"] for s in all_schemes if "id" in s}
+            for d in docs:
+                data = d.to_dict()
+                if data.get("id") and data["id"] not in db_ids:
+                    all_schemes.append(data)
+        except Exception:
+            pass
+
+        eligible_schemes = []
+        for s in all_schemes:
+            # CGPA check
+            min_gpa = s.get("min_gpa")
+            if min_gpa is not None and cgpa < min_gpa:
+                continue
+
+            # Income check
+            max_inc = s.get("max_income")
+            if max_inc is not None and family_income > max_inc:
+                continue
+
+            # Department check
+            s_depts = [d.upper() for d in s.get("eligible_departments", ["ALL"])]
+            if "ALL" not in s_depts and dept not in s_depts:
+                continue
+
+            # Year check
+            s_years = s.get("eligible_years", [1, 2, 3, 4, 5])
+            if year not in s_years:
+                continue
+
+            # Gender check for female-only schemes
+            s_gender = s.get("gender", "All").lower()
+            if s_gender in ["female", "girl", "girls"] and gender.lower() not in ["female", "girl", "girls"]:
+                continue
+
+            eligible_schemes.append(s)
+
+        if eligible_schemes:
+            blocks = []
+            for idx, s in enumerate(eligible_schemes, 1):
+                blocks.append(f"#### {idx}. " + self.format_full_scholarship_details(s))
+
+            schemes_formatted = "\n\n---\n\n".join(blocks)
+            
+            headers = {
+                "en": f"### 🎉 You qualify for **{len(eligible_schemes)} Eligible Scholarships**!\n\nBased on your verified profile (**CGPA: {cgpa}**, **Family Income: ₹{family_income:,.0f}**, **Dept: {dept}**, **Year: {year}**, **Category: {caste}**), here are **ALL** the scholarships you are eligible to apply for:\n\n",
+                "hi": f"### 🎉 आप **{len(eligible_schemes)} छात्रवृत्तियों** के लिए पात्र हैं!\n\nआपकी प्रोफाइल (**CGPA: {cgpa}**, **आय: ₹{family_income:,.0f}**, **विभाग: {dept}**, **वर्ष: {year}**) के आधार पर सभी पात्र छात्रवृत्तियां:\n\n",
+                "ta": f"### 🎉 நீங்கள் **{len(eligible_schemes)} உதவித்தொகைகளுக்கு** தகுதி பெற்றுள்ளீர்கள்!\n\nஉங்கள் விவரக்குறிப்பின் அடிப்படையில் (**CGPA: {cgpa}**, **வருமானம்: ₹{family_income:,.0f}**, **துறை: {dept}**):\n\n",
+                "te": f"### 🎉 మీరు **{len(eligible_schemes)} స్కాలర్‌షిప్‌లకు** అర్హత పొందారు!\n\nమీ ప్రొఫైల్ ఆధారంగా (**CGPA: {cgpa}**, **ఆదాయం: ₹{family_income:,.0f}**):\n\n",
+                "ne": f"### 🎉 तपाईं **{len(eligible_schemes)} छात्रवृत्तिहरूका** लागि योग्य हुनुहुन्छ!\n\nतपाईंको प्रोफाइलको आधारमा (**CGPA: {cgpa}**, **आय: ₹{family_income:,.0f}**):\n\n",
+                "ar": f"### 🎉 أنت مؤهل للحصول على **{len(eligible_schemes)} منح دراسية**!\n\nبناءً على ملفك الشخصي (**المعدل: {cgpa}**، **الدخل: ₹{family_income:,.0f}**):\n\n",
+                "ml": f"### 🎉 നിങ്ങൾ **{len(eligible_schemes)} സ്‌കോളർഷിപ്പുകൾക്ക്** അർഹത നേടിയിട്ടുണ്ട്!\n\nനിങ്ങളുടെ പ്രൊഫൈൽ അടിസ്ഥാനമാക്കി (**CGPA: {cgpa}**, **വരുമാനം: ₹{family_income:,.0f}**):\n\n"
+            }
+            res_header = headers.get(language, headers["en"])
+            res_footer = "\n\n---\n📌 **How to Apply & Download PDF Forms**: Open the **Scholarships Hub** tab in your Student Dashboard. Select any scheme to view complete documents and **download official application forms** with Double Passkey protection!"
+            return res_header + schemes_formatted + res_footer
+        else:
+            return f"No direct matches were found for CGPA {cgpa} and Income ₹{family_income:,.0f}. You can update your financial details in Settings or check Sports & Loan Subsidy schemes in the Scholarships Hub."
+
     def process_query(self, query, language="en", context=None):
         if context is None:
             context = {}
@@ -212,7 +369,10 @@ class CollegeChatbot:
                         "en": f"I couldn't quite understand that. Please specify your {current_missing_field.replace('_', ' ')} (e.g. for CGPA: 8.5, for family income: 250000):",
                         "hi": f"मैं समझ नहीं पाया। कृपया अपना {current_missing_field.replace('_', ' ')} दर्ज करें (जैसे CGPA के लिए: 8.5, पारिवारिक आय के लिए: 250000):",
                         "ta": f"எங்களால் அதைப் புரிந்து கொள்ள முடியவில்லை. தயவுசெய்து உங்கள் {current_missing_field.replace('_', ' ')} குறிப்பிடவும் (எ.கா. CGPA: 8.5, குடும்ப வருமானம்: 250000):",
-                        "te": f"నేను దానిని అర్థం చేసుకోలేకపోయాను. దయచేసి మీ {current_missing_field.replace('_', ' ')} పేర్కొనండి (ఉదా. CGPA కోసం: 8.5, కుటుంబ ఆదాయం కోసం: 250000):"
+                        "te": f"నేను దానిని అర్థం చేసుకోలేకపోయాను. దయచేసి మీ {current_missing_field.replace('_', ' ')} పేర్కొనండి (ఉదా. CGPA కోసం: 8.5, కుటుంబ ఆదాయం కోసం: 250000):",
+                        "ne": f"मैले बुझ्न सकिन। कृपया आफ्नो {current_missing_field.replace('_', ' ')} प्रविष्ट गर्नुहोस् (उदा. CGPA का लागि: 8.5, परिवारिक आयका लागि: 250000):",
+                        "ar": f"لم أتمكن من فهم ذلك. يرجى تحديد {current_missing_field.replace('_', ' ')} الخاص بك (مثلاً للمعدل: 8.5، ولدخل الأسرة: 250000):",
+                        "ml": f"എനിക്ക് അത് മനസ്സിലാക്കാൻ കഴിഞ്ഞില്ല. ദയവായി നിങ്ങളുടെ {current_missing_field.replace('_', ' ')} നൽകുക (ഉദാഹരണത്തിന് CGPA: 8.5, കുടുംബ വരുമാനം: 250000):"
                     }
                     response = retry_prompt.get(language, retry_prompt["en"])
                     context["history"].append({"role": "user", "text": query})
@@ -225,7 +385,10 @@ class CollegeChatbot:
                     "en": f"To check your eligibility, please enter your {next_missing.replace('_', ' ')}:",
                     "hi": f"अपनी पात्रता की जांच करने के लिए, कृपया अपनी {next_missing.replace('_', ' ')} दर्ज करें:",
                     "ta": "உங்கள் தகுதியைச் சரிபார்க்க, தயவுசெய்து உங்கள் " + next_missing.replace('_', ' ') + " உள்ளிடவும்:",
-                    "te": "మీ అర్హతను తనిఖీ చేయడానికి, దయచేసి మీ " + next_missing.replace('_', ' ') + " నమోదు చేయండి:"
+                    "te": "మీ అర్హతను తనిఖీ చేయడానికి, దయచేసి మీ " + next_missing.replace('_', ' ') + " నమోదు చేయండి:",
+                    "ne": f"तपाईंको योग्यता जाँच गर्न, कृपया तपाईंको {next_missing.replace('_', ' ')} प्रविष्ट गर्नुहोस्:",
+                    "ar": f"للتحقق من أهليتك، يرجى إدخال {next_missing.replace('_', ' ')} الخاصة بك:",
+                    "ml": f"നിങ്ങളുടെ യോഗ്യത പരിശോധിക്കാൻ, ദയവായി നിങ്ങളുടെ {next_missing.replace('_', ' ')} രേഖപ്പെടുത്തുക:"
                 }
                 response = ask_prompt.get(language, ask_prompt["en"])
                 context["history"].append({"role": "user", "text": query})
@@ -299,17 +462,15 @@ class CollegeChatbot:
                 context["history"].append({"role": "bot", "text": res_msg})
                 return res_msg, context
 
-        # 3. Check if user is asking for general scholarship overview or list of scholarships
+        # 3. Check if user is asking for general scholarship overview or list of categories
         general_sch_keywords = [
-            "scholarships details", "scholarship details", "scholarships detail", "scholarship detail",
-            "available scholarships", "all scholarships", "list scholarships", "show scholarships",
-            "types of scholarship", "categories of scholarship", "14 categories", "14 types",
-            "what scholarship", "list scholarship", "scholarship info", "scholarship options", "scholarship list"
+            "14 categories", "14 category", "categories", "types of scholarship", "categories of scholarship",
+            "scholarship categories", "14 types", "general overview", "list of categories"
         ]
         
-        is_general_overview = any(k in query_lower for k in general_sch_keywords) or query_lower.strip() in ["scholarship", "scholarships", "scholarship details", "scholarships details"]
+        is_general_overview = any(k in query_lower for k in general_sch_keywords) or query_lower.strip() in ["scholarship", "scholarships", "scholarship details", "scholarships details", "categories"]
 
-        if is_general_overview:
+        if is_general_overview and not any(w in query_lower for w in ["eligible", "eligibility", "qualify"]):
             if "scholarship_check" in context:
                 del context["scholarship_check"]
 
@@ -331,103 +492,87 @@ class CollegeChatbot:
             return res_msg, context
 
         # 4. Check if user is asking about scholarship eligibility, documents, or form download
-        is_scholarship_query = any(k in query_lower for k in ["eligible", "eligibility", "qualification", "apply for", "can i get", "document", "form", "download"]) and \
-                               any(k in query_lower for k in ["scholarship", "stipend", "aid", "fee waiver"])
-        
-        if is_scholarship_query or "scholarship" in query_lower:
+        is_eligibility_intent = any(k in query_lower for k in ["eligible", "eligibility", "qualification", "apply for", "can i get", "qualify", "for me", "which all", "what scholarships"])
+        is_scholarship_intent = any(k in query_lower for k in ["scholarship", "scholarships", "stipend", "aid", "fee waiver"])
+
+        if is_eligibility_intent or is_scholarship_intent:
             from database import db
-            scholarships = db.collection("scholarships").stream()
+            student_id = context.get("user_id", "2023CS001")
+            try:
+                student_doc = db.collection("students").document(student_id).get()
+                student_profile = student_doc.to_dict() if student_doc.exists else {}
+            except Exception:
+                student_profile = {}
+
+            # Personal eligibility query check (must ask about student's own eligibility: I, me, my, my eligibility)
+            is_all_eligible_query = any(phrase in query_lower for phrase in [
+                "which all am i eligible", "what scholarships am i eligible", "which scholarships am i eligible",
+                "am i eligible", "what am i eligible", "eligible for me", "scholarships for me",
+                "check my eligibility", "my eligibility", "which scholarships can i apply",
+                "which scholarships can i get", "what scholarships can i get", "scholarships i qualify",
+                "qualify for me", "show eligible scholarships for me", "all eligible scholarships for me"
+            ]) or ("eligible" in query_lower and any(w in query_lower for w in ["i", "me", "my", "qualify"]))
+
+            # Try matching a specific scholarship name first
             matched_sch = None
-            for s in scholarships:
-                sdata = s.to_dict()
+            for sdata in ALL_SCHOLARSHIPS:
                 sname = sdata.get("scholarship_name", "").lower()
-                words = sname.split()
-                if any(w in query_lower for w in words if len(w) > 3):
+                # Check if specific scholarship name is in query
+                if sdata["id"] in query_lower or any(w in query_lower for w in sname.split() if len(w) > 4 and w not in ["scholarship", "scheme", "students", "national"]):
                     matched_sch = sdata
                     break
 
             if not matched_sch:
-                # Check ALL_SCHOLARSHIPS from memory fallback
-                for sdata in ALL_SCHOLARSHIPS:
-                    sname = sdata.get("scholarship_name", "").lower()
-                    words = sname.split()
-                    if any(w in query_lower for w in words if len(w) > 3):
-                        matched_sch = sdata
-                        break
-            
+                try:
+                    scholarships = db.collection("scholarships").stream()
+                    for s in scholarships:
+                        sdata = s.to_dict()
+                        sname = sdata.get("scholarship_name", "").lower()
+                        if any(w in query_lower for w in sname.split() if len(w) > 4 and w not in ["scholarship", "scheme", "students"]):
+                            matched_sch = sdata
+                            break
+                except Exception:
+                    pass
+
+            # If user asks for ALL eligible scholarships OR no specific scheme was named:
+            if is_all_eligible_query or not matched_sch:
+                res = self.get_all_eligible_scholarships(student_profile, language)
+                context["history"].append({"role": "user", "text": query})
+                context["history"].append({"role": "bot", "text": res})
+                return res, context
+
+            # If a specific scholarship was matched:
             if matched_sch:
-                # Check if asking specifically for documents or form download
+                # Check if asking specifically for documents checklist
                 if any(k in query_lower for k in ["document", "docs", "paper", "checklist", "needed"]):
-                    docs_list = matched_sch.get("necessary_documents", ["Aadhaar Card", "Marksheets", "Income Cert"])
+                    docs_list = matched_sch.get("necessary_documents") or matched_sch.get("documents") or ["Aadhaar Card", "Marksheets", "Income Certificate"]
                     docs_formatted = "\n".join([f"  - 📄 {d}" for d in docs_list])
                     res = (
-                        f"### 📋 Necessary Documents Needed for **{matched_sch['scholarship_name']}**\n\n"
-                        f"To apply for this scholarship, you must collect and attach the following documents:\n"
+                        f"### 📋 Mandatory Required Documents for **{matched_sch['scholarship_name']}**\n\n"
+                        f"To apply for this scholarship, you must attach the following verified documents:\n"
                         f"{docs_formatted}\n\n"
-                        f"🔒 *Note: All uploaded documents stored in cloud storage require Double Passkey verification.*"
+                        f"🔐 *Note: Document downloads require Double Passkey authorization.*"
                     )
                     context["history"].append({"role": "user", "text": query})
                     context["history"].append({"role": "bot", "text": res})
                     return res, context
 
+                # Check if asking specifically for form download instructions
                 if any(k in query_lower for k in ["form", "download", "application form"]):
                     res = (
-                        f"### 📥 Download Form for **{matched_sch['scholarship_name']}**\n\n"
-                        f"You can download the official application form directly from the **Scholarships** tab in your Student Dashboard.\n"
-                        f"🔐 **Double Passkey Security**: Before downloading, you will be prompted to enter your **Passkey 1** and **Passkey 2** to authorize cloud storage access."
+                        f"### 📥 Download Application Form for **{matched_sch['scholarship_name']}**\n\n"
+                        f"You can download the official application form directly from the **Scholarships Hub** in your Student Dashboard.\n\n"
+                        f"🔐 **Double Passkey Security**: You will be prompted to enter **Passkey 1** and **Passkey 2** before downloading."
                     )
                     context["history"].append({"role": "user", "text": query})
                     context["history"].append({"role": "bot", "text": res})
                     return res, context
 
-                # Otherwise perform eligibility check
-                student_id = context.get("user_id", "2023CS001")
-                student_doc = db.collection("students").document(student_id).get()
-                student_profile = student_doc.to_dict() if student_doc.exists else {}
-
-                collected = {
-                    "cgpa": student_profile.get("cgpa"),
-                    "department": student_profile.get("department"),
-                    "year": student_profile.get("year"),
-                    "family_income": student_profile.get("family_income")
-                }
-
-                missing_fields = []
-                if matched_sch.get("min_gpa") is not None and collected["cgpa"] is None:
-                    missing_fields.append("cgpa")
-                if matched_sch.get("max_income") is not None and collected["family_income"] is None:
-                    missing_fields.append("family_income")
-                if matched_sch.get("eligible_departments") is not None and collected["department"] is None:
-                    missing_fields.append("department")
-                if matched_sch.get("eligible_years") is not None and collected["year"] is None:
-                    missing_fields.append("year")
-
-                if missing_fields:
-                    context["scholarship_check"] = {
-                        "scholarship_id": matched_sch["id"],
-                        "missing_fields": missing_fields,
-                        "collected": collected
-                    }
-                    next_missing = missing_fields[0]
-                    ask_prompt = {
-                        "en": f"I see you are asking about the {matched_sch['scholarship_name']}. To check your eligibility, please enter your {next_missing.replace('_', ' ')}:",
-                        "hi": f"मुझे लगता है कि आप {matched_sch['scholarship_name']} के बारे में पूछ रहे हैं। अपनी पात्रता की जांच करने के लिए, कृपया अपनी {next_missing.replace('_', ' ')} दर्ज करें:",
-                        "ta": f"நீங்கள் {matched_sch['scholarship_name']} பற்றி கேட்கிறீர்கள் என்று நான் காண்கிறேன். உங்கள் தகுதியைச் சரிபார்க்க, தயவுசெய்து உங்கள் {next_missing.replace('_', ' ')} உள்ளிடவும்:",
-                        "te": f"మీరు {matched_sch['scholarship_name']} గురించి అడుగుతున్నట్లు నేను చూస్తున్నాను. మీ అర్హతను తనిఖీ చేయడానికి, దయచేసి మీ {next_missing.replace('_', ' ')} నమోదు చేయండి:",
-                        "ne": f"म देख्छु कि तपाईं {matched_sch['scholarship_name']} को बारेमा सोध्दै हुनुहुन्छ। तपाईंको योग्यता जाँच गर्न, कृपया तपाईंको {next_missing.replace('_', ' ')} प्रविष्ट गर्नुहोस्:",
-                        "ar": f"أرى أنك تسأل عن {matched_sch['scholarship_name']}. للتحقق من أهليتك، يرجى إدخال {next_missing.replace('_', ' ')} الخاصة بك:",
-                        "ml": f"നിങ്ങൾ {matched_sch['scholarship_name']}-നെക്കുറിച്ചാണ് ചോദിക്കുന്നതെന്ന് ഞാൻ കാണുന്നു. നിങ്ങളുടെ യോഗ്യത പരിശോധിക്കാൻ, ദയവായി നിങ്ങളുടെ {next_missing.replace('_', ' ')} രേഖപ്പെടുത്തുക:"
-                    }
-                    response = ask_prompt.get(language, ask_prompt["en"])
-                    context["history"].append({"role": "user", "text": query})
-                    context["history"].append({"role": "bot", "text": response})
-                    return response, context
-                else:
-                    eligible, reason = self._evaluate_eligibility(collected, matched_sch, language)
-                    response = reason
-                    context["history"].append({"role": "user", "text": query})
-                    context["history"].append({"role": "bot", "text": response})
-                    return response, context
+                # Otherwise return complete, full details for the specific scholarship!
+                res = self.format_full_scholarship_details(matched_sch)
+                context["history"].append({"role": "user", "text": query})
+                context["history"].append({"role": "bot", "text": res})
+                return res, context
 
         # 5. Fast Greeting Handler
         if query_lower in ["hi", "hello", "hey", "namaste", "good morning", "good afternoon", "hlo", "hi there", "hola"]:

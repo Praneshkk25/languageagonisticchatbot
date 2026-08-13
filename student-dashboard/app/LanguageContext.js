@@ -76,6 +76,7 @@ const translations = {
   },
   te: {
     overview: "అవలోకనం",
+    scholarships: "స్కాలర్‌షిప్‌లు",
     aiAssistant: "AI అసిస్టెంట్",
     documents: "పత్రాలు",
     helpCenter: "సహాయ కేంద్రం",
@@ -95,11 +96,80 @@ const translations = {
     chatPlaceholder: "ఏదైనా అడగండి...",
     thinking: "ఆలోచిస్తున్నాను...",
     errorConnecting: "క్షమించండి, సర్వర్‌కు కనెక్ట్ చేయడంలో నాకు సమస్య ఉంది. దయచేసి బ్యాకెండ్ నడుస్తున్నట్లు నిర్ధారించుకోండి.",
-    helloAssistant: "హలు! నేను మీ AI క్యాంపస్ అసిస్టెంట్‌ని. ఫీజులు, పరీక్షలు లేదా స్కాలర్‌షిప్‌ల గురించి ఏదైనా అడగండి."
+    helloAssistant: "హలో! నేను మీ AI క్యాంపస్ అసిస్టెంట్‌ని. ఫీజులు, పరీక్షలు లేదా స్కాలర్‌షిప్‌ల గురించి ఏదైనా అడగండి."
   },
-  ne: {},
-  ar: {},
-  ml: {}
+  ne: {
+    overview: "अवलोकन",
+    scholarships: "छात्रवृत्ति",
+    aiAssistant: "एआई सहायक",
+    documents: "कागजातहरू",
+    helpCenter: "सहयोग केन्द्र",
+    signOut: "साइन आउट",
+    welcome: "पुनः स्वागत छ, विद्यार्थी",
+    academicOverview: "आजको लागि तपाईंको शैक्षिक अवलोकन यहाँ छ।",
+    pendingFees: "बाँकी शुल्क",
+    attendance: "उपस्थिति",
+    assignments: "असाइनमेन्टहरू",
+    latestNotices: "पछिल्ला सूचनाहरू",
+    noDues: "कुनै बाँकी छैन",
+    dueThisWeek: "यस हप्ता बुझाउनुपर्ने",
+    fromLastWeek: "गत हप्तादेखि",
+    viewAll: "सबै हेर्नुहोस्",
+    chatTitle: "क्याम्पस एआई",
+    chatStatus: "सक्रिय",
+    chatPlaceholder: "केही पनि सोध्नुहोस्...",
+    thinking: "सोच्दैछ...",
+    errorConnecting: "माफ गर्नुहोस्, सर्भरमा जडान गर्न समस्या भइरहेको छ। कृपया ब्याकइन्ड चलिरहेको निश्चित गर्नुहोस्।",
+    helloAssistant: "नमस्ते! म तपाईंको एआई क्याम्पस सहायक हुँ। शुल्क, परीक्षा वा छात्रवृत्तिको बारेमा मलाई केही पनि सोध्नुहोस्।"
+  },
+  ar: {
+    overview: "نظرة عامة",
+    scholarships: "المنح الدراسية",
+    aiAssistant: "مساعد الذكاء الاصطناعي",
+    documents: "المستندات",
+    helpCenter: "مركز المساعدة",
+    signOut: "تسجيل الخروج",
+    welcome: "مرحباً بعودتك، طالب",
+    academicOverview: "إليك نظرتك العامة الأكاديمية لليوم.",
+    pendingFees: "الرسوم المعلقة",
+    attendance: "الحضور",
+    assignments: "الواجبات",
+    latestNotices: "أحدث الإشعارات",
+    noDues: "لا توجد مستحقات",
+    dueThisWeek: "مستحق هذا الأسبوع",
+    fromLastWeek: "من الأسبوع الماضي",
+    viewAll: "عرض الكل",
+    chatTitle: "الذكاء الاصطناعي للحرم الجامعي",
+    chatStatus: "نشط",
+    chatPlaceholder: "اسأل أي شيء...",
+    thinking: "جاري التفكير...",
+    errorConnecting: "عذراً، أواجه مشكلة في الاتصال بالخادم. يرجى التأكد من تشغيل الخادم الخلفي.",
+    helloAssistant: "مرحباً! أنا مساعد الحرم الجامعي بالذكاء الاصطناعي. اسألني عن الرسوم أو الامتحانات أو المنح الدراسية."
+  },
+  ml: {
+    overview: "അവലോകനം",
+    scholarships: "സ്കോളർഷിപ്പുകൾ",
+    aiAssistant: "AI അസിസ്റ്റന്റ്",
+    documents: "രേഖകൾ",
+    helpCenter: "സഹായ കേന്ദ്രം",
+    signOut: "സൈൻ ഔട്ട്",
+    welcome: "വീണ്ടും സ്വാഗതം, വിദ്യാർത്ഥി",
+    academicOverview: "ഇന്നത്തെ നിങ്ങളുടെ അക്കാദമിക് അവലോകനം ഇതാ.",
+    pendingFees: "അടയ്ക്കാനുള്ള ഫീസ്",
+    attendance: "ഹാജർ",
+    assignments: "അസൈൻമെന്റുകൾ",
+    latestNotices: "പുതിയ അറിയിപ്പുകൾ",
+    noDues: "കുടിശ്ശികയില്ല",
+    dueThisWeek: "ഈ ആഴ്ച സമർപ്പിക്കേണ്ടവ",
+    fromLastWeek: "കഴിഞ്ഞ ആഴ്ചയിൽ നിന്ന്",
+    viewAll: "എല്ലാം കാണുക",
+    chatTitle: "ക്യാമ്പസ് AI",
+    chatStatus: "സജീവം",
+    chatPlaceholder: "എന്തും ചോദിക്കൂ...",
+    thinking: "ചിന്തിക്കുന്നു...",
+    errorConnecting: "ക്ഷമിക്കണം, സെർവറിലേക്ക് ബന്ധിപ്പിക്കുന്നതിൽ പ്രശ്നമുണ്ട്. ദയവായി ബാക്കെൻഡ് പ്രവർത്തിക്കുന്നുണ്ടെന്ന് ഉറപ്പാക്കുക.",
+    helloAssistant: "നമസ്കാരം! ഞാൻ നിങ്ങളുടെ AI ക്യാമ്പസ് അസിസ്റ്റന്റാണ്. ഫീസ്, പരീക്ഷകൾ, സ്കോളർഷിപ്പുകൾ എന്നിവയെക്കുറിച്ച് എന്തും ചോദിക്കൂ."
+  }
 };
 
 const LanguageContext = createContext();
@@ -115,33 +185,41 @@ export function LanguageProvider({ children }) {
         const parts = value.split(`; ${name}=`);
         if (parts.length === 2) return parts.pop().split(';').shift();
       };
+      
+      const storedLang = localStorage.getItem("app_language");
       const transCookie = getCookie('googtrans');
+      
+      let lang = storedLang || 'en';
       if (transCookie) {
-        const lang = transCookie.split('/').pop();
-        if (['en', 'hi', 'ta', 'te', 'ne', 'ar', 'ml'].includes(lang)) {
-          setLanguage(lang);
+        const cLang = transCookie.split('/').pop();
+        if (['en', 'hi', 'ta', 'te', 'ne', 'ar', 'ml'].includes(cLang)) {
+          lang = cLang;
         }
+      }
+
+      if (['en', 'hi', 'ta', 'te', 'ne', 'ar', 'ml'].includes(lang)) {
+        setLanguage(lang);
       }
     }
     setMounted(true);
   }, []);
 
   const changeLanguage = (langCode) => {
+    if (!['en', 'hi', 'ta', 'te', 'ne', 'ar', 'ml'].includes(langCode)) return;
     setLanguage(langCode);
     if (typeof window !== "undefined") {
-      const setCookie = (name, value, days) => {
-        let expires = "";
-        if (days) {
-          let date = new Date();
-          date.setTime(date.getTime() + (days*24*60*60*1000));
-          expires = "; expires=" + date.toUTCString();
-        }
-        document.cookie = name + "=" + (value || "") + expires + "; path=/; domain=" + window.location.hostname;
-        document.cookie = name + "=" + (value || "") + expires + "; path=/";
-      };
+      localStorage.setItem("app_language", langCode);
       
       const cookieVal = langCode === 'en' ? '' : `/en/${langCode}`;
-      setCookie('googtrans', cookieVal, 1);
+      
+      // Set cookie on root path cleanly without invalid domain attribute so Chrome/Edge persist it
+      const date = new Date();
+      date.setTime(date.getTime() + (30 * 24 * 60 * 60 * 1000));
+      const expires = "; expires=" + date.toUTCString();
+      
+      document.cookie = "googtrans=" + cookieVal + expires + "; path=/;";
+      document.cookie = "googtrans=" + cookieVal + "; path=/;";
+
       window.location.reload();
     }
   };

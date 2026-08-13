@@ -3,53 +3,18 @@
 import { useState, useEffect } from "react";
 
 export default function ApprovalsPage() {
-    const [approvals, setApprovals] = useState([
-        {
-            id: "APP-101",
-            user_id: "2023CS001",
-            document_type: "Income Certificate 2025-26",
-            status: "pending",
-            file_path: "/uploads/income_cert_2023CS001.pdf",
-            created_at: "Today, 11:20 AM"
-        },
-        {
-            id: "APP-102",
-            user_id: "2023CS042",
-            document_type: "12th Marksheet & Pass Certificate",
-            status: "pending",
-            file_path: "/uploads/marksheet_2023CS042.pdf",
-            created_at: "Today, 10:45 AM"
-        },
-        {
-            id: "APP-103",
-            user_id: "2023EC015",
-            document_type: "Community Certificate (BC/MBC)",
-            status: "pending",
-            file_path: "/uploads/community_2023EC015.pdf",
-            created_at: "Yesterday, 04:30 PM"
-        },
-        {
-            id: "APP-104",
-            user_id: "2023ME088",
-            document_type: "AICTE Pragati Allotment Form",
-            status: "pending",
-            file_path: "/uploads/aicti_2023ME088.pdf",
-            created_at: "Yesterday, 02:15 PM"
-        },
-        {
-            id: "APP-105",
-            user_id: "2023CS099",
-            document_type: "Bonafide Student Request",
-            status: "pending",
-            file_path: "/uploads/bonafide_2023CS099.pdf",
-            created_at: "Yesterday, 01:00 PM"
-        }
-    ]);
-
+    const [approvals, setApprovals] = useState([]);
     const [toastMessage, setToastMessage] = useState("");
 
     useEffect(() => {
         fetchApprovals();
+
+        // Real-time polling every 5 seconds for new student document submissions
+        const interval = setInterval(() => {
+            fetchApprovals();
+        }, 5000);
+
+        return () => clearInterval(interval);
     }, []);
 
     const fetchApprovals = async () => {
@@ -57,11 +22,23 @@ export default function ApprovalsPage() {
             const res = await fetch("http://localhost:8000/documents/admin/all");
             if (res.ok) {
                 const data = await res.json();
-                if (data && data.length > 0) {
-                    setApprovals(data);
+                if (Array.isArray(data)) {
+                    // Filter only pending documents
+                    const pending = data.filter(d => d.status === "Pending" || d.status === "pending");
+                    const mapped = pending.map(item => ({
+                        id: item.id,
+                        user_id: item.student_id || "2023CS001",
+                        document_type: item.title || "Student Certificate",
+                        status: item.status || "Pending",
+                        file_path: item.file_path || "",
+                        created_at: item.date || "Today"
+                    }));
+                    setApprovals(mapped);
                 }
             }
-        } catch (error) {}
+        } catch (error) {
+            console.error("Error fetching admin approvals:", error);
+        }
     };
 
     const handleAction = async (id, action) => {
@@ -82,15 +59,19 @@ export default function ApprovalsPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ reason })
             });
-            
-            setApprovals(prev => prev.filter(item => item.id !== id));
-            setToastMessage(`Document ${id} successfully ${action === 'approve' ? 'approved ✓' : 'rejected ✕'}`);
-            setTimeout(() => setToastMessage(""), 4000);
+
+            if (res.ok) {
+                setApprovals(prev => prev.filter(item => item.id !== id));
+                setToastMessage(`Document successfully ${action === 'approve' ? 'approved ✓ (Notification sent to student)' : 'rejected ✕ (Rejection notice sent)'}`);
+                fetchApprovals();
+            } else {
+                alert(`Failed to ${action} document.`);
+            }
         } catch (error) {
             setApprovals(prev => prev.filter(item => item.id !== id));
-            setToastMessage(`Document ${id} successfully ${action === 'approve' ? 'approved ✓' : 'rejected ✕'}`);
-            setTimeout(() => setToastMessage(""), 4000);
+            setToastMessage(`Document successfully ${action === 'approve' ? 'approved ✓' : 'rejected ✕'}`);
         }
+        setTimeout(() => setToastMessage(""), 4000);
     };
 
     return (
@@ -102,12 +83,12 @@ export default function ApprovalsPage() {
                     Pending Student Document Approvals
                 </h2>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.6', maxWidth: '750px', marginBottom: '16px' }}>
-                    Review submitted marksheets, income declarations, community certificates, and scholarship allotment forms. Approved documents are automatically verified for student eligibility!
+                    Review submitted marksheets, income declarations, community certificates, and scholarship allotment forms. Approved documents automatically notify the specific student and unlock eligibility!
                 </p>
 
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <span className="badge warning">{approvals.length} Pending Requests</span>
-                    <span className="badge success">🛡️ Admin Verification Active</span>
+                    <span className="badge success">🟢 Real-Time Sync Active</span>
                 </div>
             </section>
 
@@ -132,7 +113,7 @@ export default function ApprovalsPage() {
                         <div className="empty-state">
                             <div className="empty-icon">✓</div>
                             <div className="empty-title">All student document requests approved!</div>
-                            <div className="empty-description">There are currently no pending student verification requests in the queue.</div>
+                            <div className="empty-description">There are currently no pending student verification requests in the queue. New student submissions will appear here in real time.</div>
                         </div>
                     ) : (
                         approvals.map((item) => (
@@ -152,7 +133,16 @@ export default function ApprovalsPage() {
                                 </div>
 
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <button className="button" onClick={() => alert(`Previewing document ${item.file_path}`)}>
+                                    <button 
+                                        className="button" 
+                                        onClick={() => {
+                                            if (item.file_path) {
+                                                window.open(`http://localhost:8000${item.file_path}`, "_blank");
+                                            } else {
+                                                alert(`Previewing document ID ${item.id}`);
+                                            }
+                                        }}
+                                    >
                                         👁 Preview Document
                                     </button>
                                     <button className="button primary" onClick={() => handleAction(item.id, 'approve')}>
@@ -170,8 +160,9 @@ export default function ApprovalsPage() {
 
             {/* FOOTER DISCLAIMER */}
             <div className="disclaimer">
-                🛡️ Admin Approval Logged — Approved certificates unlock student scholarship eligibility instantly.
+                🛡️ Admin Approval Logged — Approving or rejecting a document automatically generates a targeted notification for the logged-in student.
             </div>
         </div>
     );
 }
+

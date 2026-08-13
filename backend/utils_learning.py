@@ -73,6 +73,12 @@ def split_elective_courses(text):
         return [text]
     return courses
 
+def safe_init_embeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"):
+    """
+    Safely initializes HuggingFaceEmbeddings.
+    """
+    return HuggingFaceEmbeddings(model_name=model_name)
+
 class LearningSystem:
     def __init__(self):
         current_model_name = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
@@ -529,9 +535,15 @@ class LearningSystem:
             return False, "Could not extract content."
         
         # Load existing or create new FAISS index
-        if os.path.exists(VECTOR_DB_PATH):
-            vector_db = FAISS.load_local(VECTOR_DB_PATH, self.embeddings, allow_dangerous_deserialization=True)
-            vector_db.add_documents(chunks)
+        faiss_index_file = os.path.join(VECTOR_DB_PATH, "index.faiss")
+        faiss_pkl_file = os.path.join(VECTOR_DB_PATH, "index.pkl")
+        if os.path.exists(faiss_index_file) and os.path.exists(faiss_pkl_file):
+            try:
+                vector_db = FAISS.load_local(VECTOR_DB_PATH, self.embeddings, allow_dangerous_deserialization=True)
+                vector_db.add_documents(chunks)
+            except Exception as e:
+                logger.error(f"Failed loading FAISS index, recreating: {e}")
+                vector_db = FAISS.from_documents(chunks, self.embeddings)
         else:
             vector_db = FAISS.from_documents(chunks, self.embeddings)
         
@@ -560,13 +572,59 @@ class LearningSystem:
 
         return True, f"Learned {len(chunks)} chunks from {original_filename}."
 
+    def ensure_faiss_index_built(self):
+        """Ensures that the FAISS index files (index.faiss and index.pkl) exist. If missing, builds them from uploaded_knowledge."""
+        faiss_index_file = os.path.join(VECTOR_DB_PATH, "index.faiss")
+        faiss_pkl_file = os.path.join(VECTOR_DB_PATH, "index.pkl")
+        if os.path.exists(faiss_index_file) and os.path.exists(faiss_pkl_file):
+            return
+
+        logger.info("FAISS index files missing or incomplete. Building initial index from uploaded_knowledge...")
+        if not os.path.exists(UPLOAD_DIR):
+            os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+        files = [f for f in os.listdir(UPLOAD_DIR) if os.path.isfile(os.path.join(UPLOAD_DIR, f))] if os.path.exists(UPLOAD_DIR) else []
+        all_chunks = []
+        for filename in files:
+            file_path = os.path.join(UPLOAD_DIR, filename)
+            ext = os.path.splitext(filename)[1].lower()
+            if ext in [".txt", ".pdf", ".docx"]:
+                try:
+                    docs = self.extract_docs(file_path, "application/pdf" if ext == ".pdf" else "text/plain")
+                    if docs:
+                        chunks = self.text_splitter.split_documents(docs)
+                        chunks = [c for c in chunks if c.page_content.strip()]
+                        all_chunks.extend(chunks)
+                        if not any(x['source'] == filename for x in self.knowledge_base):
+                            self.knowledge_base.append({'source': filename})
+                except Exception as e:
+                    logger.error(f"Error reading {filename} during initial index build: {e}")
+
+        if not all_chunks:
+            all_chunks = [Document(page_content="Campus Support System general information and guidelines.", metadata={"source": "system_init.txt"})]
+
+        try:
+            os.makedirs(VECTOR_DB_PATH, exist_ok=True)
+            vector_db = FAISS.from_documents(all_chunks, self.embeddings)
+            vector_db.save_local(VECTOR_DB_PATH)
+            model_marker = os.path.join(VECTOR_DB_PATH, "embedding_model.txt")
+            with open(model_marker, "w", encoding="utf-8") as f:
+                f.write("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+            logger.info(f"Successfully built FAISS index with {len(all_chunks)} chunks.")
+        except Exception as e:
+            logger.error(f"Failed to build initial FAISS index: {e}")
+
     def find_relevant_context(self, query):
         """Deprecated: The Qwen model handles retrieval itself via get_bot().retriever."""
-        # This remains for compatibility if any other parts of the system call it
-        if os.path.exists(VECTOR_DB_PATH):
-            vector_db = FAISS.load_local(VECTOR_DB_PATH, self.embeddings, allow_dangerous_deserialization=True)
-            results = vector_db.similarity_search(query, k=3)
-            return [doc.page_content for doc in results]
+        faiss_index_file = os.path.join(VECTOR_DB_PATH, "index.faiss")
+        faiss_pkl_file = os.path.join(VECTOR_DB_PATH, "index.pkl")
+        if os.path.exists(faiss_index_file) and os.path.exists(faiss_pkl_file):
+            try:
+                vector_db = FAISS.load_local(VECTOR_DB_PATH, self.embeddings, allow_dangerous_deserialization=True)
+                results = vector_db.similarity_search(query, k=3)
+                return [doc.page_content for doc in results]
+            except Exception:
+                pass
         return []
 
 learning_system = LearningSystem()

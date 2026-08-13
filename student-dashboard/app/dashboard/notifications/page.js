@@ -1,54 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function NotificationsPage() {
     const [filter, setFilter] = useState("all");
-    const [notifications, setNotifications] = useState([
-        {
-            id: 1,
-            title: "Scholarship Portal 2025-26 Open",
-            desc: "Applications for Central & State Govt scholarships are now live. Submit before the deadline.",
-            time: "10 mins ago",
-            category: "scholarships",
-            unread: true,
-            icon: "🎓"
-        },
-        {
-            id: 2,
-            title: "Bonafide Certificate Approved",
-            desc: "Your Bonafide Certificate request #DOC-8842 has been verified and signed by Dean.",
-            time: "1 hour ago",
-            category: "documents",
-            unread: true,
-            icon: "✓"
-        },
-        {
-            id: 3,
-            title: "Upcoming Mid-Semester Exams",
-            desc: "The tentative schedule for 5th Sem mid-semester examinations has been published.",
-            time: "Yesterday",
-            category: "system",
-            unread: false,
-            icon: "📅"
-        },
-        {
-            id: 4,
-            title: "AI Campus Assistant Updated",
-            desc: "New scholarship rules & AICTE Pragati guidelines loaded into Campus Chatbot knowledge base.",
-            time: "2 days ago",
-            category: "system",
-            unread: false,
-            icon: "📢"
-        }
-    ]);
+    const [notifications, setNotifications] = useState([]);
+    const [studentId, setStudentId] = useState("2023CS001");
 
-    const markAllRead = () => {
-        setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const userStr = localStorage.getItem("user");
+            if (userStr) {
+                try {
+                    const u = JSON.parse(userStr);
+                    if (u.id) setStudentId(u.id);
+                } catch (e) {}
+            }
+        }
+    }, []);
+
+    const fetchNotifications = async (sid) => {
+        const targetId = sid || studentId;
+        try {
+            const res = await fetch(`http://localhost:8000/api/notifications/student/${targetId}`);
+            if (res.ok) {
+                const data = await res.json();
+                setNotifications(data || []);
+            }
+        } catch (error) {
+            console.error("Error fetching student notifications:", error);
+        }
     };
 
-    const clearAll = () => {
-        setNotifications([]);
+    useEffect(() => {
+        fetchNotifications(studentId);
+
+        // Real-time polling every 5 seconds
+        const interval = setInterval(() => {
+            fetchNotifications(studentId);
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [studentId]);
+
+    const markAllRead = async () => {
+        try {
+            await fetch(`http://localhost:8000/api/notifications/read-all/${studentId}`, { method: "POST" });
+            fetchNotifications(studentId);
+        } catch (error) {
+            setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+        }
+    };
+
+    const clearAll = async () => {
+        try {
+            await fetch(`http://localhost:8000/api/notifications/clear/${studentId}`, { method: "DELETE" });
+            setNotifications([]);
+        } catch (error) {
+            setNotifications([]);
+        }
     };
 
     const filteredNotifs = notifications.filter(n => {
@@ -61,7 +71,7 @@ export default function NotificationsPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
             {/* TOOLBAR & FILTER */}
             <div className="toolbar">
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {["all", "unread", "scholarships", "documents", "system"].map(cat => (
                         <button
                             key={cat}
@@ -83,10 +93,13 @@ export default function NotificationsPage() {
             <section className="panel">
                 <div className="panel-header">
                     <div>
-                        <div className="panel-title">Active Notifications</div>
-                        <div className="panel-subtitle">Stay updated with official campus alerts and announcements</div>
+                        <div className="panel-title">Active Notifications ({studentId})</div>
+                        <div className="panel-subtitle">Official campus alerts, document verification results, and announcements</div>
                     </div>
-                    <span className="badge">{notifications.filter(n => n.unread).length} Unread</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span className="badge warning">🟢 Live Real-Time</span>
+                        <span className="badge">{notifications.filter(n => n.unread).length} Unread</span>
+                    </div>
                 </div>
 
                 <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -94,12 +107,12 @@ export default function NotificationsPage() {
                         <div className="empty-state">
                             <div className="empty-icon">♧</div>
                             <div className="empty-title">No notifications found</div>
-                            <div className="empty-description">You are all caught up! Check back later for new alerts.</div>
+                            <div className="empty-description">You are all caught up! When an admin approves or rejects your uploaded document, notifications will appear here in real time.</div>
                         </div>
                     ) : (
                         filteredNotifs.map((n) => (
                             <div key={n.id} className="data-row" style={{ background: n.unread ? 'rgba(91, 53, 232, 0.12)' : '#091329', borderColor: n.unread ? 'var(--primary-2)' : 'var(--border)' }}>
-                                <div className="data-icon">{n.icon}</div>
+                                <div className="data-icon">{n.icon || "🔔"}</div>
                                 <div className="data-content">
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <div className="data-title">{n.title}</div>
@@ -107,8 +120,8 @@ export default function NotificationsPage() {
                                     </div>
                                     <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>{n.desc}</div>
                                     <div className="data-meta" style={{ marginTop: '8px' }}>
-                                        <span className="badge">{n.category}</span>
-                                        <span className="badge">{n.time}</span>
+                                        <span className="badge">{n.category || "documents"}</span>
+                                        <span className="badge">{n.time || "Recently"}</span>
                                     </div>
                                 </div>
                             </div>
@@ -124,3 +137,4 @@ export default function NotificationsPage() {
         </div>
     );
 }
+

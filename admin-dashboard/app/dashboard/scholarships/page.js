@@ -225,29 +225,54 @@ export default function AdminScholarshipsManager() {
     const [createModalOpen, setCreateModalOpen] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
 
+    useEffect(() => {
+        fetchScholarships();
+    }, []);
+
+    const fetchScholarships = async () => {
+        try {
+            const res = await fetch("http://localhost:8000/api/scholarships/all");
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    const normalized = data.map(item => ({
+                        ...item,
+                        documents: Array.isArray(item.documents) ? item.documents : (Array.isArray(item.required_documents) ? item.required_documents : [])
+                    }));
+                    setScholarships(normalized);
+                }
+            }
+        } catch (e) {
+            console.error("Error fetching scholarships:", e);
+        }
+    };
+
     // Document checklist editing state in Modal
     const [docInputText, setDocInputText] = useState("");
 
     const handleEditOpen = (sch) => {
+        const docs = Array.isArray(sch.documents) ? [...sch.documents] : (Array.isArray(sch.required_documents) ? [...sch.required_documents] : []);
         setEditModalItem({
             ...sch,
-            documents: [...sch.documents]
+            documents: docs
         });
         setDocInputText("");
     };
 
     const handleAddDocumentItem = () => {
         if (!docInputText.trim() || !editModalItem) return;
+        const currentDocs = Array.isArray(editModalItem.documents) ? editModalItem.documents : [];
         setEditModalItem({
             ...editModalItem,
-            documents: [...editModalItem.documents, docInputText.trim()]
+            documents: [...currentDocs, docInputText.trim()]
         });
         setDocInputText("");
     };
 
     const handleRemoveDocumentItem = (index) => {
         if (!editModalItem) return;
-        const updated = editModalItem.documents.filter((_, i) => i !== index);
+        const currentDocs = Array.isArray(editModalItem.documents) ? editModalItem.documents : [];
+        const updated = currentDocs.filter((_, i) => i !== index);
         setEditModalItem({
             ...editModalItem,
             documents: updated
@@ -353,8 +378,7 @@ export default function AdminScholarshipsManager() {
                                         <span className="badge" style={{ background: 'var(--primary-soft)', color: '#ffffff' }}>Cat #{sch.categoryId}: {sch.category_name}</span>
                                         <span className="badge">Min CGPA: {sch.min_gpa}</span>
                                         <span className="badge">Max Income: {sch.income_label || `₹${(sch.max_income/100000).toFixed(1)}L`}</span>
-                                        <span className="badge">Quota: {sch.caste_quota}</span>
-                                        <span className="badge success">{sch.documents.length} Docs Required</span>
+                                        <span className="badge success">{(sch.documents || sch.required_documents || []).length} Docs Required</span>
                                     </div>
                                 </div>
                             </div>
@@ -459,11 +483,11 @@ export default function AdminScholarshipsManager() {
                             {/* REQUIRED DOCUMENTS CHECKLIST EDITOR */}
                             <div style={{ background: '#081229', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
                                 <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff', marginBottom: '10px' }}>
-                                    REQUIRED DOCUMENTS CHECKLIST ({editModalItem.documents.length})
+                                    REQUIRED DOCUMENTS CHECKLIST ({(editModalItem.documents || []).length})
                                 </div>
 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
-                                    {editModalItem.documents.map((doc, idx) => (
+                                    {(editModalItem.documents || []).map((doc, idx) => (
                                         <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#0a142b', borderRadius: '8px', border: '1px solid var(--border)' }}>
                                             <span style={{ fontSize: '12px', color: '#ffffff' }}>✓ {doc}</span>
                                             <button

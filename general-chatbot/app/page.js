@@ -17,7 +17,9 @@ import {
     HelpCircle,
     Mic,
     MicOff,
-    Languages
+    Languages,
+    Volume2,
+    VolumeX
 } from "lucide-react";
 
 export default function GeneralChatbotPage() {
@@ -29,8 +31,20 @@ export default function GeneralChatbotPage() {
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
     const [isListening, setIsListening] = useState(false);
+    const [autoSpeak, setAutoSpeak] = useState(false);
+    const [speakingIdx, setSpeakingIdx] = useState(null);
     const [chatContext, setChatContext] = useState({ user_id: "GUEST_USER" });
     const messagesEndRef = useRef(null);
+
+    const langTagMap = {
+        "en": "en-US",
+        "hi": "hi-IN",
+        "ta": "ta-IN",
+        "te": "te-IN",
+        "ml": "ml-IN",
+        "ar": "ar-SA",
+        "ne": "ne-NP"
+    };
 
     // Initial greeting update when language changes
     useEffect(() => {
@@ -39,7 +53,10 @@ export default function GeneralChatbotPage() {
                 en: "Hello! Welcome to Sona College Support. I am your campus guest assistant. I can help answer queries about Admissions, Fees, Timetables, and more. How can I help you today?",
                 hi: "नमस्ते! सोना कॉलेज सहायता केंद्र में आपका स्वागत है। मैं आपका कैंपस गेस्ट असिस्टेंट हूँ। मैं प्रवेश, फीस, समय सारणी और अन्य प्रश्नों के उत्तर देने में आपकी मदद कर सकता हूँ। आज मैं आपकी क्या सहायता कर सकता हूँ?",
                 ta: "வணக்கம்! சோனா கல்லூரி ஆதரவு மையத்திற்கு உங்களை வரவேற்கிறோம். நான் உங்கள் வளாக விருந்தினர் உதவியாளர். சேர்க்கை, கட்டணம், கால அட்டவணை போன்ற கேள்விகளுக்கு நான் பதிலளிக்க முடியும். இன்று உங்களுக்கு நான் எவ்வாறு உதவ முடியும்?",
-                te: "నమస్కారం! సోనా కాలేజ్ సపోర్ట్‌కు స్వాగతం. నేను మీ క్యాంపస్ గెస్ట్ అసిస్టెంట్. అడ్మిషన్లు, ఫీజులు, టైమ్‌టేబుల్స్ వంటి సందేహాలకు నేను సహాయం చేయగలను. ఈ రోజు నేను మీకు ఎలా సహాయపడగలను?"
+                te: "నమస్కారం! సోనా కాలేజ్ సపోర్ట్‌కు స్వాగతం. నేను మీ క్యాంపస్ గెస్ట్ అసిస్టెంట్. అడ్మిషన్లు, ఫీజులు, టైమ్‌టేబుల్స్ వంటి సందేహాలకు నేను సహాయం చేయగలను. ఈ రోజు నేను మీకు ఎలా సహాయపడగలను?",
+                ml: "നമസ്കാരം! സോന കോളേജ് സപ്പോർട്ടിലേക്ക് സ്വാഗതം. ഞാൻ നിങ്ങളുടെ ക്യാമ്പസ് ഗസ്റ്റ് അസിസ്റ്റന്റാണ്. അഡ്മിഷൻ, ഫീസ്, ടൈംടേബിളുകൾ എന്നിവയെക്കുറിച്ചുള്ള ചോദ്യങ്ങൾക്ക് ഉത്തരം നൽകാൻ എനിക്ക് സഹായിക്കാനാകും. ഇന്ന് എനിക്ക് നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?",
+                ar: "مرحباً! أهلاً بك في مركز دعم كلية سونا. أنا مساعد زائر الحرم الجامعي. يمكنني المساعدة في الإجابة على الاستفسارات المتعلقة بالقبول والرسوم والجداول وغيرها. كيف يمكنني مساعدتك اليوم؟",
+                ne: "नमस्ते! सोना कलेज सहयोग केन्द्रमा स्वागत छ। म तपाईंको क्याम्पस अतिथी सहायक हुँ। म भर्ना, शुल्क, समय तालिका र अन्य प्रश्नहरूको जवाफ दिन मद्दत गर्न सक्छु। आज म तपाईंलाई कसरी मद्दत गर्न सक्छु?"
             };
             setMessages([{ type: "bot", text: greetings[language] || greetings.en }]);
         }
@@ -53,12 +70,42 @@ export default function GeneralChatbotPage() {
         scrollToBottom();
     }, [messages]);
 
+    // Speech Synthesis (Voice Answering / TTS)
+    const speakMessage = (text, idx) => {
+        if (typeof window === "undefined" || !('speechSynthesis' in window)) return;
+
+        window.speechSynthesis.cancel();
+
+        if (speakingIdx === idx) {
+            setSpeakingIdx(null);
+            return;
+        }
+
+        const cleanText = text.replace(/[\*\#\`\-\_]/g, ' ').replace(/\s+/g, ' ').trim();
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        const targetLang = langTagMap[language] || "en-US";
+        utterance.lang = targetLang;
+
+        const voices = window.speechSynthesis.getVoices();
+        const matchedVoice = voices.find(v => v.lang === targetLang || v.lang.startsWith(targetLang.split('-')[0]));
+        if (matchedVoice) {
+            utterance.voice = matchedVoice;
+        }
+
+        utterance.onend = () => setSpeakingIdx(null);
+        utterance.onerror = () => setSpeakingIdx(null);
+
+        setSpeakingIdx(idx);
+        window.speechSynthesis.speak(utterance);
+    };
+
     const handleSend = async (e) => {
         if (e) e.preventDefault();
         if (!input.trim() || loading) return;
 
         const userText = input;
-        setMessages(prev => [...prev, { type: "user", text: userText }]);
+        const newMessages = [...messages, { type: "user", text: userText }];
+        setMessages(newMessages);
         setInput("");
         setLoading(true);
 
@@ -71,9 +118,14 @@ export default function GeneralChatbotPage() {
 
             if (res.ok) {
                 const data = await res.json();
+                const botMsgIndex = newMessages.length;
                 setMessages(prev => [...prev, { type: "bot", text: data.response }]);
                 if (data.context) {
                     setChatContext(data.context);
+                }
+
+                if (autoSpeak) {
+                    setTimeout(() => speakMessage(data.response, botMsgIndex), 200);
                 }
             } else {
                 throw new Error();
@@ -94,13 +146,7 @@ export default function GeneralChatbotPage() {
         }
 
         const recognition = new SpeechRecognition();
-        const langMap = {
-            "en": "en-US",
-            "hi": "hi-IN",
-            "ta": "ta-IN",
-            "te": "te-IN"
-        };
-        recognition.lang = langMap[language] || "en-US";
+        recognition.lang = langTagMap[language] || "en-US";
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
@@ -148,6 +194,21 @@ export default function GeneralChatbotPage() {
                 { text: "సోనా ఏ కోర్సులు అందిస్తుంది?", label: "📚 కోర్సుల జాబితా" },
                 { text: "అడ్మిషన్ అర్హతలు ఏమిటి?", label: "🎓 అడ్మిషన్ల నియమాలు" },
                 { text: "సహాయక సిబ్బంది నంబర్లు చూపించు.", label: "📞 సంప్రదించండి" }
+            ],
+            ml: [
+                { text: "സോന കോളേജ് ഏതൊക്കെ കോഴ്‌സുകളാണ് നൽകുന്നത്?", label: "📚 കോഴ്‌സ് ലിസ്റ്റ്" },
+                { text: "അഡ്മിഷൻ യോഗ്യതകൾ എന്തൊക്കെയാണ്?", label: "🎓 അഡ്മിഷൻ നിയമങ്ങൾ" },
+                { text: "സ്കോളർഷിപ്പ് വിവരങ്ങൾ നൽകുക.", label: "🏛️ സ്കോളർഷിപ്പുകൾ" }
+            ],
+            ar: [
+                { text: "ما هي الدورات التي تقدمها كلية سونا؟", label: "📚 قائمة الدورات" },
+                { text: "ما هي شروط القبول؟", label: "🎓 قواعد القبول" },
+                { text: "ما هي المنح الدراسية المتاحة؟", label: "🏛️ المنح الدراسية" }
+            ],
+            ne: [
+                { text: "सोना कलेजले के कस्ता पाठ्यक्रमहरू प्रदान गर्दछ?", label: "📚 पाठ्यक्रम सूची" },
+                { text: "भर्ना मापदण्ड के हो?", label: "🎓 भर्ना नियमहरू" },
+                { text: "छात्रवृत्ति जानकारी दिनुहोस्।", label: "🏛️ छात्रवृत्ति" }
             ]
         };
         return prompts[language] || prompts.en;
@@ -222,7 +283,7 @@ export default function GeneralChatbotPage() {
                     style={{ height: isOpen ? 'min(620px, 85vh)' : '68px', width: '400px' }}
                 >
                     {/* Header */}
-                    <div className="chatbot-header" onClick={() => setIsOpen(!isOpen)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                    <div className="chatbot-header" onClick={() => setIsOpen(!isOpen)} style={{ display: 'flex', justifyContent: 'space-between', itemsCenter: 'center', cursor: 'pointer' }}>
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
                                 <Bot className="w-5 h-5 text-white" />
@@ -235,9 +296,20 @@ export default function GeneralChatbotPage() {
                     {isOpen && (
                         <div className="flex flex-col flex-1 overflow-hidden">
                             
-                            {/* Multilingual Selector */}
+                            {/* Multilingual Selector & Voice Controls */}
                             <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center gap-2">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select Language</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setAutoSpeak(!autoSpeak)}
+                                    className={`text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 transition-all ${
+                                        autoSpeak ? "bg-primary text-white" : "bg-slate-200 text-slate-600"
+                                    }`}
+                                    title="Toggle automatic speech synthesis on new messages"
+                                >
+                                    {autoSpeak ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
+                                    <span>{autoSpeak ? "Auto-Speak ON" : "Auto-Speak OFF"}</span>
+                                </button>
+
                                 <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1">
                                     <Languages className="w-3.5 h-3.5 text-slate-400" />
                                     <select
@@ -249,6 +321,9 @@ export default function GeneralChatbotPage() {
                                         <option value="hi">हिंदी (Hindi)</option>
                                         <option value="ta">தமிழ் (Tamil)</option>
                                         <option value="te">తెలుగు (Telugu)</option>
+                                        <option value="ml">മലയാളം (Malayalam)</option>
+                                        <option value="ar">العربية (Arabic)</option>
+                                        <option value="ne">नेपाली (Nepali)</option>
                                     </select>
                                 </div>
                             </div>
@@ -262,10 +337,29 @@ export default function GeneralChatbotPage() {
                                         key={idx} 
                                         className={`message ${msg.type}`}
                                     >
-                                        <div className="flex items-start gap-2 text-sm leading-relaxed" style={{ fontSize: '0.85rem' }}>
-                                            {msg.type === 'bot' && <Bot className="w-4 h-4 mt-1 opacity-50 shrink-0 text-primary" />}
-                                            <span style={{ fontWeight: 600 }}>{msg.text}</span>
-                                            {msg.type === 'user' && <User className="w-4 h-4 mt-1 opacity-50 shrink-0" />}
+                                        <div className="flex flex-col gap-1 w-full">
+                                            <div className="flex items-start gap-2 text-sm leading-relaxed" style={{ fontSize: '0.85rem' }}>
+                                                {msg.type === 'bot' && <Bot className="w-4 h-4 mt-1 opacity-50 shrink-0 text-primary" />}
+                                                <span style={{ fontWeight: 600 }}>{msg.text}</span>
+                                                {msg.type === 'user' && <User className="w-4 h-4 mt-1 opacity-50 shrink-0" />}
+                                            </div>
+                                            {msg.type === 'bot' && (
+                                                <div className="flex justify-end mt-1">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => speakMessage(msg.text, idx)}
+                                                        className={`text-[10px] font-bold px-2 py-0.5 rounded border transition-all flex items-center gap-1 ${
+                                                            speakingIdx === idx 
+                                                                ? "bg-primary/10 border-primary text-primary" 
+                                                                : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                                                        }`}
+                                                        title="Listen to answer in selected language"
+                                                    >
+                                                        <Volume2 className="w-3 h-3" />
+                                                        <span>{speakingIdx === idx ? "Stop" : "Listen"}</span>
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     </motion.div>
                                 ))}
@@ -299,7 +393,7 @@ export default function GeneralChatbotPage() {
                                 <input
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
-                                    placeholder={isListening ? "Listening..." : "Ask about courses, admissions..."}
+                                    placeholder={isListening ? "Listening... Speak now!" : "Ask about courses, admissions..."}
                                     className="flex-1 text-xs font-semibold outline-none border-none bg-transparent"
                                 />
                                 <button 
@@ -308,6 +402,7 @@ export default function GeneralChatbotPage() {
                                     className={`p-2 rounded-xl transition-all ${
                                         isListening ? "bg-red-500 text-white animate-pulse" : "hover:bg-slate-100 text-slate-400"
                                     }`}
+                                    title="Speak in your selected language (Voice Input)"
                                 >
                                     {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                                 </button>

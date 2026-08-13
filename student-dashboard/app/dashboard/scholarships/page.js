@@ -577,7 +577,7 @@ export default function ScholarshipsPage() {
                         <div style={{ marginBottom: '18px' }}>
                             <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>REQUIRED DOCUMENTS CHECKLIST</div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                {detailsModalItem.documents.map((doc, i) => (
+                                {(detailsModalItem.documents || detailsModalItem.required_documents || []).map((doc, i) => (
                                     <div key={i} style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <span style={{ color: 'var(--success)' }}>✓</span>
                                         <span>{doc}</span>

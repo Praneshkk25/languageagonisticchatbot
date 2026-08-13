@@ -5,45 +5,8 @@ import { useState, useEffect } from "react";
 export default function DocumentsPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("All");
-
-    const [documents, setDocuments] = useState([
-        {
-            id: 1,
-            name: "12th Grade Marksheet & Pass Certificate",
-            category: "Academic Certificates",
-            size: "1.8 MB",
-            date: "12 May 2025",
-            status: "Verified",
-            type: "PDF"
-        },
-        {
-            id: 2,
-            name: "Income Certificate 2025-26 (Tehsildar)",
-            category: "Income Declarations",
-            size: "850 KB",
-            date: "15 May 2025",
-            status: "Verified",
-            type: "PDF"
-        },
-        {
-            id: 3,
-            name: "College Student Bonafide Certificate",
-            category: "Academic Certificates",
-            size: "1.2 MB",
-            date: "18 May 2025",
-            status: "Verified",
-            type: "PDF"
-        },
-        {
-            id: 4,
-            name: "Aadhaar Card Copy (Verified)",
-            category: "ID Cards",
-            size: "640 KB",
-            date: "20 May 2025",
-            status: "Verified",
-            type: "JPG"
-        }
-    ]);
+    const [documents, setDocuments] = useState([]);
+    const [studentId, setStudentId] = useState("2023CS001");
 
     // Upload Modal state
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -63,25 +26,84 @@ export default function DocumentsPage() {
     // Preview Modal State
     const [previewDoc, setPreviewDoc] = useState(null);
 
-    const handleUploadSubmit = (e) => {
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const userStr = localStorage.getItem("user");
+            if (userStr) {
+                try {
+                    const u = JSON.parse(userStr);
+                    if (u.id) setStudentId(u.id);
+                } catch (e) {}
+            }
+        }
+    }, []);
+
+    const fetchDocuments = async (sid) => {
+        const targetId = sid || studentId;
+        try {
+            const res = await fetch(`http://localhost:8000/documents/student/${targetId}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data) {
+                    const mapped = data.map(d => ({
+                        id: d.id,
+                        name: d.title || "Document",
+                        category: "Academic Certificates",
+                        size: "1.2 MB",
+                        date: d.date || "Today",
+                        status: d.status || "Pending",
+                        feedback: d.feedback || null,
+                        file_path: d.file_path,
+                        type: d.title && d.title.endsWith(".jpg") ? "JPG" : "PDF"
+                    }));
+                    setDocuments(mapped);
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching documents:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchDocuments(studentId);
+
+        // Real-time status polling every 5 seconds
+        const interval = setInterval(() => {
+            fetchDocuments(studentId);
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [studentId]);
+
+    const handleUploadSubmit = async (e) => {
         e.preventDefault();
-        if (!newDocName.trim()) return;
+        if (!selectedFile) {
+            alert("Please select a file to upload.");
+            return;
+        }
 
-        const newDoc = {
-            id: Date.now(),
-            name: newDocName,
-            category: newDocCategory,
-            size: selectedFile ? `${(selectedFile.size / 1024 / 1024).toFixed(1)} MB` : "1.1 MB",
-            date: "Just now",
-            status: "Verified",
-            type: selectedFile && selectedFile.name.endsWith(".jpg") ? "JPG" : "PDF"
-        };
+        try {
+            const formData = new FormData();
+            formData.append("file", selectedFile);
 
-        setDocuments([newDoc, ...documents]);
-        setUploadModalOpen(false);
-        setNewDocName("");
-        setSelectedFile(null);
-        setToastMessage(`Successfully uploaded "${newDoc.name}" to your Digital Vault!`);
+            const res = await fetch(`http://localhost:8000/documents/upload/${studentId}`, {
+                method: "POST",
+                body: formData
+            });
+
+            if (res.ok) {
+                setToastMessage(`Successfully uploaded "${selectedFile.name}" for verification!`);
+                setUploadModalOpen(false);
+                setNewDocName("");
+                setSelectedFile(null);
+                fetchDocuments(studentId);
+            } else {
+                alert("Upload failed. Please try again.");
+            }
+        } catch (error) {
+            console.error("Upload error:", error);
+            alert("Upload failed: Backend connection error.");
+        }
         setTimeout(() => setToastMessage(""), 4000);
     };
 
@@ -92,17 +114,25 @@ export default function DocumentsPage() {
         setPasskeyModalOpen(true);
     };
 
-    const verifyPasskeys = () => {
+    const verifyPasskeys = async () => {
         if (passkey1 === "123456" && passkey2 === "654321") {
             setPasskeyModalOpen(false);
             if (actionType === "preview") {
                 setPreviewDoc(targetDoc);
             } else if (actionType === "download") {
                 setToastMessage(`Downloading "${targetDoc.name}" from Cloud Vault...`);
+                if (targetDoc.file_path) {
+                    window.open(`http://localhost:8000${targetDoc.file_path}`, "_blank");
+                }
                 setTimeout(() => setToastMessage(""), 4000);
             } else if (actionType === "delete") {
-                setDocuments(documents.filter(d => d.id !== targetDoc.id));
-                setToastMessage(`Deleted "${targetDoc.name}" from Digital Vault.`);
+                try {
+                    await fetch(`http://localhost:8000/documents/${targetDoc.id}`, { method: "DELETE" });
+                    setDocuments(prev => prev.filter(d => d.id !== targetDoc.id));
+                    setToastMessage(`Deleted "${targetDoc.name}" from Digital Vault.`);
+                } catch (e) {
+                    setDocuments(prev => prev.filter(d => d.id !== targetDoc.id));
+                }
                 setTimeout(() => setToastMessage(""), 4000);
             }
         } else {
@@ -199,10 +229,16 @@ export default function DocumentsPage() {
                                     <div className="data-title" style={{ fontSize: '15px', color: '#ffffff' }}>{doc.name}</div>
                                     <div className="data-meta">
                                         <span className="badge">{doc.category}</span>
-                                        <span className="badge">{doc.size}</span>
                                         <span className="badge">Uploaded: {doc.date}</span>
-                                        <span className="badge success">✓ {doc.status}</span>
+                                        {doc.status === 'Approved' && <span className="badge success">✓ Approved</span>}
+                                        {doc.status === 'Pending' && <span className="badge warning">⏳ Pending Verification</span>}
+                                        {doc.status === 'Rejected' && <span className="badge danger">✕ Rejected</span>}
                                     </div>
+                                    {doc.status === 'Rejected' && doc.feedback && (
+                                        <div style={{ fontSize: '12px', color: 'var(--danger)', marginTop: '4px', fontWeight: 600 }}>
+                                            Rejection Reason: {doc.feedback}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>

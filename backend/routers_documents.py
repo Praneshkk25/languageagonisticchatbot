@@ -90,8 +90,28 @@ def approve_document(doc_id: str):
         doc_ref = db.collection("documents").document(doc_id)
         doc = doc_ref.get()
         if doc.exists:
+            d = doc.to_dict()
+            student_id = d.get("student_id", "2023CS001")
+            doc_title = d.get("title", "Document")
+            
             doc_ref.update({"status": "Approved"})
-            logger.log("ADMIN", "APPROVE", f"Approved document ID {doc_id}")
+            
+            # Create student-scoped approval notification
+            notif_data = {
+                "student_id": student_id,
+                "title": f"Document Approved: {doc_title}",
+                "desc": f"Your document '{doc_title}' has been verified and approved by the Admin.",
+                "category": "documents",
+                "unread": True,
+                "icon": "✓",
+                "created_at": datetime.datetime.utcnow()
+            }
+            try:
+                db.collection("notifications").add(notif_data)
+            except Exception as ne:
+                print(f"Error creating notification: {ne}")
+                
+            logger.log("ADMIN", "APPROVE", f"Approved document ID {doc_id} for student {student_id}")
             return {"status": "approved", "doc_id": doc_id}
         raise HTTPException(status_code=404, detail="Document not found")
     except Exception as e:
@@ -103,11 +123,31 @@ def reject_document(doc_id: str, req: RejectRequest):
         doc_ref = db.collection("documents").document(doc_id)
         doc = doc_ref.get()
         if doc.exists:
+            d = doc.to_dict()
+            student_id = d.get("student_id", "2023CS001")
+            doc_title = d.get("title", "Document")
+            
             doc_ref.update({
                 "status": "Rejected",
                 "feedback": req.reason
             })
-            logger.log("ADMIN", "REJECT", f"Rejected document ID {doc_id} | Reason: {req.reason}")
+            
+            # Create student-scoped rejection notification
+            notif_data = {
+                "student_id": student_id,
+                "title": f"Document Rejected: {doc_title}",
+                "desc": f"Your document '{doc_title}' was rejected. Reason: {req.reason}",
+                "category": "documents",
+                "unread": True,
+                "icon": "✕",
+                "created_at": datetime.datetime.utcnow()
+            }
+            try:
+                db.collection("notifications").add(notif_data)
+            except Exception as ne:
+                print(f"Error creating notification: {ne}")
+
+            logger.log("ADMIN", "REJECT", f"Rejected document ID {doc_id} for student {student_id} | Reason: {req.reason}")
             return {"status": "rejected", "doc_id": doc_id, "feedback": req.reason}
         raise HTTPException(status_code=404, detail="Document not found")
     except Exception as e:

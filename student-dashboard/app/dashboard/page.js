@@ -1,11 +1,98 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function DashboardHome() {
     const router = useRouter();
+    const [completionPct, setCompletionPct] = useState(60);
+    const [missingFields, setMissingFields] = useState([]);
+    const [studentMetrics, setStudentMetrics] = useState({
+        queries: 0,
+        scholarships: 0,
+        documents: 0,
+        students: 0
+    });
+
+    useEffect(() => {
+        let userId = "2023CS001";
+        if (typeof window !== "undefined") {
+            const userStr = localStorage.getItem("user");
+            if (userStr) {
+                try {
+                    const u = JSON.parse(userStr);
+                    if (u.id) userId = u.id;
+
+                    const checks = [
+                        { key: "name", label: "Full Name" },
+                        { key: "department", label: "Department" },
+                        { key: "year", label: "Academic Year" },
+                        { key: "dob", label: "Date of Birth" },
+                        { key: "email", label: "Email Address" },
+                        { key: "phone", label: "Student Phone" },
+                        { key: "guardian_name", label: "Guardian Details" },
+                        { key: "family_income", label: "Annual Family Income" },
+                        { key: "caste_category", label: "Social Category" },
+                        { key: "bank_account_no", label: "Bank Account Details" },
+                    ];
+                    let filled = 0;
+                    let missing = [];
+                    checks.forEach(c => {
+                        if (u[c.key] && String(u[c.key]).trim() !== "") {
+                            filled++;
+                        } else {
+                            missing.push(c.label);
+                        }
+                    });
+                    const pct = Math.round((filled / checks.length) * 100);
+                    setCompletionPct(pct);
+                    setMissingFields(missing);
+                } catch(e) {}
+            }
+        }
+
+        fetchStudentOverviewMetrics(userId);
+    }, []);
+
+    const fetchStudentOverviewMetrics = async (userId) => {
+        try {
+            const [logsRes, schRes, docsRes, studentsRes] = await Promise.all([
+                fetch("http://localhost:8000/api/logs/all").catch(() => null),
+                fetch("http://localhost:8000/api/scholarships/all").catch(() => null),
+                fetch(`http://localhost:8000/documents/student/${userId}`).catch(() => null),
+                fetch("http://localhost:8000/api/students/all").catch(() => null)
+            ]);
+
+            let queries = 0;
+            if (logsRes && logsRes.ok) {
+                const logs = await logsRes.json();
+                if (Array.isArray(logs)) queries = logs.length;
+            }
+
+            let scholarships = 0;
+            if (schRes && schRes.ok) {
+                const schs = await schRes.json();
+                if (Array.isArray(schs)) scholarships = schs.length;
+            }
+
+            let documents = 0;
+            if (docsRes && docsRes.ok) {
+                const docs = await docsRes.json();
+                if (Array.isArray(docs)) documents = docs.length;
+            }
+
+            let students = 0;
+            if (studentsRes && studentsRes.ok) {
+                const stds = await studentsRes.json();
+                if (Array.isArray(stds)) students = stds.length;
+            }
+
+            setStudentMetrics({ queries, scholarships, documents, students });
+        } catch (e) {
+            console.error("Error fetching student overview metrics:", e);
+        }
+    };
 
     const handlePromptClick = (question) => {
         if (typeof window !== "undefined") {
@@ -112,6 +199,50 @@ export default function DashboardHome() {
                 </div>
             </div>
 
+            {/* PROFILE COMPLETION STATUS CARD */}
+            <div className="panel" style={{ padding: '24px', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)', border: '1px solid rgba(168, 85, 247, 0.3)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: '280px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                            <span className="badge warning">Profile Completion Status</span>
+                            <span style={{ fontSize: '18px', fontWeight: 800, color: completionPct === 100 ? 'var(--success)' : '#c084fc' }}>
+                                {completionPct}% Completed
+                            </span>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div style={{ height: '10px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '10px', overflow: 'hidden', margin: '10px 0 14px' }}>
+                            <div style={{
+                                width: `${completionPct}%`,
+                                height: '100%',
+                                background: 'linear-gradient(90deg, #818cf8, #c084fc, #34d399)',
+                                borderRadius: '10px',
+                                transition: 'width 0.5s ease'
+                            }} />
+                        </div>
+
+                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                            {completionPct === 100 ? (
+                                <span style={{ color: 'var(--success)', fontWeight: 700 }}>✓ Your profile is 100% complete! All scholarship & verification criteria met.</span>
+                            ) : (
+                                <span>Pending profile fields: <strong style={{ color: '#ffffff' }}>{missingFields.join(", ") || "Guardian & Bank details"}</strong></span>
+                            )}
+                        </div>
+                    </div>
+
+                    <div>
+                        <button 
+                            className="button primary" 
+                            onClick={() => router.push('/dashboard/settings')}
+                            style={{ padding: '12px 20px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}
+                        >
+                            <span>⚙️ Complete Profile</span>
+                            <span>→</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             {/* 2. QUICK ACCESS GRID */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -194,26 +325,26 @@ export default function DashboardHome() {
                 <div className="grid grid-4">
                     <div className="feature-card">
                         <div className="feature-icon" style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#c084fc' }}>💬</div>
-                        <div style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff' }}>128</div>
-                        <div className="feature-description" style={{ marginTop: '4px' }}>Questions Answered This Month</div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff' }}>{studentMetrics.queries}</div>
+                        <div className="feature-description" style={{ marginTop: '4px' }}>Questions Answered</div>
                     </div>
 
                     <div className="feature-card">
                         <div className="feature-icon" style={{ background: 'rgba(52, 211, 153, 0.2)', color: '#34d399' }}>🎓</div>
-                        <div style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff' }}>24</div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff' }}>{studentMetrics.scholarships}</div>
                         <div className="feature-description" style={{ marginTop: '4px' }}>Scholarships Available</div>
                     </div>
 
                     <div className="feature-card">
                         <div className="feature-icon" style={{ background: 'rgba(251, 146, 60, 0.2)', color: '#fb923c' }}>📄</div>
-                        <div style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff' }}>15</div>
-                        <div className="feature-description" style={{ marginTop: '4px' }}>Documents Uploaded</div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff' }}>{studentMetrics.documents}</div>
+                        <div className="feature-description" style={{ marginTop: '4px' }}>Vault Documents Uploaded</div>
                     </div>
 
                     <div className="feature-card">
                         <div className="feature-icon" style={{ background: 'rgba(96, 165, 250, 0.2)', color: '#60a5fa' }}>👥</div>
-                        <div style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff' }}>3.2K</div>
-                        <div className="feature-description" style={{ marginTop: '4px' }}>Active Students</div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff' }}>{studentMetrics.students}</div>
+                        <div className="feature-description" style={{ marginTop: '4px' }}>Registered Students</div>
                     </div>
                 </div>
             </div>
