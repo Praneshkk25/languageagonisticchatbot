@@ -405,64 +405,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Mode Selector Tabs */}
-        <div style={{
-          display: 'flex',
-          background: 'var(--surface-2, rgba(255,255,255,0.04))',
-          padding: '4px',
-          borderRadius: '14px',
-          border: '1px solid var(--border)',
-          gap: '4px'
-        }}>
-          <button
-            type="button"
-            onClick={() => { setLoginMode("first_time"); setError(""); }}
-            style={{
-              flex: 1,
-              padding: '10px 8px',
-              borderRadius: '10px',
-              border: 'none',
-              background: loginMode === "first_time" ? 'linear-gradient(135deg, #5b35e8, #713cff)' : 'transparent',
-              color: loginMode === "first_time" ? '#ffffff' : 'var(--text-secondary)',
-              fontSize: '12px',
-              fontWeight: loginMode === "first_time" ? 800 : 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <Calendar style={{ width: '14px', height: '14px' }} />
-            <span>First-Time (DOB)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => { setLoginMode("custom"); setError(""); }}
-            style={{
-              flex: 1,
-              padding: '10px 8px',
-              borderRadius: '10px',
-              border: 'none',
-              background: loginMode === "custom" ? 'linear-gradient(135deg, #5b35e8, #713cff)' : 'transparent',
-              color: loginMode === "custom" ? '#ffffff' : 'var(--text-secondary)',
-              fontSize: '12px',
-              fontWeight: loginMode === "custom" ? 800 : 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <Lock style={{ width: '14px', height: '14px' }} />
-            <span>Custom Password</span>
-          </button>
-        </div>
-
         {/* Student Status Detected Pill */}
         {studentStatus?.exists && (
           <div style={{
