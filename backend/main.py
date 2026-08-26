@@ -395,10 +395,43 @@ def normalize_dob(dob_str: str) -> str:
             return f"{y}-{m}-{d}"
     return dob_clean
 
+import threading
+import requests
+
 # Routes
 @app.get("/")
 def read_root():
     return {"status": "active", "system": "Campus Support API"}
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "healthy",
+        "system": "Campus Support Backend",
+        "timestamp": datetime.datetime.utcnow().isoformat()
+    }
+
+def keep_alive_ping_loop():
+    """
+    Self-pinging background thread to prevent Render free tier instance from spinning down.
+    Pings /health every 10 minutes (600s).
+    """
+    time.sleep(20)  # Wait for server to finish initializing
+    while True:
+        try:
+            target_url = os.environ.get("RENDER_EXTERNAL_URL") or os.environ.get("KEEP_ALIVE_URL")
+            if target_url:
+                ping_endpoint = f"{target_url.rstrip('/')}/health"
+                requests.get(ping_endpoint, timeout=10)
+                print(f"[KEEP-ALIVE] Pinged {ping_endpoint} successfully.")
+        except Exception as err:
+            print(f"[KEEP-ALIVE NOTE] Ping log: {err}")
+        time.sleep(600)  # Sleep for 10 minutes
+
+@app.on_event("startup")
+def start_keep_alive_on_boot():
+    threading.Thread(target=keep_alive_ping_loop, daemon=True).start()
+
 
 @app.get("/api/auth/student-status/{admission_no}")
 def check_student_status(admission_no: str):
