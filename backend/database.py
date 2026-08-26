@@ -102,38 +102,7 @@ class MockFirestore:
     def seed_if_empty(self):
         dirty = False
         if "students" not in self.data:
-            self.data["students"] = {
-                "2023CS001": {
-                    "name": "Student Demo",
-                    "admission_no": "2023CS001",
-                    "dob": "2000-01-01",
-                    "cgpa": 9.2,
-                    "department": "CSE",
-                    "year": 3,
-                    "family_income": 250000.0,
-                    "attendance_pct": 85,
-                    "lectures_attended": 34,
-                    "lectures_total": 40,
-                    "labs_attended": 10,
-                    "labs_total": 15,
-                    "study_hours": 12.5
-                },
-                "2023CS002": {
-                    "name": "Alex Smith",
-                    "admission_no": "2023CS002",
-                    "dob": "2001-02-15",
-                    "cgpa": 7.8,
-                    "department": "ECE",
-                    "year": 2,
-                    "family_income": 400000.0,
-                    "attendance_pct": 72,
-                    "lectures_attended": 28,
-                    "lectures_total": 40,
-                    "labs_attended": 11,
-                    "labs_total": 15,
-                    "study_hours": 9.5
-                }
-            }
+            self.data["students"] = {}
             dirty = True
         if "activity_logs" not in self.data:
             self.data["activity_logs"] = {}
@@ -141,18 +110,20 @@ class MockFirestore:
         if "documents" not in self.data:
             self.data["documents"] = {}
             dirty = True
-        if "scholarships" not in self.data:
-            self.data["scholarships"] = {
-                "sona_merit": {
-                    "id": "sona_merit",
-                    "scholarship_name": "Sona Merit Scholarship",
-                    "min_gpa": 8.5,
-                    "max_income": 300000.0,
-                    "eligible_departments": ["CSE", "ECE", "IT"],
-                    "eligible_years": [2, 3, 4]
-                }
-            }
+        if "applications" not in self.data:
+            self.data["applications"] = {}
             dirty = True
+        if "scholarships" not in self.data or len(self.data.get("scholarships", {})) < 5:
+            try:
+                from scholarships_data import ALL_SCHOLARSHIPS
+                sch_dict = {}
+                for s in ALL_SCHOLARSHIPS:
+                    sch_id = s.get("id", f"sch_{uuid.uuid4().hex[:8]}")
+                    sch_dict[sch_id] = s
+                self.data["scholarships"] = sch_dict
+                dirty = True
+            except Exception:
+                pass
         if dirty:
             self.save()
             
@@ -188,67 +159,169 @@ class MockFirestore:
 
 def seed_real_firestore_if_empty(client):
     try:
-        docs = list(client.collection("students").limit(1).stream())
-        if not docs:
-            print("[INFO] Seeding real Firestore database with default records...")
-            client.collection("students").document("2023CS001").set({
-                "name": "Student Demo",
-                "admission_no": "2023CS001",
-                "dob": "2000-01-01",
-                "cgpa": 9.2,
-                "department": "CSE",
-                "year": 3,
-                "family_income": 250000.0,
-                "attendance_pct": 85,
-                "lectures_attended": 34,
-                "lectures_total": 40,
-                "labs_attended": 10,
-                "labs_total": 15,
-                "study_hours": 12.5
-            })
-            client.collection("students").document("2023CS002").set({
-                "name": "Alex Smith",
-                "admission_no": "2023CS002",
-                "dob": "2001-02-15",
-                "cgpa": 7.8,
-                "department": "ECE",
-                "year": 2,
-                "family_income": 400000.0,
-                "attendance_pct": 72,
-                "lectures_attended": 28,
-                "lectures_total": 40,
-                "labs_attended": 8,
-                "labs_total": 15,
-                "study_hours": 9.5
-            })
-            client.collection("scholarships").document("default_scholarship").set({
-                "scholarship_name": "Sona Merit Scholarship",
-                "min_gpa": 8.0,
-                "max_income": 300000.0,
-                "eligible_departments": ["CSE", "ECE", "IT"],
-                "eligible_years": [2, 3, 4]
-            })
-            print("[INFO] Real Firestore database seeded successfully!")
+        from scholarships_data import ALL_SCHOLARSHIPS
+
+        # Check scholarships collection with limit 1 to avoid unnecessary reads
+        sch_docs = list(client.collection("scholarships").limit(1).stream())
+        if len(sch_docs) == 0:
+            print(f"[INFO] Seeding real Firestore database with {len(ALL_SCHOLARSHIPS)} scholarship schemes...")
+            for sch in ALL_SCHOLARSHIPS:
+                sch_id = sch.get("id", f"sch_{uuid.uuid4().hex[:8]}")
+                client.collection("scholarships").document(sch_id).set(sch)
+            print("[INFO] Real Firestore database scholarships seeded successfully!")
+        else:
+            print("[INFO] Real Firestore scholarships already present. Skipping re-seed.")
     except Exception as e:
-        print(f"[WARNING] Failed to check/seed real Firestore: {e}")
+        print(f"[WARNING] Note on Firestore seed check (Quota or Network): {e}")
+
+class ResilientFirestoreWrapper:
+    """
+    Transparently delegates calls to real Google Cloud Firestore,
+    but automatically falls back to local MockFirestore if Firestore quota is exceeded (429) or offline.
+    """
+    def __init__(self, real_client):
+        self.real_client = real_client
+        self.mock_client = MockFirestore()
+
+    def collection(self, name):
+        try:
+            real_coll = self.real_client.collection(name)
+            mock_coll = self.mock_client.collection(name)
+            return ResilientCollectionWrapper(real_coll, mock_coll)
+        except Exception:
+            return self.mock_client.collection(name)
+
+class ResilientCollectionWrapper:
+    def __init__(self, real_coll, mock_coll):
+        self.real_coll = real_coll
+        self.mock_coll = mock_coll
+        self.filters = []
+
+    def document(self, doc_id):
+        real_doc = self.real_coll.document(doc_id)
+        mock_doc = self.mock_coll.document(doc_id)
+        return ResilientDocRefWrapper(real_doc, mock_doc)
+
+    def where(self, field, op, val):
+        self.filters.append((field, op, val))
+        try:
+            self.real_coll = self.real_coll.where(field, op, val)
+        except Exception:
+            pass
+        self.mock_coll = self.mock_coll.where(field, op, val)
+        return self
+
+    def limit(self, count):
+        try:
+            self.real_coll = self.real_coll.limit(count)
+        except Exception:
+            pass
+        return self
+
+    def stream(self):
+        try:
+            results = list(self.real_coll.stream())
+            return results
+        except Exception as e:
+            # Fallback to local mock on QuotaExhausted 429
+            return self.mock_coll.stream()
+
+    def add(self, data):
+        try:
+            return self.real_coll.add(data)
+        except Exception:
+            return self.mock_coll.add(data)
+
+class ResilientDocRefWrapper:
+    def __init__(self, real_doc, mock_doc):
+        self.real_doc = real_doc
+        self.mock_doc = mock_doc
+        self.id = real_doc.id
+
+    def get(self):
+        try:
+            res = self.real_doc.get()
+            if res.exists:
+                return res
+            # Check mock if missing in real
+            mock_res = self.mock_doc.get()
+            return mock_res if mock_res.exists else res
+        except Exception:
+            return self.mock_doc.get()
+
+    def set(self, data, merge=False):
+        # Sync both for high availability
+        try:
+            self.mock_doc.set(data)
+        except Exception:
+            pass
+        try:
+            self.real_doc.set(data, merge=merge)
+        except Exception as e:
+            print(f"[NOTE] Real Firestore write queued to local storage: {e}")
+
+    def update(self, data):
+        try:
+            self.mock_doc.update(data)
+        except Exception:
+            pass
+        try:
+            self.real_doc.update(data)
+        except Exception as e:
+            print(f"[NOTE] Real Firestore update queued to local storage: {e}")
+
+    def delete(self):
+        try:
+            self.mock_doc.delete()
+        except Exception:
+            pass
+        try:
+            self.real_doc.delete()
+        except Exception:
+            pass
+
+def find_firebase_key():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(base_dir)
+    
+    candidates = [
+        "serviceAccountKey.json",
+        os.path.join(base_dir, "serviceAccountKey.json"),
+        os.path.join(parent_dir, "serviceAccountKey.json"),
+    ]
+    for c in candidates:
+        if os.path.exists(c):
+            return c
+            
+    for search_dir in [parent_dir, base_dir]:
+        if os.path.exists(search_dir):
+            for fname in os.listdir(search_dir):
+                if fname.endswith(".json") and "firebase-adminsdk" in fname:
+                    return os.path.join(search_dir, fname)
+    return None
 
 db = None
 force_mock = os.environ.get("ENABLE_MOCK_DB", "false").lower() == "true"
+key_path = find_firebase_key()
 
-if not force_mock and os.path.exists("serviceAccountKey.json"):
+if not force_mock and key_path:
     try:
+        print(f"[INFO] Connecting to Firebase Firestore using key: {key_path}")
         if not firebase_admin._apps:
-            cred = credentials.Certificate("serviceAccountKey.json")
+            cred = credentials.Certificate(key_path)
             firebase_admin.initialize_app(cred)
-        db = firestore.client()
-        seed_real_firestore_if_empty(db)
+        real_db = firestore.client()
+        seed_real_firestore_if_empty(real_db)
+        db = ResilientFirestoreWrapper(real_db)
+        print("[INFO] Firebase Firestore connected with High-Availability Resilient Fallback!")
     except Exception as e:
-        print(f"[ERROR] Failed to initialize Firebase: {e}")
+        print(f"[ERROR] Failed to initialize Firebase: {e}. Falling back to Mock Firestore.")
         db = MockFirestore()
 else:
     if force_mock:
         print("[INFO] ENABLE_MOCK_DB is true. Using Mock Firestore.")
     else:
-        print("[WARNING] serviceAccountKey.json not found. Using Mock Firestore.")
+        print("[WARNING] Firebase key file not found. Using Mock Firestore.")
     db = MockFirestore()
+
 

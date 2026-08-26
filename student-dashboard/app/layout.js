@@ -1,15 +1,43 @@
 import { LanguageProvider } from "./LanguageContext";
+import { ThemeProvider } from "./ThemeContext";
 import "./globals.css";
 
 export const metadata = {
-  title: "Student Campus Connect",
-  description: "Your personalized campus companion",
+  title: "Sona College of Technology — Student Portal",
+  description: "Official Student Portal & Scholarship Assistant — Sona College of Technology",
+  icons: {
+    icon: "/logo.webp",
+    apple: "/logo.webp",
+  },
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('theme') || 'system';
+                  var resolved = saved;
+                  if (saved === 'system') {
+                    resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                  }
+                  document.documentElement.setAttribute('data-theme', resolved);
+                  if (resolved === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                  } else {
+                    document.documentElement.classList.add('light');
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
         <script
           type="text/javascript"
           dangerouslySetInnerHTML={{
@@ -73,9 +101,11 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body suppressHydrationWarning>
-        <LanguageProvider>
-          {children}
-        </LanguageProvider>
+        <ThemeProvider>
+          <LanguageProvider>
+            {children}
+          </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -2,19 +2,80 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "../../LanguageContext";
+import { getApiBaseUrl } from "@/lib/api";
 
-function parseBold(str) {
+function parseFormattedText(str) {
     if (!str) return "";
     const cleanStr = str.replace(/###/g, "").replace(/^[-•*]\s*/, "");
-    const parts = cleanStr.split(/(\*\*.*?\*\*)/g);
+    // Split by Markdown links [title](url) or Bold **text** or raw URLs
+    const tokenRegex = /(\[[^\]]+\]\(https?:\/\/[^\s)]+\)|\*\*.*?\*\*|https?:\/\/[^\s)]+)/g;
+    const parts = cleanStr.split(tokenRegex);
+
     return parts.map((part, i) => {
+        if (!part) return null;
+
+        // 1. Markdown link [Title](url)
+        const mdLinkMatch = part.match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);
+        if (mdLinkMatch) {
+            const title = mdLinkMatch[1];
+            const url = mdLinkMatch[2];
+            return (
+                <a
+                    key={i}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        color: '#a78bfa',
+                        background: 'rgba(139, 92, 246, 0.15)',
+                        border: '1px solid rgba(168, 85, 247, 0.4)',
+                        padding: '2px 8px',
+                        borderRadius: '6px',
+                        textDecoration: 'none',
+                        fontWeight: 700,
+                        fontSize: '12px',
+                        margin: '2px 4px',
+                        transition: 'all 0.2s ease'
+                    }}
+                >
+                    <span>⚡ {title}</span>
+                    <span style={{ fontSize: '10px' }}>↗</span>
+                </a>
+            );
+        }
+
+        // 2. Bold text **text**
         if (part.startsWith("**") && part.endsWith("**")) {
             return (
-                <strong key={i} style={{ fontWeight: 800, color: '#ffffff' }}>
+                <strong key={i} style={{ fontWeight: 800, color: 'var(--text)' }}>
                     {part.slice(2, -2)}
                 </strong>
             );
         }
+
+        // 3. Raw URL https://...
+        if (part.startsWith("http://") || part.startsWith("https://")) {
+            return (
+                <a
+                    key={i}
+                    href={part}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                        color: 'var(--primary)',
+                        textDecoration: 'underline',
+                        fontWeight: 600,
+                        wordBreak: 'break-all'
+                    }}
+                >
+                    {part}
+                </a>
+            );
+        }
+
         return part;
     });
 }
@@ -31,15 +92,15 @@ function FormatMessageText({ text }) {
 
                 if (trimmed.startsWith("###")) {
                     return (
-                        <div key={idx} style={{ fontSize: '14px', fontWeight: 700, color: '#bcaaff', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
-                            <span>{parseBold(trimmed)}</span>
+                        <div key={idx} style={{ fontSize: '14px', fontWeight: 750, color: 'var(--primary)', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
+                            <span>{parseFormattedText(trimmed)}</span>
                         </div>
                     );
                 }
 
                 return (
-                    <p key={idx} style={{ color: '#d9deec', fontSize: '13px', lineHeight: '1.6' }}>
-                        {parseBold(trimmed)}
+                    <p key={idx} style={{ color: 'var(--text)', fontSize: '13.5px', lineHeight: '1.65', margin: 0 }}>
+                        {parseFormattedText(trimmed)}
                     </p>
                 );
             })}
@@ -134,8 +195,11 @@ export default function ChatPage() {
         };
 
         recognition.onerror = (event) => {
-            console.error("Speech recognition error:", event.error);
             setIsListening(false);
+            if (event.error === "aborted" || event.error === "no-speech") {
+                return;
+            }
+            console.warn("Speech recognition notice:", event.error);
         };
 
         recognition.onresult = (event) => {
@@ -208,18 +272,20 @@ export default function ChatPage() {
         try {
             const userStr = localStorage.getItem("user");
             const u = userStr ? JSON.parse(userStr) : {};
-            const studentId = u.id || "2023CS001";
-            fetch("http://localhost:8000/api/chat/history/save", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    session_id: curId,
-                    student_id: studentId,
-                    title: title,
-                    timestamp: dateStr,
-                    messages: updatedMsgs
-                })
-            }).catch(() => {});
+            const studentId = u.id || u.admission_no || "";
+            if (studentId) {
+                fetch(`${getApiBaseUrl()}/api/chat/history/save`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        session_id: curId,
+                        student_id: studentId,
+                        title: title,
+                        timestamp: dateStr,
+                        messages: updatedMsgs
+                    })
+                }).catch(() => {});
+            }
         } catch (e) {}
     };
 
@@ -235,14 +301,23 @@ export default function ChatPage() {
         setInput("");
         setLoading(true);
 
+        let currentUserId = "";
         try {
-            const res = await fetch("http://localhost:8000/api/chat/student", {
+            const uStr = localStorage.getItem("user");
+            if (uStr) {
+                const parsedU = JSON.parse(uStr);
+                currentUserId = parsedU.id || parsedU.admission_no || "";
+            }
+        } catch (e) {}
+
+        try {
+            const res = await fetch(`${getApiBaseUrl()}/api/chat/student`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     message: queryText,
                     language: activeLang,
-                    context: { user_id: "2023CS001" }
+                    context: { user_id: currentUserId }
                 })
             });
 
@@ -286,50 +361,30 @@ export default function ChatPage() {
                 { label: "14 Scholarship Categories", text: "14 Scholarship Categories" },
                 { label: "Necessary Documents Needed", text: "Necessary Documents Needed" },
                 { label: "AICTE Prajval Eligibility", text: "AICTE Prajval Eligibility" },
-                { label: "Double Passkey Form Download", text: "Double Passkey Form Download" }
+                { label: "5-Stage Tracking Guide", text: "Explain the 5-stage scholarship application lifecycle" }
             ],
             hi: [
                 { label: "14 छात्रवृत्ति श्रेणियां", text: "14 छात्रवृत्ति श्रेणियां" },
                 { label: "आवश्यक दस्तावेज", text: "छात्रवृत्ति के लिए आवश्यक दस्तावेज क्या हैं?" },
                 { label: "एआईसीटीई पात्रता", text: "AICTE छात्रवृत्ति पात्रता बताएं" },
-                { label: "फॉर्म डाउनलोड", text: "छात्रवृत्ति फॉर्म कैसे डाउनलोड करें?" }
+                { label: "5-चरणीय ट्रैकिंग", text: "5-चरणीय छात्रवृत्ति आवेदन ट्रैकिंग कैसे काम करती है?" }
             ],
             ta: [
                 { label: "14 உதவித்தொகை வகைகள்", text: "14 உதவித்தொகை வகைகள்" },
                 { label: "தேவையான ஆவணங்கள்", text: "தேவையான ஆவணங்கள் எவை?" },
                 { label: "AICTE தகுதி", text: "AICTE உதவித்தொகை தகுதி என்ன?" }
-            ],
-            te: [
-                { label: "14 స్కాలర్‌షిప్ వర్గాలు", text: "14 స్కాలర్‌షిప్ వర్గాలు" },
-                { label: "అవసరమైన పత్రాలు", text: "అవసరమైన పత్రాలు ఏమిటి?" },
-                { label: "AICTE అర్హత", text: "AICTE స్కాలర్‌షిప్ అర్హతలు" }
-            ],
-            ml: [
-                { label: "14 സ്കോളർഷിപ്പ് വിഭാഗങ്ങൾ", text: "14 സ്കോളർഷിപ്പ് വിഭാഗങ്ങൾ" },
-                { label: "ആവശ്യമായ രേഖകൾ", text: "ആവശ്യമായ രേഖകൾ എതെല്ലാം?" },
-                { label: "AICTE യോഗ്യത", text: "AICTE സ്കോളർഷിപ്പ് യോഗ്യത എന്ത്?" }
-            ],
-            ar: [
-                { label: "14 فئات من المنح", text: "14 فئات من المنح الدراسية" },
-                { label: "المستندات المطلوبة", text: "ما هي المستندات المطلوبة؟" },
-                { label: "أهلية AICTE", text: "ما هي شروط المنحة؟" }
-            ],
-            ne: [
-                { label: "१४ छात्रवृत्ति श्रेणीहरू", text: "१४ छात्रवृत्ति श्रेणीहरू" },
-                { label: "आवश्यक कागजातहरू", text: "आवश्यक कागजातहरू के के हुन्?" },
-                { label: "AICTE योग्यता", text: "AICTE छात्रवृत्ति योग्यता के हो?" }
             ]
         };
         return prompts[activeLang] || prompts.en;
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* CAMPUS AI REUSABLE PANEL */}
-            <section className="panel" style={{ boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)', overflow: 'hidden' }}>
-                <div className="panel-header" style={{ background: 'linear-gradient(180deg, rgba(20, 32, 64, 0.8), rgba(12, 22, 45, 0.9))' }}>
+            <section className="panel" style={{ boxShadow: 'var(--shadow-md)', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                <div className="panel-header" style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
                     <div>
-                        <div className="panel-title" style={{ fontSize: '19px', fontWeight: 800, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div className="panel-title" style={{ fontSize: '19px', fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <span style={{ 
                                 width: '32px', 
                                 height: '32px', 
@@ -337,13 +392,13 @@ export default function ChatPage() {
                                 background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', 
                                 display: 'inline-flex', 
                                 alignItems: 'center', 
-                                justifyContent: 'center',
+                                justifyContent: 'center', 
                                 fontSize: '16px',
                                 boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)'
                             }}>🤖</span>
                             {t('chatTitle') || 'Campus AI'}
                         </div>
-                        <div className="panel-subtitle" style={{ color: '#94a3b8', fontSize: '13px', marginTop: '4px' }}>
+                        <div className="panel-subtitle" style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px' }}>
                             Ask anything about college, admissions, exams, fees, or scholarships.
                         </div>
                     </div>
@@ -365,20 +420,20 @@ export default function ChatPage() {
                 </div>
 
                 {/* EXAMPLE PROMPTS ROW */}
-                <div style={{ padding: '14px 24px', borderBottom: '1.5px solid rgba(139, 92, 246, 0.2)', background: 'rgba(10, 18, 38, 0.6)', display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
-                    <span className="badge" style={{ background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(217, 70, 239, 0.2))', border: '1px solid rgba(168, 85, 247, 0.4)', color: '#e9d5ff', padding: '6px 12px', fontSize: '11px', fontWeight: 700 }}>
+                <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border)', background: 'var(--surface-2)', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                    <span className="badge" style={{ background: 'var(--primary-soft)', border: '1px solid rgba(168, 85, 247, 0.3)', color: 'var(--primary)', padding: '5px 10px', fontSize: '11px', fontWeight: 700 }}>
                         ⚡ Quick Prompts
                     </span>
                     {getQuickPrompts().map((p, i) => (
-                        <button key={i} className="button" onClick={() => handleSend(p.text)} style={{ fontSize: '12px', padding: '6px 14px', minHeight: '36px', height: 'auto', lineHeight: '1.3', textAlign: 'left' }}>
+                        <button key={i} className="button" onClick={() => handleSend(p.text)} style={{ fontSize: '12px', padding: '6px 12px', minHeight: '34px', height: 'auto', lineHeight: '1.3', textAlign: 'left' }}>
                             {p.label}
                         </button>
                     ))}
                 </div>
 
                 {/* CHAT WINDOW */}
-                <div className="chat-window" style={{ height: '580px', maxHeight: '580px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                    <div className="chat-messages" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '24px' }}>
+                <div className="chat-window" style={{ minHeight: '420px', height: '58vh', maxHeight: '640px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                    <div className="chat-messages" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px' }}>
                         {messages.map((msg, idx) => (
                             <div key={idx} className={`message ${msg.role === 'user' ? 'user' : 'ai'}`} style={{ position: 'relative' }}>
                                 {msg.role === 'bot' ? (
@@ -388,10 +443,10 @@ export default function ChatPage() {
                                             <button
                                                 onClick={() => speakMessage(msg.text, idx)}
                                                 style={{
-                                                    background: speakingIdx === idx ? 'rgba(168, 85, 247, 0.3)' : 'rgba(255, 255, 255, 0.06)',
-                                                    border: '1px solid rgba(168, 85, 247, 0.4)',
+                                                    background: speakingIdx === idx ? 'var(--primary-soft)' : 'var(--surface-2)',
+                                                    border: '1px solid var(--border)',
                                                     borderRadius: '8px',
-                                                    color: speakingIdx === idx ? '#e9d5ff' : '#cbd5e1',
+                                                    color: speakingIdx === idx ? 'var(--primary)' : 'var(--text)',
                                                     fontSize: '12px',
                                                     fontWeight: '600',
                                                     padding: '4px 10px',
@@ -423,11 +478,11 @@ export default function ChatPage() {
                     </div>
 
                     {/* CHAT INPUT AREA */}
-                    <div className="chat-input-area" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                        <div style={{ flex: 1, position: 'relative' }}>
+                    <div className="chat-input-area" style={{ display: 'flex', gap: '8px', alignItems: 'center', padding: '12px 14px', background: 'var(--surface)', borderTop: '1px solid var(--border)' }}>
+                        <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
                             <textarea
                                 className="input"
-                                rows="2"
+                                rows="1"
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={(e) => {
@@ -436,19 +491,21 @@ export default function ChatPage() {
                                         handleSend();
                                     }
                                 }}
-                                placeholder={isListening ? "🎙️ Listening... Speak your question now!" : (t('chatPlaceholder') || "Ask anything about campus, exams, fees, or scholarships...")}
+                                placeholder={isListening ? "🎙️ Listening..." : (t('chatPlaceholder') || "Ask anything about campus, exams, fees, or scholarships...")}
                                 style={{
                                     width: '100%',
-                                    minHeight: '64px',
-                                    padding: '14px 18px',
-                                    borderRadius: '14px',
-                                    fontSize: '14px',
-                                    lineHeight: '1.5',
-                                    background: 'rgba(11, 20, 42, 0.95)',
-                                    border: '1.5px solid rgba(139, 92, 246, 0.4)',
-                                    color: '#ffffff',
-                                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)',
-                                    outline: 'none'
+                                    minHeight: '48px',
+                                    height: '48px',
+                                    padding: '10px 14px',
+                                    borderRadius: '12px',
+                                    fontSize: '13.5px',
+                                    lineHeight: '1.4',
+                                    background: 'var(--input-bg)',
+                                    border: '1.5px solid var(--border)',
+                                    color: 'var(--text)',
+                                    boxShadow: 'var(--shadow-sm)',
+                                    outline: 'none',
+                                    resize: 'none'
                                 }}
                             />
                         </div>
@@ -459,26 +516,24 @@ export default function ChatPage() {
                             className={`button ${isListening ? 'primary' : ''}`}
                             onClick={startSpeechRecognition}
                             style={{
-                                height: '64px',
-                                width: '70px',
-                                borderRadius: '14px',
+                                height: '48px',
+                                minWidth: '48px',
+                                width: '48px',
+                                borderRadius: '12px',
                                 display: 'flex',
-                                flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                gap: '4px',
                                 padding: '0',
-                                background: isListening ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'rgba(99, 102, 241, 0.15)',
-                                border: isListening ? '1px solid #f87171' : '1.5px solid rgba(139, 92, 246, 0.4)',
-                                color: isListening ? '#ffffff' : '#c7d2fe',
-                                boxShadow: isListening ? '0 0 20px rgba(239, 68, 68, 0.6)' : '0 4px 14px rgba(0, 0, 0, 0.2)',
+                                background: isListening ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'var(--primary-soft)',
+                                border: isListening ? '1px solid #f87171' : '1.5px solid var(--border)',
+                                color: isListening ? '#ffffff' : 'var(--primary)',
+                                boxShadow: isListening ? '0 0 20px rgba(239, 68, 68, 0.6)' : 'var(--shadow-sm)',
                                 transition: 'all 0.2s ease',
                                 flexShrink: 0
                             }}
                             title="Speak in your selected language (Voice Input)"
                         >
-                            <span style={{ fontSize: '18px' }}>🎙️</span>
-                            <span style={{ fontSize: '11px', fontWeight: 700 }}>{isListening ? 'Listening' : 'Mic'}</span>
+                            <span style={{ fontSize: '20px' }}>🎙️</span>
                         </button>
 
                         <button 
@@ -486,19 +541,19 @@ export default function ChatPage() {
                             onClick={() => handleSend()} 
                             disabled={!input.trim() || loading} 
                             style={{ 
-                                height: '64px', 
-                                padding: '0 24px', 
-                                borderRadius: '14px',
-                                fontSize: '15px',
+                                height: '48px', 
+                                padding: '0 16px', 
+                                borderRadius: '12px', 
+                                fontSize: '14px',
                                 fontWeight: 700,
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '8px',
+                                gap: '6px',
                                 flexShrink: 0
                             }}
                         >
                             <span>Send</span>
-                            <span style={{ fontSize: '18px' }}>🚀</span>
+                            <span style={{ fontSize: '15px' }}>🚀</span>
                         </button>
                     </div>
                 </div>
@@ -506,7 +561,7 @@ export default function ChatPage() {
 
             {/* SUGGESTED TOPICS GRID */}
             <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '17px', fontWeight: 800, color: '#ffffff', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '17px', fontWeight: 800, color: 'var(--text)', marginBottom: '16px' }}>
                     <span style={{ fontSize: '20px' }}>💡</span>
                     <span>Suggested Topics</span>
                 </div>

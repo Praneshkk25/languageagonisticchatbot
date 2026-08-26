@@ -3,31 +3,62 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import ThemeToggle from "../ThemeToggle";
+import { getApiBaseUrl } from "@/lib/api";
 
 export default function AdminDashboardLayout({ children }) {
     const pathname = usePathname();
     const router = useRouter();
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [pendingCount, setPendingCount] = useState(0);
+    const [pendingAppsCount, setPendingAppsCount] = useState(0);
 
-    const fetchPendingCount = async () => {
+    useEffect(() => {
+        setMobileMenuOpen(false);
+    }, [pathname]);
+
+    const fetchCounts = async () => {
+        if (typeof document !== "undefined" && document.hidden) return;
         try {
-            const res = await fetch("http://localhost:8000/documents/admin/all");
-            if (res.ok) {
-                const data = await res.json();
-                if (Array.isArray(data)) {
-                    const count = data.filter(d => d.status === "Pending" || d.status === "pending").length;
+            const [docsRes, appsRes] = await Promise.all([
+                fetch(`${getApiBaseUrl()}/documents/admin/all`).catch(() => null),
+                fetch(`${getApiBaseUrl()}/api/applications/admin/all`).catch(() => null)
+            ]);
+
+            if (docsRes && docsRes.ok) {
+                const docs = await docsRes.json();
+                if (Array.isArray(docs)) {
+                    const count = docs.filter(d => d.status === "Pending" || d.status === "pending").length;
                     setPendingCount(count);
+                }
+            }
+
+            if (appsRes && appsRes.ok) {
+                const apps = await appsRes.json();
+                if (Array.isArray(apps)) {
+                    const count = apps.filter(a => a.stage < 4).length;
+                    setPendingAppsCount(count);
                 }
             }
         } catch (e) {}
     };
 
     useEffect(() => {
-        fetchPendingCount();
-        const interval = setInterval(fetchPendingCount, 5000);
-        return () => clearInterval(interval);
+        fetchCounts();
+
+        const handleVisibilityChange = () => {
+            if (!document.hidden) fetchCounts();
+        };
+
+        const interval = setInterval(fetchCounts, 35000);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
     }, []);
 
     useEffect(() => {
@@ -50,6 +81,7 @@ export default function AdminDashboardLayout({ children }) {
 
     const navItemsPrimary = [
         { name: "Overview", href: "/dashboard", icon: "⌂" },
+        { name: "Applications", href: "/dashboard/applications", icon: "📋", count: pendingAppsCount > 0 ? pendingAppsCount : null },
         { name: "Approvals", href: "/dashboard/approvals", icon: "✓", count: pendingCount > 0 ? pendingCount : null },
         { name: "Scholarships", href: "/dashboard/scholarships", icon: "♢" },
         { name: "Learning Data", href: "/dashboard/learning", icon: "▤" },
@@ -58,6 +90,7 @@ export default function AdminDashboardLayout({ children }) {
 
     const getPageTitle = () => {
         if (pathname === '/dashboard') return { title: 'Overview', desc: 'College Admin Command Center & Analytics.' };
+        if (pathname === '/dashboard/applications') return { title: 'Application Pipeline', desc: 'Manage 5-stage scholarship application lifecycle & disbursements.' };
         if (pathname === '/dashboard/approvals') return { title: 'Approvals & Verification', desc: 'Review student document verification & scholarship requests.' };
         if (pathname === '/dashboard/scholarships') return { title: 'Scholarship Management', desc: 'Manage 14 scholarship categories and eligibility rules.' };
         if (pathname === '/dashboard/learning') return { title: 'AI Training & KB Data', desc: 'Upload college circulars, exam dates and policy FAQs.' };
@@ -69,17 +102,35 @@ export default function AdminDashboardLayout({ children }) {
 
     return (
         <div className="app">
-            {/* SIDEBAR */}
-            <aside className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
-                <div className="brand">
-                    <div className="brand-logo" onClick={() => setIsCollapsed(!isCollapsed)} style={{ cursor: 'pointer' }}>
-                        <span>◆</span>
-                    </div>
+            {/* MOBILE SIDEBAR OVERLAY */}
+            <div 
+                className={`sidebar-overlay ${mobileMenuOpen ? "active" : ""}`} 
+                onClick={() => setMobileMenuOpen(false)} 
+                aria-hidden="true"
+            />
 
-                    <div>
-                        <div className="brand-name">ADMIN</div>
-                        <div className="brand-subtitle">PORTAL</div>
+            {/* SIDEBAR */}
+            <aside className={`sidebar ${isCollapsed ? "collapsed" : ""} ${mobileMenuOpen ? "mobile-open" : ""}`}>
+                <div className="brand" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '13px' }}>
+                        <div className="brand-logo" onClick={() => setIsCollapsed(!isCollapsed)} style={{ cursor: 'pointer', background: '#ffffff', padding: '3px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <img src="/logo.webp" alt="Sona College Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                        </div>
+
+                        <div>
+                            <div className="brand-name">SONA</div>
+                            <div className="brand-subtitle">ADMIN</div>
+                        </div>
                     </div>
+                    {/* Mobile close button inside drawer */}
+                    <button 
+                        className="mobile-menu-btn" 
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{ width: '32px', height: '32px', fontSize: '14px', marginLeft: 'auto' }}
+                        aria-label="Close sidebar"
+                    >
+                        ✕
+                    </button>
                 </div>
 
                 {/* NAVIGATION */}
@@ -90,6 +141,7 @@ export default function AdminDashboardLayout({ children }) {
                             <Link
                                 key={item.name}
                                 href={item.href}
+                                onClick={() => setMobileMenuOpen(false)}
                                 className={`nav-item ${isActive ? "active" : ""}`}
                             >
                                 <span className="nav-icon">{item.icon}</span>
@@ -205,9 +257,18 @@ export default function AdminDashboardLayout({ children }) {
             <main className="main">
                 {/* TOP BAR */}
                 <header className="topbar">
-                    <div>
-                        <h1 className="page-title">{pageMeta.title}</h1>
-                        <p className="page-description">{pageMeta.desc}</p>
+                    <div className="topbar-header-row">
+                        <div style={{ flex: 1, minWidth: 0, paddingRight: '8px' }}>
+                            <h1 className="page-title">{pageMeta.title}</h1>
+                            <p className="page-description">{pageMeta.desc}</p>
+                        </div>
+                        <button 
+                            className="mobile-menu-btn" 
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            aria-label="Toggle navigation drawer"
+                        >
+                            ☰
+                        </button>
                     </div>
 
                     <div className="topbar-actions">
@@ -215,6 +276,7 @@ export default function AdminDashboardLayout({ children }) {
                             <span className="search-icon">⌕</span>
                             <input type="text" placeholder="Search admin records..." />
                         </div>
+                        <ThemeToggle />
                     </div>
                 </header>
 

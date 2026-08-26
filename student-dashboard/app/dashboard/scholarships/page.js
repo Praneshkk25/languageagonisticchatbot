@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function ScholarshipsPage() {
     const categories = [
@@ -337,65 +337,68 @@ export default function ScholarshipsPage() {
     ]);
 
     // Student Profile for Eligibility Evaluation
-    const studentProfile = {
-        name: "Pranesh K K",
-        id: "2023CS001",
+    const [studentProfile, setStudentProfile] = useState({
+        name: "Student",
+        id: "2024CS101",
         cgpa: 8.5,
         department: "CSE",
         familyIncome: 250000,
         category: "General / Merit"
-    };
+    });
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const userStr = localStorage.getItem("user");
+            if (userStr) {
+                try {
+                    const u = JSON.parse(userStr);
+                    setStudentProfile({
+                        name: u.name || "Student",
+                        id: u.id || u.admission_no || "2024CS101",
+                        cgpa: u.cgpa || 8.5,
+                        department: u.department || "CSE",
+                        familyIncome: u.family_income || 250000,
+                        category: u.caste_category || "General"
+                    });
+                } catch (e) {}
+            }
+        }
+    }, []);
 
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [detailsModalItem, setDetailsModalItem] = useState(null);
     const [eligibilityModalItem, setEligibilityModalItem] = useState(null);
-
-    // Passkey State
-    const [passkeyModalOpen, setPasskeyModalOpen] = useState(false);
-    const [targetScholarshipForDownload, setTargetScholarshipForDownload] = useState(null);
-    const [passkey1, setPasskey1] = useState("123456");
-    const [passkey2, setPasskey2] = useState("654321");
-    const [passkeyError, setPasskeyError] = useState("");
-    const [passkeyVerified, setPasskeyVerified] = useState(false);
-    const [downloadSuccessMessage, setDownloadSuccessMessage] = useState("");
+    const [applySuccessMessage, setApplySuccessMessage] = useState("");
 
     const handleCategoryClick = (catId) => {
         setSelectedCategory(prev => prev === catId ? null : catId);
     };
 
-    const triggerFormDownload = (sch) => {
-        setTargetScholarshipForDownload(sch);
-        if (!passkeyVerified) {
-            setPasskeyError("");
-            setPasskeyModalOpen(true);
-        } else {
-            executeDownload(sch);
-        }
+    const getScholarshipPortalUrl = (sch) => {
+        if (!sch) return "https://scholarships.gov.in";
+        return sch.official_website || sch.application_portal_url || sch.application_portal || sch.official_portal || (sch.contact_authority && sch.contact_authority.application_url) || "https://scholarships.gov.in";
     };
 
-    const verifyPasskeys = () => {
-        if (passkey1 === "123456" && passkey2 === "654321") {
-            setPasskeyVerified(true);
-            setPasskeyModalOpen(false);
-            if (targetScholarshipForDownload) {
-                executeDownload(targetScholarshipForDownload);
-            }
-        } else {
-            setPasskeyError("Invalid Double Passkey. Please verify Passkey 1 (123456) and Passkey 2 (654321).");
+    const handleApplyOnline = (sch) => {
+        if (!sch) return;
+        const portalUrl = getScholarshipPortalUrl(sch);
+        
+        if (typeof window !== "undefined") {
+            window.open(portalUrl, "_blank", "noopener,noreferrer");
         }
-    };
 
-    const executeDownload = (sch) => {
-        setDownloadSuccessMessage(`Downloading Official Application Form for ${sch.scholarship_name}...`);
-        setTimeout(() => setDownloadSuccessMessage(""), 4000);
+        setApplySuccessMessage(`Redirected to official application website: ${portalUrl}`);
+        setTimeout(() => setApplySuccessMessage(""), 5000);
     };
 
     const filteredScholarships = scholarships.filter(s => {
+        if (!s) return false;
         const matchesCategory = selectedCategory === null || s.categoryId === selectedCategory;
-        const matchesQuery = !searchQuery || 
-            s.scholarship_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            s.category_name.toLowerCase().includes(searchQuery.toLowerCase());
+        const name = (s.scholarship_name || s.name || "").toLowerCase();
+        const catName = (s.category_name || "").toLowerCase();
+        const q = (searchQuery || "").toLowerCase();
+        const matchesQuery = !q || name.includes(q) || catName.includes(q);
         return matchesCategory && matchesQuery;
     });
 
@@ -404,23 +407,23 @@ export default function ScholarshipsPage() {
             {/* HERO PANEL */}
             <section className="panel" style={{ padding: '28px' }}>
                 <span className="badge" style={{ marginBottom: '12px' }}>⭐ Indian Undergraduate Scholarships Hub</span>
-                <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#fff', marginBottom: '8px' }}>
+                <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px' }}>
                     14 Categories of Scholarships for Graduation
                 </h2>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.6', maxWidth: '750px', marginBottom: '16px' }}>
-                    Explore Central & State Govt. schemes, AICTE grants, SC/ST/OBC/Minority quotas, Merit & Need-based funding, Girls & PwD aid, Corporate awards, and Interest Subsidies. Select any category below to view matching scholarship schemes!
+                    Explore Central & State Govt. schemes, AICTE grants, SC/ST/OBC/Minority quotas, Merit & Need-based funding, Girls & PwD aid, Corporate awards, and Interest Subsidies. Click "Apply Online" on any scheme to go directly to its official application website and track your application status in real-time!
                 </p>
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                    <span className="badge success">☁️ Cloud Storage Vault Protection (Double Passkey Protected)</span>
-                    <span className="badge warning">🛡️ 2-Factor Double Passkey authorization enabled</span>
+                    <span className="badge success">⚡ Instant Official Portal Redirection</span>
+                    <span className="badge primary">📊 Real-Time 5-Stage Status Tracking Enabled</span>
                 </div>
             </section>
 
-            {/* DOWNLOAD TOAST */}
-            {downloadSuccessMessage && (
-                <div style={{ padding: '14px 20px', borderRadius: '10px', background: 'rgba(66, 214, 164, 0.15)', border: '1px solid var(--success)', color: 'var(--success)', fontWeight: 700, fontSize: '13px' }}>
-                    ✓ {downloadSuccessMessage}
+            {/* REDIRECTION NOTIFICATION TOAST */}
+            {applySuccessMessage && (
+                <div style={{ padding: '14px 20px', borderRadius: '10px', background: 'var(--primary-soft)', border: '1px solid var(--primary)', color: 'var(--primary)', fontWeight: 700, fontSize: '13px' }}>
+                    ⚡ {applySuccessMessage}
                 </div>
             )}
 
@@ -470,22 +473,22 @@ export default function ScholarshipsPage() {
                                     style={{ 
                                         padding: '14px', 
                                         cursor: 'pointer',
-                                        borderColor: isSelected ? 'var(--primary-2)' : 'var(--border)',
-                                        background: isSelected ? 'rgba(91, 53, 232, 0.25)' : '#0a142b',
-                                        boxShadow: isSelected ? '0 0 15px rgba(113, 60, 255, 0.3)' : 'none',
+                                        borderColor: isSelected ? 'var(--primary)' : 'var(--border)',
+                                        background: isSelected ? 'var(--primary-soft)' : 'var(--surface-2)',
+                                        boxShadow: isSelected ? '0 0 15px rgba(91, 53, 232, 0.25)' : 'none',
                                         transition: 'all 0.2s ease'
                                     }}
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span className="badge" style={{ background: isSelected ? 'var(--primary)' : 'var(--primary-soft)', color: '#ffffff' }}>
+                                        <span className="badge" style={{ background: isSelected ? 'var(--primary)' : 'var(--primary-soft)', color: isSelected ? '#ffffff' : 'var(--primary)' }}>
                                             #{cat.id}
                                         </span>
                                         {isSelected && <span style={{ fontSize: '11px', color: 'var(--success)', fontWeight: 800 }}>✓ Selected</span>}
                                     </div>
-                                    <div className="feature-title" style={{ marginTop: '10px', fontSize: '13px', color: isSelected ? '#ffffff' : '#e2e8f0' }}>
+                                    <div className="feature-title" style={{ marginTop: '10px', fontSize: '13px', color: isSelected ? 'var(--primary)' : 'var(--text)' }}>
                                         {cat.name}
                                     </div>
-                                    <div className="feature-description" style={{ fontSize: '11px', color: isSelected ? '#bcaaff' : '#707b98', marginTop: '4px' }}>
+                                    <div className="feature-description" style={{ fontSize: '11px', color: isSelected ? 'var(--primary)' : 'var(--text-secondary)', marginTop: '4px' }}>
                                         {categoryMatchingCount} Available
                                     </div>
                                 </div>
@@ -524,7 +527,7 @@ export default function ScholarshipsPage() {
                                 <div className="data-icon">🎓</div>
 
                                 <div className="data-content" style={{ minWidth: '260px' }}>
-                                    <div className="data-title" style={{ fontSize: '15px', color: '#ffffff' }}>{sch.scholarship_name}</div>
+                                    <div className="data-title" style={{ fontSize: '15px', color: 'var(--text)' }}>{sch.scholarship_name}</div>
                                     <div className="data-meta">
                                         <span className="badge">{sch.category_name}</span>
                                         <span className="badge">{sch.benefits}</span>
@@ -533,18 +536,23 @@ export default function ScholarshipsPage() {
                                     </div>
                                 </div>
 
-                                {/* THREE INTERACTIVE ACTION BUTTONS */}
+                                {/* INTERACTIVE ACTION BUTTONS */}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginLeft: 'auto' }}>
                                     <button className="button" onClick={() => setDetailsModalItem(sch)}>
                                         📄 View Details
                                     </button>
 
-                                    <button className="button" onClick={() => setEligibilityModalItem(sch)} style={{ borderColor: 'var(--primary-2)', color: '#c2b5ff' }}>
+                                    <button className="button" onClick={() => setEligibilityModalItem(sch)} style={{ borderColor: 'var(--primary-2)', color: 'var(--text)' }}>
                                         👤 Check Eligibility
                                     </button>
 
-                                    <button className="button primary" onClick={() => triggerFormDownload(sch)}>
-                                        ⇩ Download Application Form
+                                    <button 
+                                        type="button"
+                                        className="button primary" 
+                                        onClick={() => handleApplyOnline(sch)}
+                                        style={{ background: 'linear-gradient(90deg, #4f46e5, #7c3aed)', cursor: 'pointer' }}
+                                    >
+                                        ⚡ Apply Online
                                     </button>
                                 </div>
                             </div>
@@ -553,43 +561,153 @@ export default function ScholarshipsPage() {
                 </div>
             </section>
 
-            {/* 1. VIEW DETAILS MODAL */}
+            {/* 1. VIEW DETAILS MODAL (13 COMPREHENSIVE SECTIONS) */}
             {detailsModalItem && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-                    <div className="panel" style={{ maxWidth: '600px', width: '100%', padding: '28px', background: '#0a142b', border: '1px solid var(--border-hover)', borderRadius: '16px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                    <div className="panel" style={{ maxWidth: '780px', width: '100%', padding: '28px', background: 'var(--surface)', border: '1px solid var(--border-hover)', borderRadius: '16px', maxHeight: '88vh', display: 'flex', flexDirection: 'column' }}>
+                        
+                        {/* MODAL HEADER */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
                             <div>
-                                <span className="badge" style={{ marginBottom: '6px' }}>{detailsModalItem.category_name}</span>
-                                <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#ffffff' }}>{detailsModalItem.scholarship_name}</h3>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
+                                    <span className="badge primary">{detailsModalItem.category_name}</span>
+                                    <span className="badge">Ref: {detailsModalItem.scholarship_id_ref || detailsModalItem.id}</span>
+                                    <span className="badge success">{detailsModalItem.scholarship_status || 'Active'}</span>
+                                </div>
+                                <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text)' }}>{detailsModalItem.scholarship_name}</h3>
+                                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Authority: {detailsModalItem.provider_organization || 'Ministry of Education, Govt. of India'}</div>
                             </div>
                             <button className="button danger" onClick={() => setDetailsModalItem(null)} style={{ height: '32px', padding: '0 10px' }}>✕</button>
                         </div>
 
-                        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '18px' }}>
-                            {detailsModalItem.description}
-                        </p>
+                        {/* MODAL BODY (SCROLLABLE 13 SECTIONS) */}
+                        <div style={{ overflowY: 'auto', paddingRight: '6px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            
+                            {/* 1. BASIC SCOPE */}
+                            <div style={{ background: 'var(--surface-2)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                                <div style={{ fontSize: '12px', fontWeight: 800, color: '#818cf8', marginBottom: '4px' }}>💡 1. BASIC SCHOLARSHIP SCOPE & PURPOSE</div>
+                                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                                    {detailsModalItem.detailed_description || detailsModalItem.description}
+                                </div>
+                            </div>
 
-                        <div style={{ background: '#081229', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)', marginBottom: '16px' }}>
-                            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--success)', marginBottom: '4px' }}>FINANCIAL COVERAGE & BENEFITS</div>
-                            <div style={{ fontSize: '13px', color: '#ffffff', fontWeight: 600 }}>{detailsModalItem.benefits}</div>
-                        </div>
+                            {/* 2. FINANCIAL BENEFITS */}
+                            <div style={{ background: 'rgba(66, 214, 164, 0.08)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(66, 214, 164, 0.25)' }}>
+                                <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--success)', marginBottom: '6px' }}>💰 2. SCHOLARSHIP BENEFITS & ALLOWANCES</div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px' }}>
+                                    <div><strong>Total Grant:</strong> {detailsModalItem.benefits}</div>
+                                    <div><strong>Monthly Equivalent:</strong> {detailsModalItem.monthly_amount || 'Equated installment'}</div>
+                                    <div><strong>Fee Waiver:</strong> {detailsModalItem.tuition_fee_coverage || 'Included in annual grant'}</div>
+                                    <div><strong>Disbursement:</strong> {detailsModalItem.other_benefits || 'Direct Benefit Transfer (DBT)'}</div>
+                                </div>
+                            </div>
 
-                        <div style={{ marginBottom: '18px' }}>
-                            <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>REQUIRED DOCUMENTS CHECKLIST</div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                {(detailsModalItem.documents || detailsModalItem.required_documents || []).map((doc, i) => (
-                                    <div key={i} style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <span style={{ color: 'var(--success)' }}>✓</span>
-                                        <span>{doc}</span>
-                                    </div>
-                                ))}
+                            {/* 3. ELIGIBILITY & DEMOGRAPHICS */}
+                            <div style={{ background: 'var(--surface-2)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                                <div style={{ fontSize: '12px', fontWeight: 800, color: '#c084fc', marginBottom: '6px' }}>🌐 3. ELIGIBILITY CRITERIA & DEMOGRAPHICS</div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                    <div><strong>Nationality:</strong> {detailsModalItem.nationality || 'Indian'} ({detailsModalItem.citizenship || 'Indian Citizen'})</div>
+                                    <div><strong>Domicile:</strong> {detailsModalItem.domicile_restriction || 'All States of India'}</div>
+                                    <div><strong>Age Limit:</strong> {detailsModalItem.min_age || 17} - {detailsModalItem.max_age || 25} Years</div>
+                                    <div><strong>Gender:</strong> {detailsModalItem.gender || 'All'}</div>
+                                    <div><strong>Community Quota:</strong> {detailsModalItem.caste_category || 'All Categories'}</div>
+                                    <div><strong>PwD Reservation:</strong> {detailsModalItem.pwd_eligibility || '5% Horizontal Reservation'}</div>
+                                </div>
+                            </div>
+
+                            {/* 4. ACADEMIC REQUIREMENTS */}
+                            <div style={{ background: 'var(--surface-2)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                                <div style={{ fontSize: '12px', fontWeight: 800, color: '#38bdf8', marginBottom: '6px' }}>🎓 4. ACADEMIC REQUIREMENTS & PERFORMANCE</div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                    <div><strong>Min CGPA:</strong> <span style={{ color: 'var(--success)', fontWeight: 700 }}>{detailsModalItem.min_gpa} CGPA</span></div>
+                                    <div><strong>Min Percentage:</strong> {detailsModalItem.min_percentage || 60}%</div>
+                                    <div><strong>Eligible Branches:</strong> {Array.isArray(detailsModalItem.eligible_departments) ? detailsModalItem.eligible_departments.join(", ") : detailsModalItem.eligible_departments}</div>
+                                    <div><strong>Eligible Years:</strong> Year {Array.isArray(detailsModalItem.eligible_years) ? detailsModalItem.eligible_years.join(", ") : '1, 2, 3, 4'}</div>
+                                    <div style={{ gridColumn: 'span 2' }}><strong>Backlog Restriction:</strong> {detailsModalItem.backlog_restrictions || 'No standing active backlogs at time of renewal'}</div>
+                                </div>
+                            </div>
+
+                            {/* 5. FINANCIAL REQUIREMENTS */}
+                            <div style={{ background: 'var(--surface-2)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                                <div style={{ fontSize: '12px', fontWeight: 800, color: '#fb923c', marginBottom: '6px' }}>💵 5. FINANCIAL REQUIREMENTS & INCOME CRITERIA</div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                    <div><strong>Family Income Ceiling:</strong> <span style={{ color: '#fb923c', fontWeight: 700 }}>{detailsModalItem.income_label || `₹${(detailsModalItem.max_income/100000).toFixed(1)} Lakhs`}</span></div>
+                                    <div><strong>Accepted Authority:</strong> {detailsModalItem.accepted_income_authority || 'Tehsildar / Taluk Office'}</div>
+                                </div>
+                            </div>
+
+                            {/* 6. REQUIRED DOCUMENTS CHECKLIST */}
+                            <div style={{ background: 'var(--surface-2)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                                <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px' }}>📋 6. MANDATORY REQUIRED DOCUMENTS CHECKLIST</div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    {(detailsModalItem.necessary_documents || detailsModalItem.documents || []).map((doc, i) => (
+                                        <div key={i} style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{ color: 'var(--success)' }}>✓</span>
+                                            <span>{doc}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* 7. APPLICATION PROCEDURE & METHOD */}
+                            <div style={{ background: 'var(--surface-2)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                                <div style={{ fontSize: '12px', fontWeight: 800, color: '#818cf8', marginBottom: '6px' }}>📝 7. APPLICATION DETAILS & STEP-BY-STEP PROCEDURE</div>
+                                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                                    <div><strong>Official Portal URL:</strong> <a href={getScholarshipPortalUrl(detailsModalItem)} target="_blank" rel="noreferrer" style={{ color: '#818cf8', textDecoration: 'underline', fontWeight: 700 }}>{getScholarshipPortalUrl(detailsModalItem)}</a></div>
+                                    <div style={{ marginTop: '4px' }}><strong>Procedure:</strong> {detailsModalItem.step_by_step_procedure || '1. Portal OTR -> 2. Fill Form -> 3. Upload Documents -> 4. College Verification -> 5. State Approval -> 6. DBT Credit'}</div>
+                                    <div style={{ marginTop: '4px' }}><strong>Application Fee:</strong> {detailsModalItem.application_fee || 'Free of Cost (₹0)'}</div>
+                                </div>
+                            </div>
+
+                            {/* 8. SELECTION & RENEWAL RULES */}
+                            <div style={{ background: 'var(--surface-2)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                                <div style={{ fontSize: '12px', fontWeight: 800, color: '#34d399', marginBottom: '6px' }}>⚖️ 8. SELECTION PROCESS & RENEWAL GUIDELINES</div>
+                                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                                    <div><strong>Selection Criteria:</strong> {detailsModalItem.selection_criteria || 'Merit-cum-Means ranking based on academic marks and income'}</div>
+                                    <div style={{ marginTop: '4px' }}><strong>Renewal Rule:</strong> {detailsModalItem.renewal_eligibility || 'Annual renewal for subsequent years of study upon promotion'} (Min {detailsModalItem.min_renewal_marks || '50% marks'} & 75% Attendance)</div>
+                                </div>
+                            </div>
+
+                            {/* 9. RESTRICTIONS & DISQUALIFICATIONS */}
+                            <div style={{ background: 'rgba(239, 68, 68, 0.08)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(239, 68, 68, 0.25)' }}>
+                                <div style={{ fontSize: '12px', fontWeight: 800, color: '#f87171', marginBottom: '6px' }}>🚫 9. RESTRICTIONS & DISQUALIFICATIONS</div>
+                                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                                    <div><strong>Exclusions:</strong> {detailsModalItem.who_cannot_apply || 'Correspondence / Distance education students, or students availing dual government scholarships'}</div>
+                                    <div style={{ marginTop: '4px' }}><strong>Multiple Scholarships:</strong> ❌ Not permitted to hold two Central/State scholarships concurrently for the same course.</div>
+                                </div>
+                            </div>
+
+                            {/* 10. IMPORTANT DATES SCHEDULE */}
+                            <div style={{ background: 'var(--surface-2)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                                <div style={{ fontSize: '12px', fontWeight: 800, color: '#fbbf24', marginBottom: '6px' }}>📅 10. IMPORTANT DATES SCHEDULE</div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                    <div><strong>Opening Date:</strong> {detailsModalItem.important_dates?.opening_date || '15th July 2025'}</div>
+                                    <div><strong>Closing Date:</strong> <span style={{ color: '#f87171', fontWeight: 700 }}>{detailsModalItem.important_dates?.closing_date || '30th November 2025'}</span></div>
+                                    <div><strong>Verification Window:</strong> {detailsModalItem.important_dates?.verification_date || '15th December 2025'}</div>
+                                    <div><strong>Expected Payment:</strong> {detailsModalItem.important_dates?.disbursement_date || 'February - March 2026'}</div>
+                                </div>
+                            </div>
+
+                            {/* 11. OFFICIAL CONTACTS */}
+                            <div style={{ background: 'var(--surface-2)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                                <div style={{ fontSize: '12px', fontWeight: 800, color: '#818cf8', marginBottom: '6px' }}>📞 11. OFFICIAL CONTACT & HELPLINE</div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                    <div><strong>Helpline:</strong> {detailsModalItem.contact_phone || detailsModalItem.contact_authority?.helpline_number || '0120-6619540 (NSP)'}</div>
+                                    <div><strong>Email:</strong> {detailsModalItem.contact_email || detailsModalItem.contact_authority?.official_email || 'helpdesk@nsp.gov.in'}</div>
+                                </div>
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                        {/* MODAL FOOTER ACTIONS */}
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '16px', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
                             <button className="button" onClick={() => setDetailsModalItem(null)}>Close</button>
-                            <button className="button primary" onClick={() => { setDetailsModalItem(null); triggerFormDownload(detailsModalItem); }}>
-                                Download Application Form
+                            <button 
+                                type="button"
+                                className="button primary" 
+                                onClick={() => { setDetailsModalItem(null); handleApplyOnline(detailsModalItem); }}
+                                style={{ background: 'linear-gradient(90deg, #4f46e5, #7c3aed)', cursor: 'pointer' }}
+                            >
+                                ⚡ Apply on Official Portal
                             </button>
                         </div>
                     </div>
@@ -599,24 +717,24 @@ export default function ScholarshipsPage() {
             {/* 2. CHECK ELIGIBILITY MODAL */}
             {eligibilityModalItem && (
                 <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-                    <div className="panel" style={{ maxWidth: '580px', width: '100%', padding: '28px', background: '#0a142b', border: '1px solid var(--border-hover)', borderRadius: '16px' }}>
+                    <div className="panel" style={{ maxWidth: '580px', width: '100%', padding: '28px', background: 'var(--surface)', border: '1px solid var(--border-hover)', borderRadius: '16px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                             <div>
                                 <span className="badge success" style={{ marginBottom: '6px' }}>Profile Eligibility Evaluation</span>
-                                <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff' }}>{eligibilityModalItem.scholarship_name}</h3>
+                                <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text)' }}>{eligibilityModalItem.scholarship_name}</h3>
                             </div>
                             <button className="button danger" onClick={() => setEligibilityModalItem(null)} style={{ height: '32px', padding: '0 10px' }}>✕</button>
                         </div>
 
                         {/* STUDENT PROFILE RECAP */}
-                        <div style={{ background: '#081229', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)', marginBottom: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div style={{ background: 'var(--surface-2)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border)', marginBottom: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                             <div>
                                 <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Student Name</div>
-                                <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{studentProfile.name}</div>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>{studentProfile.name}</div>
                             </div>
                             <div>
                                 <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Roll / Student ID</div>
-                                <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{studentProfile.id}</div>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>{studentProfile.id}</div>
                             </div>
                             <div>
                                 <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Current CGPA</div>
@@ -624,23 +742,23 @@ export default function ScholarshipsPage() {
                             </div>
                             <div>
                                 <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Annual Family Income</div>
-                                <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>₹{(studentProfile.familyIncome/100000).toFixed(1)} Lakhs</div>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>₹{(studentProfile.familyIncome/100000).toFixed(1)} Lakhs</div>
                             </div>
                         </div>
 
                         {/* EVALUATION VERDICT */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-                            <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>CRITERIA MATCH RESULT:</div>
+                            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>CRITERIA MATCH RESULT:</div>
 
                             <div style={{ padding: '12px', borderRadius: '8px', background: studentProfile.cgpa >= eligibilityModalItem.min_gpa ? 'rgba(66, 214, 164, 0.12)' : 'rgba(255, 82, 104, 0.12)', border: `1px solid ${studentProfile.cgpa >= eligibilityModalItem.min_gpa ? 'var(--success)' : 'var(--danger)'}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <span style={{ fontSize: '12px', color: '#fff' }}>Min CGPA Requirement ({eligibilityModalItem.min_gpa})</span>
+                                <span style={{ fontSize: '12px', color: 'var(--text)' }}>Min CGPA Requirement ({eligibilityModalItem.min_gpa})</span>
                                 <span style={{ fontSize: '12px', fontWeight: 800, color: studentProfile.cgpa >= eligibilityModalItem.min_gpa ? 'var(--success)' : 'var(--danger)' }}>
                                     {studentProfile.cgpa >= eligibilityModalItem.min_gpa ? '✓ ELIGIBLE (Your CGPA: 8.5)' : '✕ INELIGIBLE'}
                                 </span>
                             </div>
 
                             <div style={{ padding: '12px', borderRadius: '8px', background: studentProfile.familyIncome <= eligibilityModalItem.max_income ? 'rgba(66, 214, 164, 0.12)' : 'rgba(255, 82, 104, 0.12)', border: `1px solid ${studentProfile.familyIncome <= eligibilityModalItem.max_income ? 'var(--success)' : 'var(--danger)'}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <span style={{ fontSize: '12px', color: '#fff' }}>Max Income Limit ({eligibilityModalItem.income_label})</span>
+                                <span style={{ fontSize: '12px', color: 'var(--text)' }}>Max Income Limit ({eligibilityModalItem.income_label})</span>
                                 <span style={{ fontSize: '12px', fontWeight: 800, color: studentProfile.familyIncome <= eligibilityModalItem.max_income ? 'var(--success)' : 'var(--danger)' }}>
                                     {studentProfile.familyIncome <= eligibilityModalItem.max_income ? '✓ ELIGIBLE (Your Income: ₹2.5L)' : '✕ INELIGIBLE'}
                                 </span>
@@ -649,46 +767,15 @@ export default function ScholarshipsPage() {
 
                         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                             <button className="button" onClick={() => setEligibilityModalItem(null)}>Close</button>
-                            <button className="button primary" onClick={() => { setEligibilityModalItem(null); triggerFormDownload(eligibilityModalItem); }}>
-                                Proceed to Download Form
+                            <button 
+                                type="button"
+                                className="button primary" 
+                                onClick={() => { setEligibilityModalItem(null); handleApplyOnline(eligibilityModalItem); }}
+                                style={{ background: 'linear-gradient(90deg, #4f46e5, #7c3aed)', cursor: 'pointer' }}
+                            >
+                                ⚡ Apply on Official Portal
                             </button>
                         </div>
-                    </div>
-                </div>
-            )}
-
-            {/* 3. DOUBLE PASSKEY AUTHORIZATION MODAL */}
-            {passkeyModalOpen && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-                    <div className="panel" style={{ maxWidth: '480px', width: '100%', padding: '28px', background: '#0a142b', border: '1px solid var(--border-hover)', borderRadius: '16px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#ffffff' }}>🔐 2-Factor Double Passkey Authorization</h3>
-                            <button className="button danger" onClick={() => setPasskeyModalOpen(false)} style={{ height: '30px', padding: '0 8px' }}>✕</button>
-                        </div>
-
-                        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-                            Cloud-stored scholarship application forms are protected. Enter your Double Passkeys to authorize download.
-                        </p>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
-                            <div>
-                                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Passkey 1 (Default: 123456)</label>
-                                <input type="password" className="input" value={passkey1} onChange={(e) => setPasskey1(e.target.value)} />
-                            </div>
-
-                            <div>
-                                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Passkey 2 (Default: 654321)</label>
-                                <input type="password" className="input" value={passkey2} onChange={(e) => setPasskey2(e.target.value)} />
-                            </div>
-
-                            {passkeyError && (
-                                <div style={{ fontSize: '12px', color: 'var(--danger)', fontWeight: 700 }}>{passkeyError}</div>
-                            )}
-                        </div>
-
-                        <button className="button primary" style={{ width: '100%' }} onClick={verifyPasskeys}>
-                            Verify Passkeys & Download Form
-                        </button>
                     </div>
                 </div>
             )}

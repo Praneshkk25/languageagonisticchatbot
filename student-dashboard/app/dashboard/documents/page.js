@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiBaseUrl, getFileUrl } from "@/lib/api";
 
 export default function DocumentsPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [documents, setDocuments] = useState([]);
-    const [studentId, setStudentId] = useState("2023CS001");
+    const [studentId, setStudentId] = useState("");
 
     // Upload Modal state
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -18,8 +19,8 @@ export default function DocumentsPage() {
     const [passkeyModalOpen, setPasskeyModalOpen] = useState(false);
     const [targetDoc, setTargetDoc] = useState(null);
     const [actionType, setActionType] = useState("download");
-    const [passkey1, setPasskey1] = useState("123456");
-    const [passkey2, setPasskey2] = useState("654321");
+    const [passkey1, setPasskey1] = useState("");
+    const [passkey2, setPasskey2] = useState("");
     const [passkeyError, setPasskeyError] = useState("");
     const [toastMessage, setToastMessage] = useState("");
 
@@ -32,7 +33,11 @@ export default function DocumentsPage() {
             if (userStr) {
                 try {
                     const u = JSON.parse(userStr);
-                    if (u.id) setStudentId(u.id);
+                    const sid = u.id || u.admission_no || "";
+                    if (sid) {
+                        setStudentId(sid);
+                        fetchDocuments(sid);
+                    }
                 } catch (e) {}
             }
         }
@@ -41,7 +46,7 @@ export default function DocumentsPage() {
     const fetchDocuments = async (sid) => {
         const targetId = sid || studentId;
         try {
-            const res = await fetch(`http://localhost:8000/documents/student/${targetId}`);
+            const res = await fetch(`${getApiBaseUrl()}/documents/student/${targetId}`);
             if (res.ok) {
                 const data = await res.json();
                 if (data) {
@@ -67,12 +72,20 @@ export default function DocumentsPage() {
     useEffect(() => {
         fetchDocuments(studentId);
 
-        // Real-time status polling every 5 seconds
-        const interval = setInterval(() => {
-            fetchDocuments(studentId);
-        }, 5000);
+        const handleVisibility = () => {
+            if (!document.hidden && studentId) fetchDocuments(studentId);
+        };
 
-        return () => clearInterval(interval);
+        const interval = setInterval(() => {
+            if (!document.hidden && studentId) fetchDocuments(studentId);
+        }, 35000);
+
+        document.addEventListener("visibilitychange", handleVisibility);
+
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener("visibilitychange", handleVisibility);
+        };
     }, [studentId]);
 
     const handleUploadSubmit = async (e) => {
@@ -86,7 +99,7 @@ export default function DocumentsPage() {
             const formData = new FormData();
             formData.append("file", selectedFile);
 
-            const res = await fetch(`http://localhost:8000/documents/upload/${studentId}`, {
+            const res = await fetch(`${getApiBaseUrl()}/documents/upload/${studentId}`, {
                 method: "POST",
                 body: formData
             });
@@ -122,12 +135,12 @@ export default function DocumentsPage() {
             } else if (actionType === "download") {
                 setToastMessage(`Downloading "${targetDoc.name}" from Cloud Vault...`);
                 if (targetDoc.file_path) {
-                    window.open(`http://localhost:8000${targetDoc.file_path}`, "_blank");
+                    window.open(getFileUrl(targetDoc.file_path), "_blank");
                 }
                 setTimeout(() => setToastMessage(""), 4000);
             } else if (actionType === "delete") {
                 try {
-                    await fetch(`http://localhost:8000/documents/${targetDoc.id}`, { method: "DELETE" });
+                    await fetch(`${getApiBaseUrl()}/documents/${targetDoc.id}`, { method: "DELETE" });
                     setDocuments(prev => prev.filter(d => d.id !== targetDoc.id));
                     setToastMessage(`Deleted "${targetDoc.name}" from Digital Vault.`);
                 } catch (e) {
@@ -141,8 +154,11 @@ export default function DocumentsPage() {
     };
 
     const filteredDocs = documents.filter(doc => {
+        if (!doc) return false;
         const matchesCategory = selectedCategory === "All" || doc.category === selectedCategory;
-        const matchesQuery = !searchQuery || doc.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const name = (doc.name || "").toLowerCase();
+        const q = (searchQuery || "").toLowerCase();
+        const matchesQuery = !q || name.includes(q);
         return matchesCategory && matchesQuery;
     });
 
@@ -151,7 +167,7 @@ export default function DocumentsPage() {
             {/* HERO PANEL */}
             <section className="panel" style={{ padding: '28px' }}>
                 <span className="badge success" style={{ marginBottom: '12px' }}>☁️ Cloud Storage Vault Protection (Double Passkey Protected)</span>
-                <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', marginBottom: '8px' }}>
+                <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px' }}>
                     Digital Vault Management System
                 </h2>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.6', maxWidth: '750px', marginBottom: '16px' }}>
@@ -226,7 +242,7 @@ export default function DocumentsPage() {
                                 </div>
 
                                 <div className="data-content" style={{ minWidth: '260px' }}>
-                                    <div className="data-title" style={{ fontSize: '15px', color: '#ffffff' }}>{doc.name}</div>
+                                    <div className="data-title" style={{ fontSize: '15px', color: 'var(--text)' }}>{doc.name}</div>
                                     <div className="data-meta">
                                         <span className="badge">{doc.category}</span>
                                         <span className="badge">Uploaded: {doc.date}</span>
@@ -235,8 +251,17 @@ export default function DocumentsPage() {
                                         {doc.status === 'Rejected' && <span className="badge danger">✕ Rejected</span>}
                                     </div>
                                     {doc.status === 'Rejected' && doc.feedback && (
-                                        <div style={{ fontSize: '12px', color: 'var(--danger)', marginTop: '4px', fontWeight: 600 }}>
-                                            Rejection Reason: {doc.feedback}
+                                        <div style={{ 
+                                            fontSize: '12px', 
+                                            color: '#fca5a5', 
+                                            background: 'rgba(239, 68, 68, 0.12)', 
+                                            border: '1px solid rgba(239, 68, 68, 0.35)', 
+                                            borderRadius: '6px', 
+                                            padding: '8px 12px', 
+                                            marginTop: '8px', 
+                                            lineHeight: '1.4' 
+                                        }}>
+                                            <strong style={{ color: '#f87171' }}>✕ Admin Rejection Explanation:</strong> {doc.feedback}
                                         </div>
                                     )}
                                 </div>
@@ -261,9 +286,9 @@ export default function DocumentsPage() {
             {/* 1. UPLOAD DOCUMENT MODAL */}
             {uploadModalOpen && (
                 <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-                    <div className="panel" style={{ maxWidth: '520px', width: '100%', padding: '28px', background: '#0a142b', border: '1px solid var(--border-hover)', borderRadius: '16px' }}>
+                    <div className="panel" style={{ maxWidth: '520px', width: '100%', padding: '28px', background: 'var(--surface)', border: '1px solid var(--border-hover)', borderRadius: '16px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                            <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff' }}>+ Upload Document to Vault</h3>
+                            <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text)' }}>+ Upload Document to Vault</h3>
                             <button className="button danger" onClick={() => setUploadModalOpen(false)} style={{ height: '30px', padding: '0 8px' }}>✕</button>
                         </div>
 
@@ -286,7 +311,7 @@ export default function DocumentsPage() {
                                     className="input"
                                     value={newDocCategory}
                                     onChange={(e) => setNewDocCategory(e.target.value)}
-                                    style={{ background: '#081229', color: '#fff' }}
+                                    style={{ background: 'var(--surface-2)', color: 'var(--text)' }}
                                 >
                                     <option value="Academic Certificates">Academic Certificates</option>
                                     <option value="Income Declarations">Income Declarations</option>
@@ -317,9 +342,9 @@ export default function DocumentsPage() {
             {/* 2. DOUBLE PASSKEY AUTHORIZATION MODAL */}
             {passkeyModalOpen && (
                 <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-                    <div className="panel" style={{ maxWidth: '460px', width: '100%', padding: '28px', background: '#0a142b', border: '1px solid var(--border-hover)', borderRadius: '16px' }}>
+                    <div className="panel" style={{ maxWidth: '460px', width: '100%', padding: '28px', background: 'var(--surface)', border: '1px solid var(--border-hover)', borderRadius: '16px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#ffffff' }}>🔐 2-Factor Double Passkey</h3>
+                            <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text)' }}>🔐 2-Factor Double Passkey</h3>
                             <button className="button danger" onClick={() => setPasskeyModalOpen(false)} style={{ height: '30px', padding: '0 8px' }}>✕</button>
                         </div>
 
@@ -353,18 +378,18 @@ export default function DocumentsPage() {
             {/* 3. FILE PREVIEW MODAL */}
             {previewDoc && (
                 <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-                    <div className="panel" style={{ maxWidth: '640px', width: '100%', padding: '28px', background: '#0a142b', border: '1px solid var(--border-hover)', borderRadius: '16px' }}>
+                    <div className="panel" style={{ maxWidth: '640px', width: '100%', padding: '28px', background: 'var(--surface)', border: '1px solid var(--border-hover)', borderRadius: '16px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                             <div>
                                 <span className="badge success" style={{ marginBottom: '6px' }}>Verified Vault Document</span>
-                                <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff' }}>{previewDoc.name}</h3>
+                                <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text)' }}>{previewDoc.name}</h3>
                             </div>
                             <button className="button danger" onClick={() => setPreviewDoc(null)} style={{ height: '32px', padding: '0 10px' }}>✕</button>
                         </div>
 
-                        <div style={{ height: '240px', background: '#081229', borderRadius: '12px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '18px' }}>
+                        <div style={{ height: '240px', background: 'var(--surface-2)', borderRadius: '12px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '18px' }}>
                             <div style={{ fontSize: '42px' }}>{previewDoc.type === 'PDF' ? '📄' : '🖼️'}</div>
-                            <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>{previewDoc.name}</div>
+                            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>{previewDoc.name}</div>
                             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>File Size: {previewDoc.size} | Status: Encrypted & Verified</div>
                         </div>
 

@@ -1,17 +1,41 @@
 import os
 import logging
 import json
-from langchain_community.document_loaders import (
-    TextLoader, 
-    PyPDFLoader, 
-    Docx2txtLoader
-)
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
-from langchain_core.documents import Document
-import easyocr
 import re
+
+import importlib
+
+def _safe_import(mod_name):
+    try:
+        return importlib.import_module(mod_name)
+    except Exception:
+        return None
+
+_lc_doc_loaders = _safe_import("langchain_community.document_loaders")
+TextLoader = getattr(_lc_doc_loaders, "TextLoader", None) if _lc_doc_loaders else None
+PyPDFLoader = getattr(_lc_doc_loaders, "PyPDFLoader", None) if _lc_doc_loaders else None
+Docx2txtLoader = getattr(_lc_doc_loaders, "Docx2txtLoader", None) if _lc_doc_loaders else None
+
+_lc_splitters = _safe_import("langchain_text_splitters")
+RecursiveCharacterTextSplitter = getattr(_lc_splitters, "RecursiveCharacterTextSplitter", None) if _lc_splitters else None
+
+_lc_hf = _safe_import("langchain_huggingface")
+HuggingFaceEmbeddings = getattr(_lc_hf, "HuggingFaceEmbeddings", None) if _lc_hf else None
+
+_lc_faiss = _safe_import("langchain_community.vectorstores")
+FAISS = getattr(_lc_faiss, "FAISS", None) if _lc_faiss else None
+
+_lc_core_doc = _safe_import("langchain_core.documents")
+Document = getattr(_lc_core_doc, "Document", None) if _lc_core_doc else None
+if Document is None:
+    class Document:
+        def __init__(self, page_content="", metadata=None):
+            self.page_content = page_content
+            self.metadata = metadata or {}
+        def __repr__(self):
+            return f"Document(page_content='{self.page_content[:30]}...', metadata={self.metadata})"
+
+easyocr = _safe_import("easyocr")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -82,8 +106,8 @@ def safe_init_embeddings(model_name="sentence-transformers/paraphrase-multilingu
 class LearningSystem:
     def __init__(self):
         current_model_name = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-        self.embeddings = HuggingFaceEmbeddings(model_name=current_model_name)
-        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=100)
+        self.embeddings = HuggingFaceEmbeddings(model_name=current_model_name) if HuggingFaceEmbeddings else None
+        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=100) if RecursiveCharacterTextSplitter else None
         self.ocr_reader = None # Lazy load EasyOCR
         self.knowledge_base = [] # To track learned files for status
         
@@ -144,7 +168,9 @@ class LearningSystem:
                 has_text = any(doc.page_content.strip() for doc in docs)
                 if not has_text:
                     logger.info(f"No text extracted via PyPDFLoader from {file_path}. Falling back to OCR...")
-                    import fitz
+                    fitz = _safe_import("fitz")
+                    if fitz is None:
+                        return docs
                     ocr_docs = []
                     doc = fitz.open(file_path)
                     reader = self.get_ocr_reader()
@@ -401,13 +427,25 @@ class LearningSystem:
                     return ocr_docs
                 return docs
             elif ext == ".docx":
-                loader = Docx2txtLoader(file_path)
-                return loader.load()
+                if Docx2txtLoader is not None:
+                    loader = Docx2txtLoader(file_path)
+                    return loader.load()
+                else:
+                    import docx2txt
+                    text = docx2txt.process(file_path)
+                    return [Document(page_content=text, metadata={"source": os.path.basename(file_path)})]
             elif ext in [".png", ".jpg", ".jpeg"]:
                 return self.load_image_with_ocr(file_path)
             else:
-                loader = TextLoader(file_path, encoding='utf-8')
-                return loader.load()
+                if TextLoader is not None:
+                    try:
+                        loader = TextLoader(file_path, encoding='utf-8')
+                        return loader.load()
+                    except Exception:
+                        pass
+                with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                    text = f.read()
+                return [Document(page_content=text, metadata={"source": os.path.basename(file_path)})]
         except Exception as e:
             logger.error(f"Error extracting from {file_path}: {e}")
             return []
@@ -529,33 +567,38 @@ class LearningSystem:
             except Exception as e:
                 logger.error(f"Error extracting scholarship criteria: {e}")
 
-        chunks = self.text_splitter.split_documents(docs)
+        if self.text_splitter is not None:
+            chunks = self.text_splitter.split_documents(docs)
+        else:
+            chunks = docs
+
         chunks = [c for c in chunks if c.page_content.strip()]
         if not chunks:
             return False, "Could not extract content."
         
-        # Load existing or create new FAISS index
-        faiss_index_file = os.path.join(VECTOR_DB_PATH, "index.faiss")
-        faiss_pkl_file = os.path.join(VECTOR_DB_PATH, "index.pkl")
-        if os.path.exists(faiss_index_file) and os.path.exists(faiss_pkl_file):
+        # Load existing or create new FAISS index if available
+        if FAISS is not None and self.embeddings is not None:
+            faiss_index_file = os.path.join(VECTOR_DB_PATH, "index.faiss")
+            faiss_pkl_file = os.path.join(VECTOR_DB_PATH, "index.pkl")
             try:
-                vector_db = FAISS.load_local(VECTOR_DB_PATH, self.embeddings, allow_dangerous_deserialization=True)
-                vector_db.add_documents(chunks)
-            except Exception as e:
-                logger.error(f"Failed loading FAISS index, recreating: {e}")
-                vector_db = FAISS.from_documents(chunks, self.embeddings)
-        else:
-            vector_db = FAISS.from_documents(chunks, self.embeddings)
-        
-        vector_db.save_local(VECTOR_DB_PATH)
-        
-        # Write model marker
-        model_marker = os.path.join(VECTOR_DB_PATH, "embedding_model.txt")
-        try:
-            with open(model_marker, "w", encoding="utf-8") as f:
-                f.write("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
-        except Exception as e:
-            logger.error(f"Failed to write model marker: {e}")
+                if os.path.exists(faiss_index_file) and os.path.exists(faiss_pkl_file):
+                    try:
+                        vector_db = FAISS.load_local(VECTOR_DB_PATH, self.embeddings, allow_dangerous_deserialization=True)
+                        vector_db.add_documents(chunks)
+                    except Exception as e:
+                        logger.error(f"Failed loading FAISS index, recreating: {e}")
+                        vector_db = FAISS.from_documents(chunks, self.embeddings)
+                else:
+                    vector_db = FAISS.from_documents(chunks, self.embeddings)
+                
+                vector_db.save_local(VECTOR_DB_PATH)
+                
+                # Write model marker
+                model_marker = os.path.join(VECTOR_DB_PATH, "embedding_model.txt")
+                with open(model_marker, "w", encoding="utf-8") as f:
+                    f.write("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+            except Exception as fe:
+                logger.warning(f"Vector indexing skipped/failed: {fe}")
         
         # Track for status
         if not any(x['source'] == original_filename for x in self.knowledge_base):

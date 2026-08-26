@@ -54,10 +54,12 @@ export default function HelpPage() {
     };
 
     const filteredFaqs = faqs.filter(faq => {
+        if (!faq) return false;
         const matchesCategory = activeCategory === "all" || faq.category === activeCategory;
-        const matchesQuery = !searchQuery || 
-            faq.question.toLowerCase().includes(searchQuery.toLowerCase()) || 
-            faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
+        const q = (searchQuery || "").toLowerCase();
+        const question = (faq.question || "").toLowerCase();
+        const answer = (faq.answer || "").toLowerCase();
+        const matchesQuery = !q || question.includes(q) || answer.includes(q);
         return matchesCategory && matchesQuery;
     });
 
@@ -66,7 +68,7 @@ export default function HelpPage() {
             {/* HERO PANEL */}
             <section className="panel" style={{ padding: '28px' }}>
                 <span className="badge" style={{ marginBottom: '12px' }}>? Help & Support Hub</span>
-                <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', marginBottom: '8px' }}>
+                <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px' }}>
                     How can we help you today?
                 </h2>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.6', maxWidth: '750px', marginBottom: '16px' }}>
@@ -123,13 +125,13 @@ export default function HelpPage() {
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                             <div className="data-icon">?</div>
-                                            <div className="data-title" style={{ fontSize: '15px' }}>{faq.question}</div>
+                                            <div className="data-title" style={{ fontSize: '15px', color: 'var(--text)' }}>{faq.question}</div>
                                         </div>
                                         <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>{isExpanded ? '▲' : '▼'}</span>
                                     </div>
 
                                     {isExpanded && (
-                                        <div style={{ padding: '12px 14px', borderRadius: '8px', background: '#081229', border: '1px solid var(--border)', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, marginTop: '4px', width: '100%' }}>
+                                        <div style={{ padding: '12px 14px', borderRadius: '8px', background: 'var(--surface-2)', border: '1px solid var(--border)', fontSize: '13px', color: 'var(--text)', lineHeight: 1.6, marginTop: '4px', width: '100%' }}>
                                             {faq.answer}
                                         </div>
                                     )}

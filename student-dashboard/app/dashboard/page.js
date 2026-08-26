@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getApiBaseUrl } from "@/lib/api";
 
 export default function DashboardHome() {
     const router = useRouter();
@@ -16,30 +17,26 @@ export default function DashboardHome() {
     });
 
     useEffect(() => {
-        let userId = "2023CS001";
+        let userId = "";
         if (typeof window !== "undefined") {
-            const userStr = localStorage.getItem("user");
-            if (userStr) {
+            const uStr = localStorage.getItem("user");
+            if (uStr) {
                 try {
-                    const u = JSON.parse(userStr);
-                    if (u.id) userId = u.id;
+                    const u = JSON.parse(uStr);
+                    userId = u.id || u.admission_no || "";
 
                     const checks = [
-                        { key: "name", label: "Full Name" },
-                        { key: "department", label: "Department" },
-                        { key: "year", label: "Academic Year" },
-                        { key: "dob", label: "Date of Birth" },
-                        { key: "email", label: "Email Address" },
-                        { key: "phone", label: "Student Phone" },
-                        { key: "guardian_name", label: "Guardian Details" },
-                        { key: "family_income", label: "Annual Family Income" },
-                        { key: "caste_category", label: "Social Category" },
-                        { key: "bank_account_no", label: "Bank Account Details" },
+                        { label: "Community / Caste Category", val: u.caste_category || u.caste || u.quota },
+                        { label: "Family Annual Income", val: u.family_income || u.income },
+                        { label: "CGPA / Academic Score", val: u.cgpa },
+                        { label: "Bank Account & IFSC", val: u.bank_account_no || u.bank_acc },
+                        { label: "Aadhaar Card Linked", val: u.aadhaar_no || u.aadhaar }
                     ];
+
                     let filled = 0;
-                    let missing = [];
+                    const missing = [];
                     checks.forEach(c => {
-                        if (u[c.key] && String(u[c.key]).trim() !== "") {
+                        if (c.val && String(c.val).trim() !== "" && c.val !== "0" && c.val !== 0) {
                             filled++;
                         } else {
                             missing.push(c.label);
@@ -58,10 +55,10 @@ export default function DashboardHome() {
     const fetchStudentOverviewMetrics = async (userId) => {
         try {
             const [logsRes, schRes, docsRes, studentsRes] = await Promise.all([
-                fetch("http://localhost:8000/api/logs/all").catch(() => null),
-                fetch("http://localhost:8000/api/scholarships/all").catch(() => null),
-                fetch(`http://localhost:8000/documents/student/${userId}`).catch(() => null),
-                fetch("http://localhost:8000/api/students/all").catch(() => null)
+                fetch(`${getApiBaseUrl()}/api/logs/all`).catch(() => null),
+                fetch(`${getApiBaseUrl()}/api/scholarships/all`).catch(() => null),
+                fetch(`${getApiBaseUrl()}/documents/student/${userId}`).catch(() => null),
+                fetch(`${getApiBaseUrl()}/api/students/all`).catch(() => null)
             ]);
 
             let queries = 0;
@@ -105,35 +102,36 @@ export default function DashboardHome() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%', maxWidth: '1200px', margin: '0 auto', paddingBottom: '32px' }}>
             
             {/* 1. HERO BANNER CARD */}
-            <div style={{
-                background: 'linear-gradient(135deg, #0e122b 0%, #17163a 50%, #121530 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+            <div className="panel" style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
                 borderRadius: '24px',
-                padding: '32px 36px',
+                padding: '28px 24px',
                 display: 'flex',
                 alignItems: 'center',
-                justify: 'space-between',
-                gap: '24px',
+                justifyContent: 'space-between',
+                gap: '20px',
                 position: 'relative',
                 overflow: 'hidden',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
+                boxShadow: 'var(--shadow-md)',
+                flexWrap: 'wrap'
             }}>
                 {/* Hero Left Content */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '580px', zIndex: 2 }}>
-                    <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#ffffff', lineHeight: 1.25, letterSpacing: '-0.5px' }}>
-                        Your <span style={{ background: 'linear-gradient(90deg, #818cf8, #c084fc, #f472b6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Smart College</span> Assistant
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: '1 1 280px', minWidth: '240px', zIndex: 2 }}>
+                    <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text)', lineHeight: 1.25, letterSpacing: '-0.5px' }}>
+                        Your <span style={{ color: 'var(--primary)' }}>Smart College</span> Assistant
                     </h1>
-                    <p style={{ color: '#a5aec7', fontSize: '13px', lineHeight: 1.6, fontWeight: 500 }}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: 1.6, fontWeight: 500 }}>
                         Get instant answers, find scholarships and upload documents - all in one place.
                     </p>
-                    <div style={{ paddingTop: '6px' }}>
+                    <div style={{ paddingTop: '4px' }}>
                         <Link 
                             href="/dashboard/chat" 
                             style={{
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '10px',
-                                padding: '12px 24px',
+                                padding: '12px 22px',
                                 borderRadius: '12px',
                                 background: 'linear-gradient(90deg, #4f46e5, #7c3aed)',
                                 color: '#ffffff',
@@ -150,27 +148,27 @@ export default function DashboardHome() {
                 </div>
 
                 {/* Hero Right Mascot & Speech Bubble */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', zIndex: 2, flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', zIndex: 2, flex: '1 1 auto', justifyContent: 'flex-start' }}>
                     {/* Speech Bubble */}
                     <div style={{
-                        padding: '12px 16px',
+                        padding: '10px 14px',
                         borderRadius: '16px',
-                        background: 'rgba(255, 255, 255, 0.08)',
-                        border: '1px solid rgba(255, 255, 255, 0.12)',
-                        backdropFilter: 'blur(10px)',
+                        background: 'var(--surface-2)',
+                        border: '1px solid var(--border)',
+                        boxShadow: 'var(--shadow-sm)',
                         fontSize: '12px',
-                        fontWeight: 600,
-                        color: '#ffffff',
-                        maxWidth: '180px',
+                        fontWeight: 700,
+                        color: 'var(--text)',
+                        maxWidth: '160px',
                         lineHeight: 1.4
                     }}>
                         Hello! 👋<br/>
-                        <span style={{ color: '#a5aec7', fontSize: '11px', fontWeight: 400 }}>I'm your AI Assistant. How can I help you?</span>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 500 }}>I'm your AI Assistant. How can I help you?</span>
                     </div>
 
                     {/* Fixed Size Robot SVG Mascot */}
-                    <div style={{ width: '140px', height: '140px', maxWidth: '140px', maxHeight: '140px', flexShrink: 0, overflow: 'hidden' }}>
-                        <svg width="140" height="140" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '140px', height: '140px', display: 'block' }}>
+                    <div style={{ width: '100px', height: '100px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="100" height="100" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100px', height: '100px', display: 'block' }}>
                             <rect x="50" y="40" width="100" height="75" rx="24" fill="url(#botHeadGrad)" stroke="#6366f1" strokeWidth="2" />
                             <circle cx="100" cy="25" r="7" fill="#818cf8" />
                             <line x1="100" y1="25" x2="100" y2="40" stroke="#818cf8" strokeWidth="3" />
@@ -200,32 +198,32 @@ export default function DashboardHome() {
             </div>
 
             {/* PROFILE COMPLETION STATUS CARD */}
-            <div className="panel" style={{ padding: '24px', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)', border: '1px solid rgba(168, 85, 247, 0.3)' }}>
+            <div className="panel" style={{ padding: '24px', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
                     <div style={{ flex: 1, minWidth: '280px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                             <span className="badge warning">Profile Completion Status</span>
-                            <span style={{ fontSize: '18px', fontWeight: 800, color: completionPct === 100 ? 'var(--success)' : '#c084fc' }}>
+                            <span style={{ fontSize: '18px', fontWeight: 800, color: completionPct === 100 ? 'var(--success)' : 'var(--primary)' }}>
                                 {completionPct}% Completed
                             </span>
                         </div>
 
                         {/* Progress Bar */}
-                        <div style={{ height: '10px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '10px', overflow: 'hidden', margin: '10px 0 14px' }}>
+                        <div style={{ height: '10px', background: 'var(--surface-2)', borderRadius: '10px', overflow: 'hidden', margin: '10px 0 14px', border: '1px solid var(--border)' }}>
                             <div style={{
                                 width: `${completionPct}%`,
                                 height: '100%',
-                                background: 'linear-gradient(90deg, #818cf8, #c084fc, #34d399)',
+                                background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #10b981)',
                                 borderRadius: '10px',
                                 transition: 'width 0.5s ease'
                             }} />
                         </div>
 
-                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                        <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
                             {completionPct === 100 ? (
                                 <span style={{ color: 'var(--success)', fontWeight: 700 }}>✓ Your profile is 100% complete! All scholarship & verification criteria met.</span>
                             ) : (
-                                <span>Pending profile fields: <strong style={{ color: '#ffffff' }}>{missingFields.join(", ") || "Guardian & Bank details"}</strong></span>
+                                <span>Pending profile fields: <strong style={{ color: 'var(--text)', fontWeight: 700 }}>{missingFields.join(", ") || "Guardian & Bank details"}</strong></span>
                             )}
                         </div>
                     </div>
@@ -245,47 +243,60 @@ export default function DashboardHome() {
 
             {/* 2. QUICK ACCESS GRID */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ color: '#a855f7' }}>⚡</span>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ color: 'var(--primary)' }}>⚡</span>
                     <span>Quick Access</span>
                 </div>
 
-                <div className="grid grid-3">
+                <div className="grid grid-4">
                     {/* Card 1: AI Assistant */}
                     <div className="feature-card" onClick={() => router.push('/dashboard/chat')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                         <div>
-                            <div className="feature-icon" style={{ background: 'rgba(139, 92, 246, 0.2)', color: '#a855f7' }}>🤖</div>
-                            <div className="feature-title" style={{ fontSize: '15px', marginTop: '10px' }}>AI Assistant</div>
+                            <div className="feature-icon" style={{ background: 'var(--primary-soft)', color: 'var(--primary)' }}>🤖</div>
+                            <div className="feature-title">AI Assistant</div>
                             <div className="feature-description">Ask me anything about college, admissions, events, or policies.</div>
                         </div>
-                        <div style={{ marginTop: '16px', fontSize: '12px', fontWeight: 700, color: '#bcaaff', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ marginTop: '16px', fontSize: '12px', fontWeight: 700, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span>Chat Now</span>
                             <span>→</span>
                         </div>
                     </div>
 
-                    {/* Card 2: Scholarship */}
-                    <div className="feature-card" onClick={() => router.push('/dashboard/scholarships')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    {/* Card 2: Application Status */}
+                    <div className="feature-card" onClick={() => router.push('/dashboard/applications')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                         <div>
-                            <div className="feature-icon" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399' }}>🎓</div>
-                            <div className="feature-title" style={{ fontSize: '15px', marginTop: '10px' }}>Scholarship</div>
-                            <div className="feature-description">Find and apply for the best scholarships available.</div>
+                            <div className="feature-icon" style={{ background: 'rgba(236, 72, 153, 0.15)', color: '#db2777' }}>📋</div>
+                            <div className="feature-title">Application Status</div>
+                            <div className="feature-description">Track real-time 5-stage scholarship lifecycle & DBT grants.</div>
                         </div>
-                        <div style={{ marginTop: '16px', fontSize: '12px', fontWeight: 700, color: '#bcaaff', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span>Explore Now</span>
+                        <div style={{ marginTop: '16px', fontSize: '12px', fontWeight: 700, color: '#db2777', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span>Track Status</span>
                             <span>→</span>
                         </div>
                     </div>
 
-                    {/* Card 3: Documents Upload */}
+                    {/* Card 3: Scholarship */}
+                    <div className="feature-card" onClick={() => router.push('/dashboard/scholarships')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <div>
+                            <div className="feature-icon" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#059669' }}>🎓</div>
+                            <div className="feature-title">Scholarships</div>
+                            <div className="feature-description">Find and apply for the best graduation scholarships available.</div>
+                        </div>
+                        <div style={{ marginTop: '16px', fontSize: '12px', fontWeight: 700, color: '#059669', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span>Explore Schemes</span>
+                            <span>→</span>
+                        </div>
+                    </div>
+
+                    {/* Card 4: Documents Upload */}
                     <div className="feature-card" onClick={() => router.push('/dashboard/documents')} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                         <div>
-                            <div className="feature-icon" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa' }}>📄</div>
-                            <div className="feature-title" style={{ fontSize: '15px', marginTop: '10px' }}>Documents Upload</div>
-                            <div className="feature-description">Upload and verify your important documents securely.</div>
+                            <div className="feature-icon" style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#2563eb' }}>📄</div>
+                            <div className="feature-title">Digital Vault</div>
+                            <div className="feature-description">Upload and verify your important certificates and forms.</div>
                         </div>
-                        <div style={{ marginTop: '16px', fontSize: '12px', fontWeight: 700, color: '#bcaaff', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span>Upload Now</span>
+                        <div style={{ marginTop: '16px', fontSize: '12px', fontWeight: 700, color: '#2563eb', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span>Vault Files</span>
                             <span>→</span>
                         </div>
                     </div>
@@ -294,22 +305,23 @@ export default function DashboardHome() {
 
             {/* 3. ANNOUNCEMENT BANNER */}
             <div style={{
-                background: '#091329',
+                background: 'var(--surface)',
                 border: '1px solid var(--border)',
                 borderRadius: '14px',
                 padding: '18px 24px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                gap: '16px'
+                gap: '16px',
+                boxShadow: 'var(--shadow-sm)'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(168, 85, 247, 0.2)', color: '#c084fc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--primary-soft)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
                         📢
                     </div>
                     <div>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>Latest Announcement</div>
-                        <div style={{ fontSize: '12px', color: '#a5aec7', marginTop: '2px' }}>Scholarship portal for the year 2025-26 is now open.</div>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>Latest Announcement</div>
+                        <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>Scholarship portal for the year 2025–26 is now open.</div>
                     </div>
                 </div>
 
@@ -320,30 +332,30 @@ export default function DashboardHome() {
 
             {/* 4. OVERVIEW STATS GRID */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>Overview</div>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>Overview</div>
 
                 <div className="grid grid-4">
                     <div className="feature-card">
-                        <div className="feature-icon" style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#c084fc' }}>💬</div>
-                        <div style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff' }}>{studentMetrics.queries}</div>
+                        <div className="feature-icon" style={{ background: 'rgba(168, 85, 247, 0.15)', color: '#9333ea' }}>💬</div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text)' }}>{studentMetrics.queries}</div>
                         <div className="feature-description" style={{ marginTop: '4px' }}>Questions Answered</div>
                     </div>
 
                     <div className="feature-card">
-                        <div className="feature-icon" style={{ background: 'rgba(52, 211, 153, 0.2)', color: '#34d399' }}>🎓</div>
-                        <div style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff' }}>{studentMetrics.scholarships}</div>
+                        <div className="feature-icon" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#059669' }}>🎓</div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text)' }}>{studentMetrics.scholarships}</div>
                         <div className="feature-description" style={{ marginTop: '4px' }}>Scholarships Available</div>
                     </div>
 
                     <div className="feature-card">
-                        <div className="feature-icon" style={{ background: 'rgba(251, 146, 60, 0.2)', color: '#fb923c' }}>📄</div>
-                        <div style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff' }}>{studentMetrics.documents}</div>
+                        <div className="feature-icon" style={{ background: 'rgba(249, 115, 22, 0.15)', color: '#ea580c' }}>📄</div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text)' }}>{studentMetrics.documents}</div>
                         <div className="feature-description" style={{ marginTop: '4px' }}>Vault Documents Uploaded</div>
                     </div>
 
                     <div className="feature-card">
-                        <div className="feature-icon" style={{ background: 'rgba(96, 165, 250, 0.2)', color: '#60a5fa' }}>👥</div>
-                        <div style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff' }}>{studentMetrics.students}</div>
+                        <div className="feature-icon" style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#2563eb' }}>👥</div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text)' }}>{studentMetrics.students}</div>
                         <div className="feature-description" style={{ marginTop: '4px' }}>Registered Students</div>
                     </div>
                 </div>
@@ -351,9 +363,9 @@ export default function DashboardHome() {
 
             {/* 5. TRY ASKING PROMPTS */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between' }}>
-                    <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff', flex: 1 }}>Try Asking</div>
-                    <Link href="/dashboard/chat" style={{ fontSize: '12px', fontWeight: 700, color: '#818cf8', textDecoration: 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text)', flex: 1 }}>Try Asking</div>
+                    <Link href="/dashboard/chat" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary)', textDecoration: 'none' }}>
                         See all suggestions →
                     </Link>
                 </div>
@@ -364,7 +376,7 @@ export default function DashboardHome() {
                             <div className="data-icon">📅</div>
                             <div className="data-title">What are the upcoming events in college?</div>
                         </div>
-                        <span style={{ color: '#707b98' }}>→</span>
+                        <span style={{ color: 'var(--primary)', fontWeight: 700 }}>→</span>
                     </div>
 
                     <div className="data-row" onClick={() => handlePromptClick("Tell me about the placement cell.")} style={{ cursor: 'pointer', justifyContent: 'space-between' }}>
@@ -372,7 +384,7 @@ export default function DashboardHome() {
                             <div className="data-icon">💼</div>
                             <div className="data-title">Tell me about the placement cell.</div>
                         </div>
-                        <span style={{ color: '#707b98' }}>→</span>
+                        <span style={{ color: 'var(--primary)', fontWeight: 700 }}>→</span>
                     </div>
 
                     <div className="data-row" onClick={() => handlePromptClick("How can I apply for a scholarship?")} style={{ cursor: 'pointer', justifyContent: 'space-between' }}>
@@ -380,7 +392,7 @@ export default function DashboardHome() {
                             <div className="data-icon">🎓</div>
                             <div className="data-title">How can I apply for a scholarship?</div>
                         </div>
-                        <span style={{ color: '#707b98' }}>→</span>
+                        <span style={{ color: 'var(--primary)', fontWeight: 700 }}>→</span>
                     </div>
 
                     <div className="data-row" onClick={() => handlePromptClick("How can I get my TC?")} style={{ cursor: 'pointer', justifyContent: 'space-between' }}>
@@ -388,7 +400,7 @@ export default function DashboardHome() {
                             <div className="data-icon">📄</div>
                             <div className="data-title">How can I get my TC?</div>
                         </div>
-                        <span style={{ color: '#707b98' }}>→</span>
+                        <span style={{ color: 'var(--primary)', fontWeight: 700 }}>→</span>
                     </div>
 
                     <div className="data-row" onClick={() => handlePromptClick("What documents are required for Bonafide?")} style={{ cursor: 'pointer', justifyContent: 'space-between' }}>
@@ -396,7 +408,7 @@ export default function DashboardHome() {
                             <div className="data-icon">📄</div>
                             <div className="data-title">What documents are required for Bonafide?</div>
                         </div>
-                        <span style={{ color: '#707b98' }}>→</span>
+                        <span style={{ color: 'var(--primary)', fontWeight: 700 }}>→</span>
                     </div>
 
                     <div className="data-row" onClick={() => handlePromptClick("Where can I find the academic calendar?")} style={{ cursor: 'pointer', justifyContent: 'space-between' }}>
@@ -404,7 +416,7 @@ export default function DashboardHome() {
                             <div className="data-icon">📅</div>
                             <div className="data-title">Where can I find the academic calendar?</div>
                         </div>
-                        <span style={{ color: '#707b98' }}>→</span>
+                        <span style={{ color: 'var(--primary)', fontWeight: 700 }}>→</span>
                     </div>
                 </div>
             </div>

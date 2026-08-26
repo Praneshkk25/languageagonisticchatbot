@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { getApiBaseUrl } from "@/lib/api";
 
 export default function ChatHistoryPage() {
     const router = useRouter();
@@ -30,9 +31,9 @@ export default function ChatHistoryPage() {
         try {
             const userStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
             const u = userStr ? JSON.parse(userStr) : {};
-            const studentId = u.id || "2023CS001";
+            const studentId = u.id || u.admission_no || "";
 
-            const res = await fetch(`http://localhost:8000/api/chat/history/${studentId}`);
+            const res = await fetch(`${getApiBaseUrl()}/api/chat/history/${studentId}`);
             if (res.ok) {
                 const apiSessions = await res.json();
                 if (Array.isArray(apiSessions) && apiSessions.length > 0) {
@@ -88,7 +89,7 @@ export default function ChatHistoryPage() {
         }
 
         try {
-            await fetch(`http://localhost:8000/api/chat/history/session/${session_id}`, { method: "DELETE" });
+            await fetch(`${getApiBaseUrl()}/api/chat/history/session/${session_id}`, { method: "DELETE" });
         } catch (err) {}
     };
 
@@ -99,16 +100,16 @@ export default function ChatHistoryPage() {
                 localStorage.removeItem("student_chat_sessions");
                 const userStr = localStorage.getItem("user");
                 const u = userStr ? JSON.parse(userStr) : {};
-                const studentId = u.id || "2023CS001";
+                const studentId = u.id || u.admission_no || "";
                 try {
-                    await fetch(`http://localhost:8000/api/chat/history/clear/${studentId}`, { method: "DELETE" });
+                    await fetch(`${getApiBaseUrl()}/api/chat/history/clear/${studentId}`, { method: "DELETE" });
                 } catch (err) {}
             }
         }
     };
 
     const filteredItems = historyItems.filter(item => 
-        item.title.toLowerCase().includes(searchQuery.toLowerCase())
+        (item?.title || "").toLowerCase().includes((searchQuery || "").toLowerCase())
     );
 
     return (
@@ -138,14 +139,14 @@ export default function ChatHistoryPage() {
             </div>
 
             {/* PANEL */}
-            <section className="panel" style={{ background: '#0a142b', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden' }}>
-                <div className="panel-header" style={{ padding: '20px 24px', background: 'rgba(15, 25, 52, 0.8)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <section className="panel" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden' }}>
+                <div className="panel-header" style={{ padding: '20px 24px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                        <div className="panel-title" style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff' }}>Saved Chat Conversations</div>
-                        <div className="panel-subtitle" style={{ fontSize: '13px', color: '#94a3b8', marginTop: '2px' }}>Click any conversation thread to view or continue asking queries</div>
+                        <div className="panel-title" style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text)' }}>Saved Chat Conversations</div>
+                        <div className="panel-subtitle" style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>Click any conversation thread to view or continue asking queries</div>
                     </div>
 
-                    <span className="badge" style={{ background: 'var(--primary-soft)', color: '#ffffff', padding: '6px 14px', fontSize: '12px' }}>
+                    <span className="badge" style={{ background: 'var(--primary-soft)', color: 'var(--primary)', padding: '6px 14px', fontSize: '12px' }}>
                         {filteredItems.length} Real Saved Sessions
                     </span>
                 </div>
@@ -153,14 +154,14 @@ export default function ChatHistoryPage() {
                 {/* CHAT HISTORY LIST */}
                 <div style={{ padding: '20px' }}>
                     {loading ? (
-                        <div className="empty-state" style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
+                        <div className="empty-state" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
                             ⏳ Loading saved conversations...
                         </div>
                     ) : filteredItems.length === 0 ? (
                         <div className="empty-state" style={{ padding: '60px 20px', textAlign: 'center' }}>
                             <div className="empty-icon" style={{ fontSize: '36px', marginBottom: '12px' }}>◷</div>
-                            <div className="empty-title" style={{ fontSize: '17px', fontWeight: 700, color: '#ffffff', marginBottom: '6px' }}>No conversations found</div>
-                            <div className="empty-description" style={{ fontSize: '13px', color: '#94a3b8', maxWidth: '400px', margin: '0 auto' }}>
+                            <div className="empty-title" style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>No conversations found</div>
+                            <div className="empty-description" style={{ fontSize: '13px', color: 'var(--text-muted)', maxWidth: '400px', margin: '0 auto' }}>
                                 {searchQuery ? "No matching conversations found for your search term." : "You have no saved chat history. Start a new conversation with Campus AI!"}
                             </div>
                         </div>
@@ -176,7 +177,7 @@ export default function ChatHistoryPage() {
                                         alignItems: 'center', 
                                         justifyContent: 'space-between', 
                                         padding: '16px 20px', 
-                                        background: '#081229', 
+                                        background: 'var(--surface-2)', 
                                         border: '1px solid var(--border)', 
                                         borderRadius: '12px',
                                         cursor: 'pointer',
@@ -184,15 +185,15 @@ export default function ChatHistoryPage() {
                                     }}
                                 >
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: 0 }}>
-                                        <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(99, 102, 241, 0.2)', color: '#c7d2fe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>
+                                        <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'var(--primary-soft)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>
                                             💬
                                         </div>
 
                                         <div style={{ minWidth: 0, flex: 1 }}>
-                                            <div style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                 {item.title}
                                             </div>
-                                            <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                                                 <span>🕒 {item.timestamp}</span>
                                                 <span>•</span>
                                                 <span>{(item.messages || []).length} Messages</span>

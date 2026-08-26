@@ -1,0 +1,118 @@
+# Sona College of Technology - Official Academic Departments and Programs Offered
+
+## 1. Department of Computer Science and Engineering (CSE)
+- **Programs Offered**:
+  - **Under Graduate (UG)**:
+    - B.E. Computer Science and Engineering (Duration: 4 Years)
+    - B.E. CSE (Artificial Intelligence & Machine Learning) (Duration: 4 Years)
+    - B.E. Computer Science and Design (Duration: 4 Years)
+    - B.E. Computer Science and Business System (Duration: 4 Years)
+    - B.E. Computer Science and Engineering (Cyber Security) (Duration: 4 Years)
+  - **Post Graduate (PG)**:
+    - M.E. Computer Science and Engineering (Duration: 2 Years)
+  - **Doctoral Program**:
+    - Ph.D. in Computer Science and Engineering (Full-Time & Part-Time)
+- **Eligibility & Admission**: Higher Secondary (10+2) with Physics, Chemistry, and Mathematics through Single Window Counselling (TNEA / Anna University) or Consortium / Management Entrance Exam.
+
+## 2. Department of Information Technology & Artificial Intelligence (IT & AI-DS)
+- **Programs Offered**:
+  - **Under Graduate (UG)**:
+    - B.Tech. Information Technology (Duration: 4 Years)
+      - Link: https://www.sonatech.ac.in/it/ug-information-technology.php
+    - B.Tech. Artificial Intelligence and Data Science (Duration: 4 Years)
+      - Link: https://www.sonatech.ac.in/ai-data-science/artificial-intelligence-data-science.php
+  - **Post Graduate (PG)**:
+    - M.Tech. Information Technology (Duration: 2 Years)
+      - Link: https://www.sonatech.ac.in/it/it-pg-department.php
+  - **Doctoral Program**:
+    - Ph.D. in Information Technology & AI/Data Science
+
+## 3. Department of Electrical and Electronics Engineering (EEE)
+- **Programs Offered**:
+  - **Under Graduate (UG)**:
+    - B.E. Electrical and Electronics Engineering (Duration: 4 Years)
+      - Link: https://www.sonatech.ac.in/eee/bachelor-of-engineering-be-electricall-engineering-eee.php
+    - B.E. Electrical and Computer Engineering (Duration: 4 Years)
+      - Link: https://www.sonatech.ac.in/eee/bachelor-of-engineering-be-electrical-and-computer-engineering-eee.pdf
+  - **Post Graduate (PG)**:
+    - M.E. Power System Engineering (Duration: 2 Years)
+      - Link: https://www.sonatech.ac.in/eee/master-of-engineering-me-electrical-and-electronics-engineering-eee-power-system-engineering.php
+  - **Doctoral Program**:
+    - Ph.D. in Electrical and Electronics Engineering
+
+## 4. Department of Electronics and Communication Engineering (ECE)
+- **Programs Offered**:
+  - **Under Graduate (UG)**:
+    - B.E. Electronics and Communication Engineering (Duration: 4 Years)
+      - Link: https://www.sonatech.ac.in/ece/bachelor-of-engineering-be-electronics-and-communication-engineering-ece.php
+    - B.E. Electronics Engineering (VLSI Design and Technology) (Duration: 4 Years)
+    - B.E. Electronics and Computer Engineering (Duration: 4 Years)
+  - **Post Graduate (PG)**:
+    - M.E. Wireless and Mobile Communications (Duration: 2 Years)
+      - Link: https://www.sonatech.ac.in/ece/master-of-engineering-me-electronics-and-communication-engineering-ece-wireless-communication.php
+    - M.E. VLSI Design (Duration: 2 Years)
+      - Link: https://www.sonatech.ac.in/ece/master-of-engineering-me-electronics-and-communication-engineering-ece-vlsi.php
+  - **Doctoral Program**:
+    - Ph.D. in Electronics and Communication Engineering
+
+## 5. Department of Mechanical Engineering (MECH)
+- **Programs Offered**:
+  - **Under Graduate (UG)**:
+    - B.E. Mechanical Engineering (Duration: 4 Years)
+    - B.E. Safety and Fire Engineering (Duration: 4 Years)
+  - **Post Graduate (PG)**:
+    - M.E. Engineering Design (Duration: 2 Years)
+    - M.E. Industrial Safety and Engineering (Duration: 2 Years)
+  - **Doctoral Program**:
+    - Ph.D. in Mechanical Engineering
+
+## 6. Department of Mechatronics Engineering (MCT)
+- **Programs Offered**:
+  - **Under Graduate (UG)**:
+    - B.E. Mechatronics Engineering (Duration: 4 Years - Full Time)
+- **Mode of Selection**:
+  1. Single window counselling conducted by Anna University (TNEA)
+  2. Consortium / Management Entrance Exam for Anna University Affiliated Colleges.
+
+## 7. Department of Civil Engineering (CIVIL)
+- **Programs Offered**:
+  - **Under Graduate (UG)**:
+    - B.E. Civil Engineering (Duration: 4 Years)
+      - Link: https://www.sonatech.ac.in/civil/bachelor-of-civil-engineering-sona-college-of-technology.php
+  - **Post Graduate (PG)**:
+    - M.E. Structural Engineering (Duration: 2 Years)
+      - Link: https://www.sonatech.ac.in/civil/master-of-engineering-me-civil-engineering-structural-engineering.php
+    - M.E. Construction Engineering and Management (Duration: 2 Years)
+      - Link: https://www.sonatech.ac.in/civil/master-of-engineering-me-civil-engineering-construction-engineering-and-management.php
+  - **Doctoral Program**:
+    - Ph.D. in Civil Engineering
+
+## 8. Department of Biomedical Engineering (BME)
+- **Programs Offered**:
+  - **Under Graduate (UG)**:
+    - B.E. Biomedical Engineering (Duration: 4 Years)
+  - **Doctoral Program**:
+    - Ph.D. in Biomedical Engineering
+
+## 9. Department of Fashion Technology (FT)
+- **Programs Offered**:
+  - **Under Graduate (UG)**:
+    - B.Tech. Fashion Technology (Duration: 4 Years)
+  - **Post Graduate (PG)**:
+    - M.Tech. Fashion Technology (Duration: 2 Years)
+  - **Doctoral Program**:
+    - Ph.D. in Textile / Fashion Technology
+
+## 10. Department of Management Studies & Computer Applications
+- **Programs Offered**:
+  - Master of Business Administration (MBA - Duration: 2 Years)
+  - Master of Computer Applications (MCA - Duration: 2 Years)
+  - Doctoral (Ph.D.) in Management Studies and Computer Applications
+
+## 11. Department of Science and Humanities
+- **Academic Disciplines**:
+  - Mathematics
+  - Physics (Science)
+  - Chemistry (Science)
+  - English & Communication
+  - General Engineering & Basic Sciences
