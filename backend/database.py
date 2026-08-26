@@ -300,6 +300,9 @@ def find_firebase_key():
                     return os.path.join(search_dir, fname)
     return None
 
+db = None
+force_mock = os.environ.get("ENABLE_MOCK_DB", "false").lower() == "true"
+key_path = find_firebase_key()
 cred_json_env = os.environ.get("FIREBASE_CREDENTIALS_JSON")
 
 if not force_mock and (key_path or cred_json_env):
