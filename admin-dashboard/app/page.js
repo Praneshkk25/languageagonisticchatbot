@@ -297,36 +297,6 @@ export default function AdminLoginPage() {
             )}
           </AnimatePresence>
 
-          {/* Quick Demo Credentials Tip */}
-          <div style={{
-            background: 'var(--surface-2, rgba(255,255,255,0.04))',
-            border: '1px solid var(--border)',
-            borderRadius: '10px',
-            padding: '8px 12px',
-            fontSize: '11.5px',
-            color: 'var(--text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
-            <span>Default Access: <strong style={{ color: 'var(--text)' }}>admin</strong> / <strong style={{ color: 'var(--text)' }}>admin</strong></span>
-            <button
-              type="button"
-              onClick={() => { setFormData({ username: "admin", password: "admin" }); setError(""); }}
-              style={{
-                background: 'rgba(91, 53, 232, 0.15)',
-                border: '1px solid rgba(91, 53, 232, 0.3)',
-                color: 'var(--primary)',
-                borderRadius: '6px',
-                padding: '2px 8px',
-                fontSize: '11px',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              Fill Credentials
-            </button>
-          </div>
 
           {/* Submit Button */}
           <button

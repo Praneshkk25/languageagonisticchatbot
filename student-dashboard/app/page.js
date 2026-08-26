@@ -731,49 +731,7 @@ export default function LoginPage() {
             )}
           </AnimatePresence>
 
-          {/* Quick Demo Credentials Tip */}
-          <div style={{
-            background: 'var(--surface-2, rgba(255,255,255,0.04))',
-            border: '1px solid var(--border)',
-            borderRadius: '10px',
-            padding: '8px 12px',
-            fontSize: '11.5px',
-            color: 'var(--text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '8px'
-          }}>
-            <span>Demo: <strong style={{ color: 'var(--text)' }}>23CSEBE274</strong> (Pass: <strong style={{ color: 'var(--text)' }}>pRANESH@2005</strong>)</span>
-            <button
-              type="button"
-              onClick={() => {
-                setLoginMode("custom");
-                setFormData({
-                  admissionNo: "23CSEBE274",
-                  dob: "2005-05-25",
-                  password: "pRANESH@2005",
-                  passkey1: "252005",
-                  passkey2: "252005"
-                });
-                setError("");
-                checkStudentStatus("23CSEBE274");
-              }}
-              style={{
-                background: 'rgba(91, 53, 232, 0.15)',
-                border: '1px solid rgba(91, 53, 232, 0.3)',
-                color: 'var(--primary)',
-                borderRadius: '6px',
-                padding: '3px 8px',
-                fontSize: '11px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              Fill Credentials
-            </button>
-          </div>
+
 
           {/* Submit Button */}
           <button
