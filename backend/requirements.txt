@@ -1,33 +1,20 @@
 fastapi
 uvicorn
-tensorflow
 numpy
 scikit-learn
 python-multipart
 python-jose[cryptography]
 passlib[bcrypt]
 nltk
-
 pymupdf
 python-docx
-sentence-transformers
 chardet
 pytesseract
 Pillow
 firebase-admin
-
-# Qwen LLM & RAG Dependencies
-torch --index-url https://download.pytorch.org/whl/cu121
-torchvision --index-url https://download.pytorch.org/whl/cu121
-torchaudio --index-url https://download.pytorch.org/whl/cu121
-transformers
-peft
-trl
-bitsandbytes
-langchain
-langchain-huggingface
-langchain-community
-faiss-cpu
-langdetect
-easyocr
+requests
+reportlab
+python-dotenv
+pandas
 pypdf
+langdetect

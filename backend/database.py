@@ -300,15 +300,19 @@ def find_firebase_key():
                     return os.path.join(search_dir, fname)
     return None
 
-db = None
-force_mock = os.environ.get("ENABLE_MOCK_DB", "false").lower() == "true"
-key_path = find_firebase_key()
+cred_json_env = os.environ.get("FIREBASE_CREDENTIALS_JSON")
 
-if not force_mock and key_path:
+if not force_mock and (key_path or cred_json_env):
     try:
-        print(f"[INFO] Connecting to Firebase Firestore using key: {key_path}")
-        if not firebase_admin._apps:
+        if cred_json_env:
+            print("[INFO] Connecting to Firebase Firestore using FIREBASE_CREDENTIALS_JSON env variable...")
+            cred_dict = json.loads(cred_json_env)
+            cred = credentials.Certificate(cred_dict)
+        else:
+            print(f"[INFO] Connecting to Firebase Firestore using key file: {key_path}")
             cred = credentials.Certificate(key_path)
+
+        if not firebase_admin._apps:
             firebase_admin.initialize_app(cred)
         real_db = firestore.client()
         seed_real_firestore_if_empty(real_db)
@@ -321,7 +325,7 @@ else:
     if force_mock:
         print("[INFO] ENABLE_MOCK_DB is true. Using Mock Firestore.")
     else:
-        print("[WARNING] Firebase key file not found. Using Mock Firestore.")
+        print("[WARNING] Firebase key file or env var not found. Using Mock Firestore.")
     db = MockFirestore()
 
 

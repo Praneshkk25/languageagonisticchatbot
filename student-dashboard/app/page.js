@@ -178,8 +178,8 @@ export default function LoginPage() {
   };
 
   const handleSendOtp = async () => {
-    if (!forgotData.mobileNo || forgotData.mobileNo.length < 10) {
-      setForgotError("Please enter a valid 10-digit mobile number.");
+    if (!forgotData.admissionNo) {
+      setForgotError("Please enter your Admission / Roll Number first.");
       return;
     }
     setForgotLoading(true);
@@ -190,19 +190,23 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           admission_no: forgotData.admissionNo.trim().toUpperCase(),
-          mobile_no: forgotData.mobileNo
+          mobile_no: forgotData.mobileNo,
+          email: forgotData.email
         })
       });
       const data = await res.json();
       if (res.ok) {
         setOtpSent(true);
-        setForgotSuccess("✓ 6-Digit OTP sent to your registered mobile number (Demo: 123456)");
+        setForgotSuccess(data.message || `✓ 6-Digit OTP sent to ${data.email || "registered email"}`);
+        if (data.demo_otp && !forgotData.otp) {
+          setForgotData(prev => ({ ...prev, otp: data.demo_otp }));
+        }
       } else {
         setForgotError(data.detail || "Could not send OTP.");
       }
     } catch (err) {
       setOtpSent(true);
-      setForgotSuccess("✓ Demo OTP initialized: Use 123456 to verify.");
+      setForgotSuccess("✓ Verification OTP initialized: Check your email inbox or backend log.");
     } finally {
       setForgotLoading(false);
     }
@@ -1070,7 +1074,7 @@ export default function LoginPage() {
                   </div>
                   <div>
                     <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text)' }}>Reset Password & Passkeys</h3>
-                    <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Mobile OTP Security Recovery</p>
+                    <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Email OTP Security Recovery</p>
                   </div>
                 </div>
                 <button
@@ -1143,11 +1147,10 @@ export default function LoginPage() {
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)' }}>Registered Mobile Number</label>
+                      <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)' }}>Registered Mobile Number (Optional)</label>
                       <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                         <input 
                           type="tel"
-                          required
                           placeholder="Enter 10-digit mobile number"
                           value={forgotData.mobileNo}
                           onChange={(e) => setForgotData({ ...forgotData, mobileNo: e.target.value })}
@@ -1177,7 +1180,7 @@ export default function LoginPage() {
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)' }}>6-Digit OTP</label>
+                        <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)' }}>6-Digit Email OTP</label>
                         <button
                           type="button"
                           onClick={handleSendOtp}
@@ -1194,7 +1197,7 @@ export default function LoginPage() {
                           }}
                         >
                           <RefreshCw style={{ width: '12px', height: '12px' }} />
-                          <span>{otpSent ? "Resend OTP" : "Send Demo OTP"}</span>
+                          <span>{otpSent ? "Resend Email OTP" : "Send OTP to Email"}</span>
                         </button>
                       </div>
                       <input 

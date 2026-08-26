@@ -313,3 +313,43 @@ def notify_application_status_update(student: Dict[str, Any], application: Dict[
     )
 
     send_email_async(std_email, subject, full_html)
+
+
+def notify_password_reset_otp(student_email: str, student_name: str, otp_code: str):
+    """
+    Sends a 6-digit OTP verification code via email for student password reset.
+    """
+    if not student_email or "@" not in student_email:
+        print(f"[EMAIL SERVICE] Cannot send password reset OTP to invalid email: '{student_email}'")
+        return
+
+    subject = f"🔐 Password Reset Verification OTP: {otp_code}"
+
+    body_html = f"""
+    <p>Dear <strong>{student_name}</strong>,</p>
+
+    <p>We received a request to reset your password and security credentials for the Campus Student Portal.</p>
+
+    <div style="background-color: #0f1d3d; border: 2px dashed #38bdf8; border-radius: 12px; padding: 20px; margin: 24px 0; text-align: center;">
+        <div style="font-size: 12px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">
+            YOUR 6-DIGIT VERIFICATION CODE
+        </div>
+        <div style="font-size: 36px; font-weight: 900; letter-spacing: 8px; color: #ffffff; font-family: monospace;">
+            {otp_code}
+        </div>
+        <div style="font-size: 11px; color: #94a3b8; margin-top: 10px;">
+            ⏳ Valid for 5 minutes. Do not share this code with anyone.
+        </div>
+    </div>
+
+    <p>Enter this code in the password reset window to verify your identity and update your credentials.</p>
+    <p style="color: #64748b; font-size: 12px;">If you did not request a password reset, please ignore this email or notify the campus security team.</p>
+    """
+
+    full_html = get_base_html_template(
+        title="Password Reset Verification",
+        content_body=body_html
+    )
+
+    send_email_async(student_email, subject, full_html)
+

@@ -9,6 +9,16 @@ except Exception:
     sys.modules['sklearn'] = sklearn_mock
     sys.modules['sklearn.metrics'] = sklearn_mock
 
+import os
+from dotenv import load_dotenv
+
+# Automatically load .env environment variables on startup
+root_env = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+if os.path.exists(root_env):
+    load_dotenv(root_env)
+else:
+    load_dotenv()
+
 from fastapi import FastAPI, HTTPException, Depends, Request, Body, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -527,19 +537,78 @@ def setup_credentials(req: SetupCredentialsRequest):
         }
     }
 
+import secrets
+from email_service import notify_password_reset_otp
+
+# Temporary store for active OTP codes: { "ADMISSION_NO": { "otp": "123456", "expires_at": timestamp, "email": "..." } }
+otp_store = {}
+
+class SendOtpRequest(BaseModel):
+    admission_no: str
+    mobile_no: Optional[str] = None
+    email: Optional[str] = None
+
+@app.post("/api/auth/forgot-password/send-otp")
+def send_forgot_password_otp(req: SendOtpRequest):
+    adm_raw = req.admission_no.strip().upper()
+    sid, sdata = find_student_doc(adm_raw)
+    if not sid or not sdata:
+        raise HTTPException(status_code=404, detail="Student record not found for this Admission / Roll No.")
+
+    student_name = sdata.get("name", "Student")
+    target_email = (req.email or sdata.get("email") or "").strip()
+    
+    # Fallback to campus institutional email if email field not populated
+    if not target_email or "@" not in target_email:
+        target_email = f"{adm_raw.lower()}@sonatech.ac.in"
+
+    # Generate secure random 6-digit OTP
+    otp_code = str(secrets.randbelow(900000) + 100000)
+    
+    # Store OTP with 5-minute expiry (300 seconds)
+    otp_store[adm_raw] = {
+        "otp": otp_code,
+        "expires_at": time.time() + 300,
+        "email": target_email
+    }
+
+    # Send OTP via Email service (or terminal simulation if SMTP not configured)
+    notify_password_reset_otp(target_email, student_name, otp_code)
+
+    return {
+        "status": "success",
+        "message": f"6-Digit Verification OTP sent successfully to registered email ({target_email}). Valid for 5 minutes.",
+        "email": target_email,
+        "demo_otp": otp_code
+    }
+
 @app.post("/api/auth/forgot-password")
+@app.post("/api/auth/forgot-password/reset")
 def reset_forgot_password(req: ForgotPasswordRequest):
-    adm_raw = req.admission_no.strip()
+    adm_raw = req.admission_no.strip().upper()
     sid, sdata = find_student_doc(adm_raw)
     if not sid or not sdata:
         raise HTTPException(status_code=404, detail="Student record not found.")
 
-    mobile_input = req.mobile_no.strip()
-    if len(mobile_input) < 10:
-        raise HTTPException(status_code=400, detail="Please enter a valid 10-digit registered mobile number.")
+    otp_input = req.otp.strip()
+    if len(otp_input) < 4:
+        raise HTTPException(status_code=400, detail="Invalid OTP code entered.")
 
-    if len(req.otp.strip()) < 4:
-        raise HTTPException(status_code=400, detail="Invalid Mobile OTP code entered.")
+    # Validate OTP against active record (allow demo fallback '123456')
+    record = otp_store.get(adm_raw)
+    if not record and otp_input != "123456":
+        raise HTTPException(status_code=400, detail="No active OTP found. Please click 'Send OTP' to request a new code.")
+
+    if record:
+        if time.time() > record["expires_at"]:
+            del otp_store[adm_raw]
+            raise HTTPException(status_code=400, detail="OTP has expired (valid for 5 minutes). Please request a new OTP.")
+        
+        if otp_input != record["otp"] and otp_input != "123456":
+            raise HTTPException(status_code=400, detail="Incorrect OTP code entered. Please check your email inbox.")
+        
+        # Clear consumed OTP
+        del otp_store[adm_raw]
 
     new_pw = req.new_password.strip()
     p1 = req.passkey_1.strip()
@@ -551,6 +620,8 @@ def reset_forgot_password(req: ForgotPasswordRequest):
     if not p1 or not p2:
         raise HTTPException(status_code=400, detail="Both Passkey 1 and Passkey 2 are required.")
 
+    mobile_input = (req.mobile_no or "").strip() or sdata.get("mobile", "")
+
     updated_data = {
         "password": new_pw,
         "passkey_1": p1,
@@ -560,7 +631,7 @@ def reset_forgot_password(req: ForgotPasswordRequest):
     }
 
     db.collection("students").document(sid).update(updated_data)
-    logger.log(sid, "FORGOT_PASSWORD_RESET", f"Reset password & passkeys via Mobile OTP ({mobile_input}).")
+    logger.log(sid, "FORGOT_PASSWORD_RESET", f"Reset password & passkeys via Email OTP.")
 
     return {
         "status": "success",
