@@ -1,9 +1,18 @@
 import os
-import torch
 import json
 import re
 import sys
+import importlib
 from unittest.mock import MagicMock
+
+# Dynamic / Optional AI imports with resilient fallback
+def _safe_import(mod_name):
+    try:
+        return importlib.import_module(mod_name)
+    except Exception:
+        return None
+
+torch = _safe_import("torch")
 
 # Safeguard against Windows Application Control policy blocking sklearn compiled DLL extensions (_argkmin)
 try:
@@ -12,15 +21,6 @@ except Exception:
     sklearn_mock = MagicMock()
     sys.modules['sklearn'] = sklearn_mock
     sys.modules['sklearn.metrics'] = sklearn_mock
-
-# Dynamic / Optional AI imports with resilient fallback
-import importlib
-
-def _safe_import(mod_name):
-    try:
-        return importlib.import_module(mod_name)
-    except Exception:
-        return None
 
 _transformers = _safe_import("transformers")
 AutoModelForCausalLM = getattr(_transformers, "AutoModelForCausalLM", None) if _transformers else None
@@ -63,18 +63,18 @@ class CollegeChatbot:
         self.base_model = None
         self.model = None
 
-        if AutoTokenizer is not None and AutoModelForCausalLM is not None:
+        if AutoTokenizer is not None and AutoModelForCausalLM is not None and torch is not None:
             try:
                 self.tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL, trust_remote_code=True)
-                # Load Base Model: check CUDA GPU vs CPU
-                if torch.cuda.is_available() and BitsAndBytesConfig is not None:
+                cuda_avail = getattr(torch, "cuda", None) and torch.cuda.is_available()
+                if cuda_avail and BitsAndBytesConfig is not None:
                     try:
                         logger.info("CUDA detected. Loading model with 4-bit quantization...")
                         bnb_config = BitsAndBytesConfig(
                             load_in_4bit=True,
                             bnb_4bit_use_double_quant=True,
                             bnb_4bit_quant_type="nf4",
-                            bnb_4bit_compute_dtype=torch.bfloat16
+                            bnb_4bit_compute_dtype=getattr(torch, "bfloat16", None)
                         )
                         self.base_model = AutoModelForCausalLM.from_pretrained(
                             BASE_MODEL,
@@ -86,7 +86,7 @@ class CollegeChatbot:
                         logger.warning(f"Failed 4-bit GPU quantization: {e}. Falling back to standard CPU model loading.")
                         self.base_model = AutoModelForCausalLM.from_pretrained(
                             BASE_MODEL,
-                            dtype=torch.float32,
+                            dtype=getattr(torch, "float32", None),
                             device_map="cpu",
                             trust_remote_code=True
                         )
@@ -94,7 +94,7 @@ class CollegeChatbot:
                     logger.info("Loading Qwen model on CPU (float32)...")
                     self.base_model = AutoModelForCausalLM.from_pretrained(
                         BASE_MODEL,
-                        dtype=torch.float32,
+                        dtype=getattr(torch, "float32", None),
                         device_map="cpu",
                         trust_remote_code=True
                     )
@@ -108,7 +108,7 @@ class CollegeChatbot:
             except Exception as e:
                 logger.warning(f"Could not load neural model weights: {e}. Using deterministic scholarship engine.")
         else:
-            logger.info("Neural transformers not available in current environment. Using deterministic scholarship engine.")
+            logger.info("Neural transformers / torch not available in current environment. Using deterministic scholarship engine.")
 
         try:
             from utils_learning import safe_init_embeddings, learning_system
