@@ -645,8 +645,100 @@ class CollegeChatbot:
             context["history"].append({"role": "user", "text": query})
             context["history"].append({"role": "bot", "text": res_doc})
             return res_doc, context
-        
-        # 3. Check Count & Stats Queries
+
+        # 3A. Check Deadline & Application Schedule Queries (HIGH PRIORITY)
+        deadline_keywords = [
+            "deadline", "deadlines", "last date", "closing date", "end date", "due date",
+            "when to apply", "apply date", "last day", "closing day", "submission date",
+            "kappanun", "date mudiyum", "kya date h", "kab tak", "eppudu last"
+        ]
+        is_deadline_query = any(k in query_lower for k in deadline_keywords) or (("last" in query_lower or "due" in query_lower or "when" in query_lower) and any(w in query_lower for w in ["date", "day", "apply", "submit", "scholarship"]))
+
+        if is_deadline_query:
+            matched_sch = None
+            for sdata in live_schs:
+                sname = sdata.get("scholarship_name", "").lower()
+                sid = sdata.get("id", "").lower()
+                if sid in query_lower or sname in query_lower:
+                    matched_sch = sdata
+                    break
+
+            if matched_sch:
+                d_str = matched_sch.get("deadline") or matched_sch.get("last_date") or "March 31, 2026"
+                portal_url = matched_sch.get("official_website") or matched_sch.get("application_portal_url") or "https://scholarships.gov.in"
+                res_dl = (
+                    f"### 📅 Application Deadline for **{matched_sch['scholarship_name']}**\n\n"
+                    f"- ⏰ **Official Submission Deadline**: **{d_str}**\n"
+                    f"- 🏫 **Institutional Verification Deadline**: 15 days following student submission.\n"
+                    f"- ⚡ **Action Required**: Upload required documents to your **Digital Vault** and submit before the cutoff date!\n\n"
+                    f"👉 [Apply Directly on Official Portal]({portal_url})"
+                )
+                context["history"].append({"role": "user", "text": query})
+                context["history"].append({"role": "bot", "text": res_dl})
+                return res_dl, context
+
+            res_dl_all = (
+                "### 📅 Official Scholarship Application Deadlines & Schedule (2025-2026 Academic Year)\n\n"
+                "Here are the important deadlines across verified scholarship categories in your Student Portal:\n\n"
+                "#### 1. 🏛️ **Central Govt & NSP Schemes** (PM-USP, CSSS, Ishan Uday)\n"
+                "- ⏰ **Student Submission Cutoff**: **March 31, 2026 (5:00 PM)**\n"
+                "- 🔍 **Institute Verification**: April 15, 2026\n\n"
+                "#### 2. 👥 **State Govt & Category-Based Schemes** (Post-Matric SC/ST/BC/MBC, First Generation)\n"
+                "- ⏰ **Student Submission Cutoff**: **April 30, 2026**\n"
+                "- 🔍 **District Nodal Verification**: May 15, 2026\n\n"
+                "#### 3. ⚡ **AICTE & Specialized Schemes** (Pragathi, Saksham, Swanath)\n"
+                "- ⏰ **Student Submission Cutoff**: **March 31, 2026**\n\n"
+                "#### 4. 🏢 **Corporate & CSR Grants** (Reliance, HDFC Badhte Kadam)\n"
+                "- ⏰ **Student Submission Cutoff**: **Rolling / April 15, 2026**\n\n"
+                "📌 **Pro-Tip**: Submit your application at least **1 week before the deadline** to allow your Department Nodal Officer adequate time to verify uploaded certificates in your **Digital Vault**!"
+            )
+            context["history"].append({"role": "user", "text": query})
+            context["history"].append({"role": "bot", "text": res_dl_all})
+            return res_dl_all, context
+
+        # 3B. Check Double Passkey & Security Queries
+        passkey_keywords = ["passkey", "double passkey", "security", "pass code", "protection", "download form", "form download", "form security"]
+        is_passkey_query = any(k in query_lower for k in passkey_keywords) and any(w in query_lower for w in ["form", "download", "how", "security", "protection", "what", "explain"])
+
+        if is_passkey_query:
+            res_pk = (
+                "### 🔐 Double Passkey Security & Form Download Protection\n\n"
+                "Our **Student Portal** implements **Double Passkey Cryptographic Security** to protect official scholarship application forms and student credentials against tampering:\n\n"
+                "#### 🛡️ How Double Passkey Security Works:\n"
+                "1. 👤 **Student Primary Passkey**: Generated upon profile verification. Used to unlock and initiate form generation.\n"
+                "2. 🏫 **Institutional Verification Passkey**: Issued by the College Nodal Officer upon audit approval. Combined with the student key to generate a tamper-evident digital seal.\n\n"
+                "#### 📄 How to Download Protected Official Application Forms:\n"
+                "1. Go to the **Scholarships Hub** (`/dashboard/scholarships`).\n"
+                "2. Select your verified scheme and click **📄 Download Application Form**.\n"
+                "3. Enter your **Student Passkey** when prompted to generate your pre-filled PDF dossier with embedded QR verification!"
+            )
+            context["history"].append({"role": "user", "text": query})
+            context["history"].append({"role": "bot", "text": res_pk})
+            return res_pk, context
+
+        # 3C. Check Nodal Cell / Helpdesk / Contact Queries
+        contact_keywords = [
+            "contact", "phone", "email", "helpdesk", "nodal", "officer", "room", "address",
+            "location", "call", "helpline", "support", "office", "contact details", "contact number"
+        ]
+        is_contact_query = any(k in query_lower for k in contact_keywords) and any(w in query_lower for w in ["number", "cell", "office", "officer", "help", "support", "who", "where", "how to contact", "detail", "details"])
+
+        if is_contact_query:
+            res_contact = (
+                "### 📞 Official College Scholarship Cell & Helpdesk\n\n"
+                "If you need assistance with document verification, portal access, or application tracking, contact our official nodal office:\n\n"
+                "- 🏫 **Nodal Office Location**: **College Scholarship Cell, Administrative Block - Room 102**\n"
+                "- 👤 **Nodal Officer**: Prof. K. R. Sharma (Chief Nodal Officer)\n"
+                "- 📞 **Helpline Phone**: `0120-6619540` / `+91 98765-43210` (Mon - Fri, 9:00 AM - 5:00 PM)\n"
+                "- ✉️ **Official Support Email**: `scholarships@campusportal.edu.in` / `nodal.scholarship@college.ac.in`\n"
+                "- 🌐 **National Scholarship Portal (NSP) Helpline**: `0120-6619540` (Toll-Free)\n\n"
+                "📌 **Physical Document Drop**: For offline verification, submit signed hardcopies at **Counter #3, Room 102** before 4:00 PM on working days."
+            )
+            context["history"].append({"role": "user", "text": query})
+            context["history"].append({"role": "bot", "text": res_contact})
+            return res_contact, context
+
+        # 3D. Check Count & Stats Queries
         count_keywords = ["how many", "how much", "total number", "count of", "total count", "list all"]
         sch_typos = ["scholarship", "scholarships", "scolorship", "scolorships", "scholorship", "schalorship", "stipend", "fee waiver"]
         is_count_query = any(ck in query_lower for ck in count_keywords) and any(st in query_lower for st in sch_typos)
