@@ -721,12 +721,20 @@ class CollegeChatbot:
                 context["history"].append({"role": "bot", "text": res_msg})
                 return res_msg, context
 
-        # 5. Check general scholarship categories overview
+        # 5. Check general 14 scholarship categories overview
         general_sch_keywords = [
             "14 categories", "14 category", "categories", "types of scholarship", "categories of scholarship",
-            "scholarship categories", "14 types", "general overview", "list of categories"
+            "scholarship categories", "14 types", "general overview", "list of categories",
+            "14 scholarship", "14 scholarships", "14 scolorship", "14 scolorships", "14 schalorship", "14 schalorships",
+            "14 scheme", "14 schemes", "14 list", "fourteen scholarships", "fourteen categories", "all 14", "list 14",
+            "show 14", "14 details", "14 scholarship details", "14 scolorship details", "14 scholorship details"
         ]
-        is_general_overview = any(k in query_lower for k in general_sch_keywords) or query_lower.strip() in ["scholarship", "scholarships", "scolorship", "scolorships", "scholarship details", "scholarships details", "categories"]
+        has_14 = bool(re.search(r'\b14\b', query_lower))
+        has_sch_word = any(w in query_lower for w in ["scholarship", "scholarships", "scolorship", "scolorships", "category", "categories", "scheme", "schemes", "type", "types", "detail", "details"])
+
+        is_general_overview = any(k in query_lower for k in general_sch_keywords) or (has_14 and has_sch_word) or query_lower.strip() in [
+            "scholarship", "scholarships", "scolorship", "scolorships", "scholarship details", "scholarships details", "categories", "14", "14 scholarship", "14 scholarships"
+        ]
 
         if is_general_overview and not any(w in query_lower for w in ["eligible", "eligibility", "qualify", "kidaikuma"]):
             if "scholarship_check" in context:
@@ -735,15 +743,19 @@ class CollegeChatbot:
             cat_lines = []
             for c in SCHOLARSHIP_CATEGORIES:
                 icon_sym = c.get("icon", "🎓")
-                cat_lines.append(f"**Category #{c['id']} - {icon_sym} {c['name']}**\n- 💡 {c['description']}")
+                cat_schs = [s for s in live_schs if s.get("category_id") == c["id"]]
+                sch_names = [s.get("scholarship_name") for s in cat_schs if s.get("scholarship_name")]
+                sch_str = f"\n  - 📜 **Schemes Available**: " + ", ".join([f"`{name}`" for name in sch_names]) if sch_names else "\n  - 📜 *Schemes Available*: Verified Portal Schemes"
+                cat_lines.append(f"**Category #{c['id']} - {icon_sym} {c['name']}**\n- 💡 {c['description']}{sch_str}")
 
             cat_list_str = "\n\n".join(cat_lines)
+            total_live_count = len(live_schs)
             
             res_msg = (
-                f"### 🎓 Official 14 Categories of Scholarships (Undergraduate Student Portal)\n\n"
+                f"### 🎓 Official 14 Categories of Scholarships ({total_live_count} Active Portal Schemes)\n\n"
                 f"Indian students pursuing UG degree courses (B.E./B.Tech, B.Sc., B.Com., B.A., MBBS, B.Pharm, Law, etc.) can explore and apply under **14 distinct verified categories**:\n\n"
                 f"{cat_list_str}\n\n"
-                f"📌 **How to Apply & Download Forms**: Navigate to the **Scholarships Hub** tab in your Student Dashboard. Select any Category to view complete eligibility criteria, mandatory document checklists, and **download official application forms** protected by Double Passkey security!"
+                f"📌 **How to Apply & Download Forms**: Navigate to the **Scholarships Hub** (`/dashboard/scholarships`) tab in your Student Dashboard. Select any Category to view complete eligibility criteria, mandatory document checklists, and **download official application forms** protected by Double Passkey security!"
             )
             context["history"].append({"role": "user", "text": query})
             context["history"].append({"role": "bot", "text": res_msg})
