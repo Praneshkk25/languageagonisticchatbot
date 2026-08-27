@@ -134,10 +134,14 @@ class CollegeChatbot:
         if os.path.exists(faiss_index_file) and os.path.exists(faiss_pkl_file):
             try:
                 logger.info(f"Loading FAISS index from {VECTOR_DB_PATH}")
-                vdb = FAISS.load_local(VECTOR_DB_PATH, self.embeddings, allow_dangerous_deserialization=True)
-                if vdb:
-                    self.vector_db = vdb
-                    self.retriever = vdb.as_retriever(search_kwargs={"k": 3})
+                if FAISS is not None and hasattr(FAISS, 'load_local') and self.embeddings is not None:
+                    vdb = FAISS.load_local(VECTOR_DB_PATH, self.embeddings, allow_dangerous_deserialization=True)
+                    if vdb:
+                        self.vector_db = vdb
+                        self.retriever = vdb.as_retriever(search_kwargs={"k": 3})
+                    else:
+                        self.vector_db = None
+                        self.retriever = None
                 else:
                     self.vector_db = None
                     self.retriever = None
@@ -770,8 +774,11 @@ class CollegeChatbot:
                 "which scholarships can i get", "what scholarships can i get", "scholarships i qualify",
                 "qualify for me", "show eligible scholarships for me", "all eligible scholarships for me",
                 "enaku enna scholarship", "enna scholarship kidaikkum", "enna scholarship apply panlam",
-                "mujhe konsi scholarship", "naku em scholarship"
-            ]) or (("eligible" in query_lower or "kidaikkum" in query_lower or "kidaikuma" in query_lower) and any(w in query_lower for w in ["i", "me", "my", "enaku", "naan", "mujhe", "naku"]))
+                "mujhe konsi scholarship", "naku em scholarship", "list the scholarships", "list scholarships",
+                "give me eligible scholarship", "give eligible scholarship", "give me scholarship",
+                "show scholarships", "show all scholarships", "all scholarships", "list of scholarships",
+                "get scholarships", "scholarship list", "tell me scholarships"
+            ]) or (("eligible" in query_lower or "kidaikkum" in query_lower or "kidaikuma" in query_lower or "scholarship" in query_lower or "scholarships" in query_lower) and any(w in query_lower for w in ["i", "me", "my", "enaku", "naan", "mujhe", "naku", "list", "give", "show", "all"]))
 
             matched_sch = None
             for sdata in live_schs:

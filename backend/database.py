@@ -198,87 +198,103 @@ class ResilientCollectionWrapper:
         self.filters = []
 
     def document(self, doc_id):
-        real_doc = self.real_coll.document(doc_id)
+        try:
+            real_doc = self.real_coll.document(doc_id) if self.real_coll else None
+        except Exception:
+            real_doc = None
         mock_doc = self.mock_coll.document(doc_id)
         return ResilientDocRefWrapper(real_doc, mock_doc)
 
     def where(self, field, op, val):
         self.filters.append((field, op, val))
-        try:
-            self.real_coll = self.real_coll.where(field, op, val)
-        except Exception:
-            pass
+        if self.real_coll:
+            try:
+                self.real_coll = self.real_coll.where(field, op, val)
+            except Exception:
+                self.real_coll = None
         self.mock_coll = self.mock_coll.where(field, op, val)
         return self
 
     def limit(self, count):
-        try:
-            self.real_coll = self.real_coll.limit(count)
-        except Exception:
-            pass
+        if self.real_coll:
+            try:
+                self.real_coll = self.real_coll.limit(count)
+            except Exception:
+                self.real_coll = None
+        self.mock_coll = self.mock_coll.limit(count)
         return self
 
     def stream(self):
-        try:
-            results = list(self.real_coll.stream())
-            return results
-        except Exception as e:
-            # Fallback to local mock on QuotaExhausted 429
-            return self.mock_coll.stream()
+        if self.real_coll:
+            try:
+                results = list(self.real_coll.stream())
+                return results
+            except Exception as e:
+                print(f"[WARNING] Real Firestore stream failed ({e}). Falling back to local Mock database.")
+                self.real_coll = None
+        return self.mock_coll.stream()
 
     def add(self, data):
-        try:
-            return self.real_coll.add(data)
-        except Exception:
-            return self.mock_coll.add(data)
+        if self.real_coll:
+            try:
+                return self.real_coll.add(data)
+            except Exception:
+                self.real_coll = None
+        return self.mock_coll.add(data)
 
 class ResilientDocRefWrapper:
     def __init__(self, real_doc, mock_doc):
         self.real_doc = real_doc
         self.mock_doc = mock_doc
-        self.id = real_doc.id
+        self.id = real_doc.id if real_doc else mock_doc.id
 
     def get(self):
-        try:
-            res = self.real_doc.get()
-            if res.exists:
-                return res
-            # Check mock if missing in real
-            mock_res = self.mock_doc.get()
-            return mock_res if mock_res.exists else res
-        except Exception:
-            return self.mock_doc.get()
+        if self.real_doc:
+            try:
+                res = self.real_doc.get()
+                if res.exists:
+                    return res
+                mock_res = self.mock_doc.get()
+                return mock_res if mock_res.exists else res
+            except Exception as e:
+                print(f"[WARNING] Real Firestore doc get failed ({e}). Falling back to local Mock database.")
+                self.real_doc = None
+        return self.mock_doc.get()
 
     def set(self, data, merge=False):
-        # Sync both for high availability
         try:
             self.mock_doc.set(data)
         except Exception:
             pass
-        try:
-            self.real_doc.set(data, merge=merge)
-        except Exception as e:
-            print(f"[NOTE] Real Firestore write queued to local storage: {e}")
+        if self.real_doc:
+            try:
+                self.real_doc.set(data, merge=merge)
+            except Exception as e:
+                print(f"[NOTE] Real Firestore write skipped: {e}")
+                self.real_doc = None
 
     def update(self, data):
         try:
             self.mock_doc.update(data)
         except Exception:
             pass
-        try:
-            self.real_doc.update(data)
-        except Exception as e:
-            print(f"[NOTE] Real Firestore update queued to local storage: {e}")
+        if self.real_doc:
+            try:
+                self.real_doc.update(data)
+            except Exception as e:
+                print(f"[NOTE] Real Firestore update skipped: {e}")
+                self.real_doc = None
 
     def delete(self):
         try:
             self.mock_doc.delete()
         except Exception:
             pass
-        try:
-            self.real_doc.delete()
-        except Exception:
-            pass
+        if self.real_doc:
+            try:
+                self.real_doc.delete()
+            except Exception:
+                self.real_doc = None
 
 def find_firebase_key():
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -315,6 +331,9 @@ if not force_mock and (key_path or cred_json_env):
             print(f"[INFO] Connecting to Firebase Firestore using key file: {key_path}")
             cred = credentials.Certificate(key_path)
 
+        # Fast 1-second credential token validation
+        _ = cred.get_access_token()
+
         if not firebase_admin._apps:
             firebase_admin.initialize_app(cred)
         real_db = firestore.client()
@@ -322,7 +341,7 @@ if not force_mock and (key_path or cred_json_env):
         db = ResilientFirestoreWrapper(real_db)
         print("[INFO] Firebase Firestore connected with High-Availability Resilient Fallback!")
     except Exception as e:
-        print(f"[ERROR] Failed to initialize Firebase: {e}. Falling back to Mock Firestore.")
+        print(f"[WARNING] Firebase key validation/connection failed ({e}). Using Mock Firestore.")
         db = MockFirestore()
 else:
     if force_mock:
