@@ -166,7 +166,7 @@ class CollegeChatbot:
             if db_docs:
                 live_map = {s.get("id", f"sch_{i}"): dict(s) for i, s in enumerate(ALL_SCHOLARSHIPS)}
                 for doc in db_docs:
-                    d_data = doc.to_dict()
+                    d_data = doc.to_dict() or {}
                     doc_id = doc.id
                     d_data["id"] = doc_id
                     if doc_id in live_map:
@@ -835,7 +835,7 @@ class CollegeChatbot:
             cat_lines = []
             for c in SCHOLARSHIP_CATEGORIES:
                 icon_sym = c.get("icon", "🎓")
-                cat_schs = [s for s in live_schs if s.get("category_id") == c["id"]]
+                cat_schs = [s for s in live_schs if str(s.get("category_id")) == str(c["id"])]
                 sch_names = [s.get("scholarship_name") for s in cat_schs if s.get("scholarship_name")]
                 sch_str = f"\n  - 📜 **Schemes Available**: " + ", ".join([f"`{name}`" for name in sch_names]) if sch_names else "\n  - 📜 *Schemes Available*: Verified Portal Schemes"
                 cat_lines.append(f"**Category #{c['id']} - {icon_sym} {c['name']}**\n- 💡 {c['description']}{sch_str}")
