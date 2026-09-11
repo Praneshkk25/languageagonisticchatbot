@@ -51,14 +51,67 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Constants
-BASE_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"  
+LOCAL_MERGED_MODEL = os.path.join(os.path.dirname(os.path.abspath(__file__)), "merged_qwen")
+BASE_MODEL = LOCAL_MERGED_MODEL if (os.path.exists(LOCAL_MERGED_MODEL) and (os.path.exists(os.path.join(LOCAL_MERGED_MODEL, "model.safetensors")) or os.path.exists(os.path.join(LOCAL_MERGED_MODEL, "pytorch_model.bin")))) else "Qwen/Qwen2.5-1.5B-Instruct"
 LORA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "qwen-college-bot-lora")
 VECTOR_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "college_faiss_index")
 DOCS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploaded_knowledge")
 
+def detect_user_language(query: str, default_lang: str = "en") -> str:
+    """Detects native script or romanized regional dialects (Tanglish, Hinglish) or standard languages."""
+    if not query:
+        return default_lang or "en"
+        
+    # 1. Unicode Script Range Check
+    if re.search(r'[\u0B80-\u0BFF]', query):
+        return "ta"  # Tamil Script
+    if re.search(r'[\u0900-\u097F]', query):
+        return "hi"  # Devanagari Script (Hindi)
+    if re.search(r'[\u0C00-\u0C7F]', query):
+        return "te"  # Telugu Script
+    if re.search(r'[\u0D00-\u0D7F]', query):
+        return "ml"  # Malayalam Script
+    if re.search(r'[\u0600-\u06FF]', query):
+        return "ar"  # Arabic Script
+
+    q_lower = query.lower()
+    words = re.findall(r'\b[a-z]+\b', q_lower)
+
+    # 2. Tanglish Vocabulary & Morphological Markers
+    tanglish_markers = {
+        "eppadi", "eppidi", "epdi", "epidi", "enna", "enaku", "enakku", "unga", "ungal", "ungaluku", "ungalukku",
+        "panradhu", "panrathu", "pannurathu", "pannuvathu", "pannalam", "panlam", "pannanum", "pananom", "pannunga", "panunga",
+        "sollunga", "solunga", "sollu", "kedaikkum", "kidaikkum", "kidaikuma", "kedaikuma", "kedaikatha",
+        "iruka", "iruku", "irukku", "irukkum", "mudiyuma", "mudiyum", "illai", "illa", "illaya",
+        "evlo", "evvalavu", "evalavu", "engae", "enga", "ethana", "ethanai", "eppo", "epovarum",
+        "theriyuma", "teriyuma", "yaarukku", "yaruku", "vanakkam", "nandri", "romba", "kandippa",
+        "padikka", "padikiren", "seiyanum", "seiyya", "eduka", "varusathuku", "kelunga", "pesunga", "pathu", "paathu", "parkurathu"
+    }
+
+    # 3. Hinglish Vocabulary & Morphological Markers
+    hinglish_markers = {
+        "kaise", "karein", "karen", "karo", "karna", "kare", "mujhe", "mujhko", "humko", "mera", "meri", "mere",
+        "batao", "bataiye", "bataye", "milega", "milegi", "milenge", "hoga", "hogi", "honge", "kya",
+        "hai", "hain", "kitna", "kitni", "kitne", "kab", "kaha", "kahan", "kidhar", "chahiye", "chahe",
+        "namaste", "pranam", "puchna", "sakte", "sakti", "sakta", "padega", "padegi", "bharo", "bharein", "bharna", "dost"
+    }
+
+    tanglish_matches = sum(1 for w in words if w in tanglish_markers)
+    hinglish_matches = sum(1 for w in words if w in hinglish_markers)
+
+    if tanglish_matches > 0 and tanglish_matches >= hinglish_matches:
+        return "tanglish"
+    if hinglish_matches > 0:
+        return "hinglish"
+
+    # Fallback to requested default
+    if default_lang in ["ta", "hi", "te", "ml", "ar"]:
+        return default_lang
+    return "en"
+
 class CollegeChatbot:
     def __init__(self):
-        logger.info("Initializing Qwen Hybrid Chatbot...")
+        logger.info(f"Initializing Qwen Hybrid Chatbot with model: {BASE_MODEL}...")
         self.tokenizer = None
         self.base_model = None
         self.model = None
@@ -86,7 +139,7 @@ class CollegeChatbot:
                         logger.warning(f"Failed 4-bit GPU quantization: {e}. Falling back to standard CPU model loading.")
                         self.base_model = AutoModelForCausalLM.from_pretrained(
                             BASE_MODEL,
-                            dtype=getattr(torch, "float32", None),
+                            torch_dtype=getattr(torch, "float32", None),
                             device_map="cpu",
                             trust_remote_code=True
                         )
@@ -94,7 +147,7 @@ class CollegeChatbot:
                     logger.info("Loading Qwen model on CPU (float32)...")
                     self.base_model = AutoModelForCausalLM.from_pretrained(
                         BASE_MODEL,
-                        dtype=getattr(torch, "float32", None),
+                        torch_dtype=getattr(torch, "float32", None),
                         device_map="cpu",
                         trust_remote_code=True
                     )
@@ -445,6 +498,8 @@ class CollegeChatbot:
             
             headers = {
                 "en": f"### 🎉 You qualify for **{len(eligible_schemes)} Eligible Scholarships**!\n\nBased on your verified profile (**CGPA: {cgpa}**, **Family Income: Rs. {family_income:,.0f}**, **Dept: {dept}**, **Year: {year}**, **Category: {caste}**), here are **ALL** the scholarships you are eligible to apply for:\n\n",
+                "tanglish": f"### 🎉 Ungal profile-ku **{len(eligible_schemes)} Eligible Scholarships** kedaikkum!\n\nUngal verified profile (**CGPA: {cgpa}**, **Family Income: Rs. {family_income:,.0f}**, **Dept: {dept}**, **Year: {year}**, **Category: {caste}**)-ku adippadayil, neengal apply panna koodiya scholarships list idho:\n\n",
+                "hinglish": f"### 🎉 Aapke verified profile ke hisaab se **{len(eligible_schemes)} Eligible Scholarships** uplabdh hain!\n\nAapke profile (**CGPA: {cgpa}**, **Family Income: Rs. {family_income:,.0f}**, **Dept: {dept}**, **Year: {year}**, **Category: {caste}**) ke aadhar par eligible scholarships ki list:\n\n",
                 "hi": f"### 🎉 आप **{len(eligible_schemes)} छात्रवृत्तियों** के लिए पात्र हैं!\n\nआपकी प्रोफाइल (**CGPA: {cgpa}**, **आय: Rs. {family_income:,.0f}**, **विभाग: {dept}**, **वर्ष: {year}**) के आधार पर सभी पात्र छात्रवृत्तियां:\n\n",
                 "ta": f"### 🎉 நீங்கள் **{len(eligible_schemes)} உதவித்தொகைகளுக்கு** தகுதி பெற்றுள்ளீர்கள்!\n\nஉங்கள் விவரக்குறிப்பின் அடிப்படையில் (**CGPA: {cgpa}**, **வருமானம்: Rs. {family_income:,.0f}**, **துறை: {dept}**):\n\n",
                 "te": f"### 🎉 మీరు **{len(eligible_schemes)} స్కాలర్‌షిప్‌లకు** అర్హత పొందారు!\n\nమీ ప్రొఫైల్ ఆధారంగా (**CGPA: {cgpa}**, **ఆదాయం: Rs. {family_income:,.0f}**):\n\n",
@@ -463,6 +518,10 @@ class CollegeChatbot:
             
         if "history" not in context or context.get("reset_memory") or context.get("new_session"):
             context["history"] = []
+
+        detected_lang = detect_user_language(query, default_lang=language)
+        context["detected_language"] = detected_lang
+        effective_lang = detected_lang if detected_lang in ["tanglish", "hinglish", "ta", "hi", "te", "ml", "ar"] else (language or "en")
             
         is_safe, refusal_msg = self.check_safety_guardrails(query)
         if not is_safe:
@@ -532,13 +591,35 @@ class CollegeChatbot:
             "how application is processed", "lifecycle of scholarship", "application status stages",
             "5 steps of scholarship", "application workflow", "verification lifecycle",
             "tracked", "tracking", "track application", "how to track", "how is application tracked",
-            "application process stages", "application progress stages"
+            "application process stages", "application progress stages",
+            "epdi track panradhu", "eppadi track", "status eppadi", "tracking kaise", "status kaise check"
         ]) or (("lifecycle" in query_lower or "stages" in query_lower or "tracked" in query_lower or "tracking" in query_lower) and any(w in query_lower for w in ["scholarship", "application", "explain", "process"]))
 
         if is_lifecycle_query:
+            if effective_lang == "tanglish":
+                header_msg = "### 🔄 Official 5-Stage Scholarship Application Lifecycle\n\nStudent Portal moolamaaga submit panna ovvoru application-um **5 distinct stages**-la live-ah track aagum:\n\n"
+                track_note = "\n\n📌 **Live Status Epdi Parkurathu**:\nUngal Student Dashboard-la **Applications** (`/dashboard/applications`) tab-ku poi interactive 5-stage progress bar paarkalaam!"
+            elif effective_lang == "hinglish":
+                header_msg = "### 🔄 Official 5-Stage Scholarship Application Lifecycle\n\nStudent Portal se apply ki gayi har scholarship application **5 stages** mein live track hoti hai:\n\n"
+                track_note = "\n\n📌 **Live Status Kaise Dekhein**:\nStudent Dashboard mein **Applications** (`/dashboard/applications`) tab par jaakar interactive 5-stage progress timeline dekh sakte hain!"
+            elif effective_lang == "ta":
+                header_msg = "### 🔄 அதிகாரப்பூர்வ 5-படிநிலை உதவித்தொகை விண்ணப்ப வாழ்க்கை சுழற்சி\n\nமாணவர் போர்ட்டல் மூலம் சமர்ப்பிக்கப்படும் ஒவ்வொரு விண்ணப்பமும் **5 முக்கிய நிலைகளில்** கண்காணிக்கப்படுகிறது:\n\n"
+                track_note = "\n\n📌 **நேரலை நிலையை எவ்வாறு கண்காணிப்பது**:\nஉங்கள் மாணவர் டாஷ்போர்டில் உள்ள **Applications** (`/dashboard/applications`) பகுதிக்குச் சென்று 5-நிலை முன்னேற்றத்தைக் கண்காணிக்கவும்!"
+            elif effective_lang == "hi":
+                header_msg = "### 🔄 आधिकारिक 5-चरणीय छात्रवृत्ति आवेदन जीवनचक्र\n\nस्टूडेंट पोर्टल के माध्यम से प्रस्तुत प्रत्येक आवेदन को **5 विशिष्ट चरणों** में ट्रैक किया जाता है:\n\n"
+                track_note = "\n\n📌 **लाइव स्थिति कैसे ट्रैक करें**:\nअपने डैशबोर्ड में **Applications** (`/dashboard/applications`) टैब पर जाकर 5-चरणीय प्रगति समयरेखा देखें!"
+            else:
+                header_msg = (
+                    "### 🔄 Official 5-Stage Scholarship Application Lifecycle\n\n"
+                    "Every scholarship application submitted through the **Student Portal** is tracked in real-time through **5 distinct verification, approval, and disbursement stages**:\n\n"
+                )
+                track_note = (
+                    "\n\n📌 **How to Track Live Progress**:\n"
+                    "Visit the **Applications** (`/dashboard/applications`) tab in your Student Dashboard to view the interactive 5-stage progress timeline, rejection notes (if any), and full audit history logs for each of your applications!"
+                )
+
             res_lifecycle = (
-                "### 🔄 Official 5-Stage Scholarship Application Lifecycle\n\n"
-                "Every scholarship application submitted through the **Student Portal** is tracked in real-time through **5 distinct verification, approval, and disbursement stages**:\n\n"
+                header_msg +
                 "#### 📝 **Stage 1: Application Submitted & Document Queue**\n"
                 "- **Process**: The student fills out personal & academic details, attaches certificates from their **Digital Document Vault** (or uploads new PDFs), and submits the application.\n"
                 "- **Portal Status**: `Application Submitted` / `Pending Verification`.\n"
@@ -559,10 +640,8 @@ class CollegeChatbot:
                 "#### 💳 **Stage 5: Direct Benefit Transfer (DBT) Disbursement**\n"
                 "- **Process**: The Government / Funding Agency releases the approved scholarship funds directly into the student's Aadhaar-seeded bank account via PFMS / DBT.\n"
                 "- **Portal Status**: `Amount Received (DBT)` / `Disbursed`.\n"
-                "- **Confirmation**: Student receives SMS and transaction reference receipt.\n\n"
-                "---\n"
-                "📌 **How to Track Live Progress**:\n"
-                "Visit the **Applications** (`/dashboard/applications`) tab in your Student Dashboard to view the interactive 5-stage progress timeline, rejection notes (if any), and full audit history logs for each of your applications!"
+                "- **Confirmation**: Student receives SMS and transaction reference receipt." +
+                track_note
             )
             context["history"].append({"role": "user", "text": query})
             context["history"].append({"role": "bot", "text": res_lifecycle})
@@ -853,9 +932,167 @@ class CollegeChatbot:
             context["history"].append({"role": "bot", "text": res_msg})
             return res_msg, context
 
+        # 5B. Check "How to Apply" / Application Procedure Queries (HIGH PRIORITY)
+        has_apply_action = any(w in query_lower for w in [
+            "apply", "applying", "appliying", "application", "vinnapam", "vinnapikka", "aavedan", "bhare", "bharna", "submit", "submission"
+        ])
+        has_how_intent = any(w in query_lower for w in [
+            "how", "process", "steps", "procedure", "way", "method",
+            "eppadi", "eppidi", "epdi", "epidi", "panradhu", "panrathu", "pannurathu", "pannuvathu", "pannanum", "seiyanum",
+            "kaise", "tarika", "vidhi", "kis tarah"
+        ]) or any(phrase in query_lower for phrase in [
+            "how to", "how do", "how can", "where to", "steps to", "procedure to", "process in",
+            "apply kaise", "kaise apply", "eppadi apply", "eppidi apply", "epdi apply", "apply panna", "apply panra",
+            "apply pandradhu", "apply pannurathu", "apply pannuvathu", "apply karna", "kaise bhare", "kaise bharein"
+        ])
+
+        is_how_to_apply = (has_apply_action and has_how_intent) or any(phrase in query_lower for phrase in [
+            "how to apply", "how can i apply", "how do i apply", "steps to apply", "application process",
+            "where to apply", "how to apply for it", "how should i apply", "process to apply", "how apply",
+            "how to submit", "procedure to apply", "how do we apply", "apply kaise kare", "kaise apply kare",
+            "eppadi apply", "eppidi apply", "epdi apply", "apply panna enna", "apply pannurathu eppidi", "eppidi apply pannurathu",
+            "apply panradhu eppadi", "eppadi apply panradhu", "kaise aavedan kare", "kaise bhare", "schlaorships apply pannurathu"
+        ])
+
+        if is_how_to_apply:
+            matched_sch = None
+            for sdata in live_schs:
+                sname = sdata.get("scholarship_name", "").lower()
+                sid = sdata.get("id", "").lower()
+                if sid in query_lower or sname in query_lower:
+                    matched_sch = sdata
+                    break
+                keywords = [w for w in sname.split() if len(w) > 4 and w not in ["scholarship", "scheme", "students", "national", "central", "state"]]
+                if len(keywords) >= 2 and all(kw in query_lower for kw in keywords[:2]):
+                    matched_sch = sdata
+                    break
+
+            if matched_sch:
+                portal_url = matched_sch.get("official_website") or matched_sch.get("application_portal_url") or matched_sch.get("application_url") or "https://scholarships.gov.in"
+                res_apply = (
+                    f"### 📝 How to Apply for **{matched_sch['scholarship_name']}**\n\n"
+                    f"Follow this step-by-step procedure to submit your application:\n\n"
+                    f"#### 1. 🔍 Check & Verify Criteria\n"
+                    f"- **Academic Cutoff**: Min CGPA {matched_sch.get('min_gpa', 6.0)} | 0 active backlogs\n"
+                    f"- **Income Ceiling**: ₹{matched_sch.get('max_income', 250000)/100000:.1f} Lakhs / year\n\n"
+                    f"#### 2. 🪪 Upload Required Documents\n"
+                    f"Upload clear copies to your **Digital Document Vault** (`/dashboard/documents`):\n"
+                    f"- 📄 Aadhaar Card (Linked to Bank Account for DBT)\n"
+                    f"- 💰 Current Year Annual Income Certificate\n"
+                    f"- 📊 Qualifying Mark Sheets (10th, 12th, or Latest Semester)\n"
+                    f"- 🏫 College Bonafide Student Certificate & Tuition Fee Receipt\n"
+                    f"- 🏦 Student Bank Passbook / Cancelled Cheque\n\n"
+                    f"#### 3. 🔐 Pre-Fill Form with Double Passkey\n"
+                    f"- Go to **Scholarships Hub** (`/dashboard/scholarships`) -> Click **📄 Download Form**.\n"
+                    f"- Enter your **Double Passkey** to generate an official pre-filled application dossier with QR verification.\n\n"
+                    f"#### 4. ⚡ Submit & Track Live\n"
+                    f"- Submit directly via the official portal: 👉 [Apply on Official Portal]({portal_url})\n"
+                    f"- Or submit physical hardcopies at the **College Scholarship Cell (Room 102)**.\n"
+                    f"- Track your application status live through the 5-stage lifecycle under **Applications** (`/dashboard/applications`)!"
+                )
+            else:
+                if effective_lang == "tanglish":
+                    res_apply = (
+                        "### 📝 Scholarship Eppidi Apply Pannurathu? (Step-by-Step Guide)\n\n"
+                        "Student Portal-la ungal eligible scholarships-ku apply pandradhu romba simple! Intha 4 steps follow pannunga:\n\n"
+                        "#### 1. 🔍 Scholarships Hub-la Explore Pannunga\n"
+                        "- Ungal Student Dashboard-la **Scholarships Hub** (`/dashboard/scholarships`) tab-ku ponga.\n"
+                        "- Ungal verified profile (CGPA, Income, Category)-ku match aana active scholarships-ah paarunga.\n\n"
+                        "#### 2. 🪪 Digital Document Vault-la Certificates Upload Pannunga\n"
+                        "- **Digital Document Vault** (`/dashboard/documents`) tab-ku ponga.\n"
+                        "- Thevaiyaana mandatory documents clear-ah upload pannunga:\n"
+                        "  - 📄 **Aadhaar Card** (Mobile & Bank account linked-ah irukkanum)\n"
+                        "  - 💰 **Family Income Certificate** (Tahsildar issue pannadhu)\n"
+                        "  - 📊 **10th & 12th Marksheets** / Latest Semester Grade Sheets\n"
+                        "  - 🏫 **College Bonafide Certificate** & Tuition Fee Receipt\n"
+                        "  - 🏦 **Bank Passbook Copy** (Account No & IFSC theriyumpadi)\n\n"
+                        "#### 3. 🔐 Double Passkey Moolamaaga Form Download Pannunga\n"
+                        "- Eligible scholarship card-la **📄 Download Form** click pannunga.\n"
+                        "- Ungal **Student Passkey** and **Institutional Passkey** enter panni tamper-proof application PDF download pannunga.\n\n"
+                        "#### 4. ⚡ Online Submit Panni Live Track Pannunga\n"
+                        "- **⚡ Apply Online** click panni official Government portal (e.g. National Scholarship Portal)-la submit pannunga, illana **Room 102 (Scholarship Nodal Cell)**-la physical hardcopy submit pannunga.\n"
+                        "- Status-ah **Applications** (`/dashboard/applications`) tab-la 5-stage lifecycle-la live-ah track pannalaam!"
+                    )
+                elif effective_lang == "hinglish":
+                    res_apply = (
+                        "### 📝 Scholarship Ke Liye Kaise Apply Karein? (Step-by-Step Guide)\n\n"
+                        "Student Portal mein eligible scholarships ke liye apply karna bahut aasan hai! Ye 4 steps follow karein:\n\n"
+                        "#### 1. 🔍 Scholarships Hub Mein Browse Karein\n"
+                        "- Student Dashboard ke **Scholarships Hub** (`/dashboard/scholarships`) tab par jayein.\n"
+                        "- Apne profile (CGPA, Income, Category) ke hisaab se matched scholarships check karein.\n\n"
+                        "#### 2. 🪪 Digital Document Vault Mein Certificates Upload Karein\n"
+                        "- **Digital Document Vault** (`/dashboard/documents`) tab par jayein.\n"
+                        "- Zaroori certificates upload karein:\n"
+                        "  - 📄 **Aadhaar Card** (Mobile aur Bank account se linked)\n"
+                        "  - 💰 **Parivarik Aay Praman Patra (Income Certificate)**\n"
+                        "  - 📊 **10th & 12th Marksheets** / Latest Semester Grade Sheets\n"
+                        "  - 🏫 **College Bonafide Certificate** & Fee Receipt\n"
+                        "  - 🏦 **Bank Passbook Copy** (Account No. aur IFSC saaf dikhe)\n\n"
+                        "#### 3. 🔐 Double Passkey Se Pre-Filled Form Download Karein\n"
+                        "- Scholarship card par **📄 Download Form** par click karein.\n"
+                        "- **Student Passkey** aur **Institutional Passkey** daalkar verified PDF dossier download karein.\n\n"
+                        "#### 4. ⚡ Online Submit Karein Aur Live Track Karein\n"
+                        "- **⚡ Apply Online** par click karke official portal (e.g. NSP) par submit karein, ya **Room 102 (Scholarship Cell)** mein hardcopy jama karein.\n"
+                        "- Apne application ka status **Applications** (`/dashboard/applications`) tab mein live 5-stage lifecycle ke zariye track karein!"
+                    )
+                elif effective_lang == "ta":
+                    res_apply = (
+                        "### 📝 உதவித்தொகைக்கு எவ்வாறு விண்ணப்பிப்பது? (படி-படி வழிகாட்டி)\n\n"
+                        "மாணவர் போர்ட்டலில் உதவித்தொகைக்கு விண்ணப்பிப்பது மிகவும் எளிது! பின்வரும் 4 எளிய படிகளைப் பின்பற்றவும்:\n\n"
+                        "#### 1. 🔍 Scholarships Hub-ல் தகுதியான திட்டங்களைத் தேர்ந்தெடுக்கவும்\n"
+                        "- உங்கள் டாஷ்போர்டில் உள்ள **Scholarships Hub** (`/dashboard/scholarships`) பகுதிக்குச் செல்லவும்.\n\n"
+                        "#### 2. 🪪 Digital Document Vault-ல் ஆவணங்களைப் பதிவேற்றவும்\n"
+                        "- **Digital Document Vault** (`/dashboard/documents`) பகுதிக்குச் சென்று ஆதார், வருமானச் சான்றிதழ், மதிப்பெண் சான்றிதழ்கள் மற்றும் போனாஃபைடு சான்றிதழ்களைப் பதிவேற்றவும்.\n\n"
+                        "#### 3. 🔐 Double Passkey மூலம் விண்ணப்பப் படிவத்தைப் பதிவிறக்கவும்\n"
+                        "- **📄 Download Form** என்பதைக் கிளிக் செய்து பாஸ்கீ உள்ளிட்டு சரிபார்க்கப்பட்ட படிவத்தைப் பெறவும்.\n\n"
+                        "#### 4. ⚡ அதிகாரப்பூர்வ போர்ட்டலில் சமர்ப்பித்து நேரலையில் கண்காணிக்கவும்\n"
+                        "- **⚡ Apply Online** மூலம் சமர்ப்பிக்கவும், அல்லது கல்லூரி உதவித்தொகை பிரிவில் (அறை 102) நேரில் ஒப்படைக்கவும்.\n"
+                        "- **Applications** (`/dashboard/applications`) பக்கத்தில் 5-நிலை முன்னேற்றத்தை நேரலையாகக் கண்காணிக்கவும்!"
+                    )
+                elif effective_lang == "hi":
+                    res_apply = (
+                        "### 📝 छात्रवृत्ति के लिए आवेदन कैसे करें? (चरण-दर-चरण गाइड)\n\n"
+                        "स्टूडेंट पोर्टल में छात्रवृत्ति के लिए आवेदन करना बहुत आसान है! निम्नलिखित 4 सरल चरणों का पालन करें:\n\n"
+                        "#### 1. 🔍 Scholarships Hub में योजनाएं देखें\n"
+                        "- स्टूडेंट डैशबोर्ड के **Scholarships Hub** (`/dashboard/scholarships`) टैब पर जाएं।\n\n"
+                        "#### 2. 🪪 Digital Document Vault में प्रमाण पत्र अपलोड करें\n"
+                        "- **Digital Document Vault** (`/dashboard/documents`) में आधार, आय प्रमाण पत्र, अंकतालिका और बोनाफाइड अपलोड करें।\n\n"
+                        "#### 3. 🔐 Double Passkey से भरा हुआ फॉर्म डाउनलोड करें\n"
+                        "- **📄 Download Form** पर क्लिक करें और पासकी दर्ज करके सत्यापन फॉर्म प्राप्त करें।\n\n"
+                        "#### 4. ⚡ ऑनलाइन सबमिट करें और लाइव ट्रैक करें\n"
+                        "- **⚡ Apply Online** के जरिए आधिकारिक पोर्टल पर जमा करें या कॉलेज कक्ष 102 में हार्डकॉपी जमा करें।\n"
+                        "- **Applications** (`/dashboard/applications`) में 5-चरणीय प्रगति को लाइव ट्रैक करें!"
+                    )
+                else:
+                    res_apply = (
+                        "### 📝 How to Apply for Your Eligible Scholarships (Step-by-Step Guide)\n\n"
+                        "Applying for scholarships in your **Campus Student Portal** is quick and verified through 4 simple steps:\n\n"
+                        "#### 1. 🔍 Browse & Select in Scholarships Hub\n"
+                        "- Go to the **Scholarships Hub** (`/dashboard/scholarships`) in your Student Dashboard.\n"
+                        "- Review the scholarships matched to your profile (Central Govt NSP, State Post-Matric, Merit, Need-based, etc.).\n\n"
+                        "#### 2. 🪪 Upload Certificates to Digital Document Vault\n"
+                        "- Visit the **Digital Document Vault** (`/dashboard/documents`) tab.\n"
+                        "- Upload clear scanned copies of your mandatory certificates:\n"
+                        "  - 📄 **Aadhaar Card** (Linked with active mobile number & bank account)\n"
+                        "  - 💰 **Annual Family Income Certificate** (Issued by Revenue Authority/Tehsildar)\n"
+                        "  - 📊 **Class 10th & 12th Marksheets** / Latest Semester Grade Sheets\n"
+                        "  - 🏫 **College Bonafide Certificate** & Current Academic Year Fee Receipt\n"
+                        "  - 🏦 **Student Bank Passbook Copy** (Showing Account No. & IFSC)\n"
+                        "  - 👥 **Community / Caste Certificate** (For category reservation schemes)\n\n"
+                        "#### 3. 🔐 Download Pre-Filled Application Form with Double Passkey\n"
+                        "- Click **📄 Download Form** on your eligible scholarship card.\n"
+                        "- Enter your **Student Passkey** and **Institutional Passkey** to generate your secure, tamper-evident PDF dossier.\n\n"
+                        "#### 4. ⚡ Submit Online & Track Real-Time\n"
+                        "- Click **⚡ Apply Online** to open the official Government portal (e.g. [National Scholarship Portal](https://scholarships.gov.in/)), or submit signed hardcopies to **Room 102 (Scholarship Nodal Cell)**.\n"
+                        "- Track your submission live across all **5 verification & disbursement stages** in the **Applications** (`/dashboard/applications`) tab!"
+                    )
+            context["history"].append({"role": "user", "text": query})
+            context["history"].append({"role": "bot", "text": res_apply})
+            return res_apply, context
+
         # 6. Check eligibility & individual scholarship queries (English, Tanglish, Hinglish, Tenglish)
         is_eligibility_intent = any(k in query_lower for k in [
-            "eligible", "eligibility", "qualification", "apply for", "can i get", "qualify", "for me", "which all", "what scholarships",
+            "eligible", "eligibility", "qualification", "can i get", "qualify", "for me", "which all", "what scholarships",
             "kidaikuma", "kidaikkum", "apply panalama", "apply panna", "iruku", "panlam", "mudiyuma", "varusathuku",
             "kaise milega", "milegi", "chahiye", "kaunsi", "naku", "vasthunda", "vasthundi"
         ])
@@ -900,7 +1137,7 @@ class CollegeChatbot:
                     break
 
             if is_all_eligible_query or not matched_sch:
-                res = self.get_all_eligible_scholarships(student_profile, language)
+                res = self.get_all_eligible_scholarships(student_profile, effective_lang)
                 context["history"].append({"role": "user", "text": query})
                 context["history"].append({"role": "bot", "text": res})
                 return res, context
@@ -927,9 +1164,16 @@ class CollegeChatbot:
                 return res, context
 
         # 5. Fast Greeting Handler
-        if query_lower in ["hi", "hello", "hey", "namaste", "good morning", "good afternoon", "hlo", "hi there", "hola", "vanakkam", "namaskaram"]:
+        is_greeting = any(query_lower.strip() == g for g in [
+            "hi", "hello", "hey", "namaste", "good morning", "good afternoon", "hlo", "hi there", "hola",
+            "vanakkam", "namaskaram", "kaise ho", "epdi irukinga", "vanakkam bro", "namaste sir"
+        ]) or any(query_lower.startswith(g + " ") for g in ["hi", "hello", "hey", "namaste", "vanakkam"])
+
+        if is_greeting:
             greetings = {
                 "en": "Hello! 👋 I am your College & Scholarship Assistant. How can I help you today?",
+                "tanglish": "Vanakkam! 👋 Naan ungal College & Scholarship Assistant. Ungalukku innaiku enna udhavi venum? (Fees, exams, illana scholarships pathi kekalaam)!",
+                "hinglish": "Namaste! 👋 Main aapka College & Scholarship Assistant hoon. Aaj main aapki kya madad kar sakta hoon? (Fees, exams ya scholarships ke baare mein pooch sakte hain)!",
                 "hi": "नमस्ते! 👋 मैं आपका कॉलेज और छात्रवृत्ति सहायक हूँ। आज मैं आपकी क्या मदद कर सकता हूँ?",
                 "ta": "வணக்கம்! 👋 நான் உங்கள் கல்லூரி மற்றும் உதவித்தொகை உதவியாளர். இன்று உங்களுக்கு எப்படி உதவ முடியும்?",
                 "te": "నమస్తే! 👋 నేను మీ కాలేజ్ మరియు స్కాలర్‌షిప్ అసిస్టెంట్‌ని. ఈరోజు నేను మీకు ఎలా సహాయపడగలను?",
@@ -937,26 +1181,34 @@ class CollegeChatbot:
                 "ar": "مرحباً! 👋 أنا مساعدك للكلية والمنح الدراسية. كيف يمكنني مساعدتك اليوم؟",
                 "ml": "നമസ്കാരം! 👋 ഞാൻ നിങ്ങളുടെ കോളേജ് & സ്‌കോളർഷിപ്പ് അസിസ്റ്റന്റ് ആണ്. ഇന്ന് എനിക്ക് നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?"
             }
-            res_greet = greetings.get(language, greetings["en"])
+            res_greet = greetings.get(effective_lang, greetings["en"])
             context["history"].append({"role": "user", "text": query})
             context["history"].append({"role": "bot", "text": res_greet})
             return res_greet, context
 
         # 6. Standard RAG fallback with Dynamic DB & Uploaded Circular Knowledge Extraction
-        detected_lang = language or "en"
-        if len(query.strip()) > 20:
-            try:
-                auto_d = detect(query)
-                if auto_d in ["en", "hi", "ta", "te", "ne", "ar", "ml"]:
-                    detected_lang = auto_d
-            except:
-                pass
+        detected_lang = effective_lang
             
         context_str = ""
         search_query = query
-        for noise_word in ["enaku", "kidaikuma", "kidaikkum", "apply panalama", "panlam", "mujhe", "milegi", "kaise"]:
-            if noise_word in query_lower:
-                search_query = search_query + " scholarship eligibility rules criteria circular"
+        
+        # Expand semantic concepts for RAG search
+        if any(w in query_lower for w in ["timing", "timings", "neram", "time", "eppovarum", "schedule", "open", "close", "working hours", "samay", "kab"]):
+            search_query += " campus working hours college timings schedule opening closing time"
+        if any(w in query_lower for w in ["fee", "fees", "kattanam", "evlo", "panam", "kitna", "tuition", "payment", "cost"]):
+            search_query += " fees structure tuition fee payment examination fees"
+        if any(w in query_lower for w in ["program", "programs", "course", "courses", "padipu", "branch", "department", "dept", "cse", "it", "eee", "ece", "mech", "civil", "mba", "mca"]):
+            search_query += " academic departments and programs offered courses degrees undergraduate postgraduate"
+        if any(w in query_lower for w in ["exam", "exams", "cie", "test", "schedule", "thearvu", "pariksha", "timetable", "dates"]):
+            search_query += " cie test schedule examination timetable dates internal assessment"
+        if any(w in query_lower for w in ["hostel", "mess", "food", "warden", "curfew", "accommodation"]):
+            search_query += " hostel timings rules mess warden facilities"
+        if any(w in query_lower for w in ["library", "books", "noolagam", "kitab"]):
+            search_query += " library hours timings borrow books library schedule"
+        if any(w in query_lower for w in ["leave", "od", "on duty", "chutti", "permission", "absent", "attendance"]):
+            search_query += " student leave od on duty permission procedure attendance"
+        if any(w in query_lower for w in ["scholarship", "scolorship", "schlaorship", "stipend"]):
+            search_query += " scholarship eligibility rules criteria circular guidelines"
 
         # 1. Search Vector DB (Circulars & Uploaded Documents)
         if self.retriever:
@@ -970,17 +1222,27 @@ class CollegeChatbot:
         # Direct file fallback for uploaded circulars
         if not context_str and os.path.exists(DOCS_DIR):
             try:
-                matched_chunks = []
-                query_terms = [w for w in re.findall(r'\b\w+\b', query_lower) if len(w) > 3 and w not in ["what", "when", "which", "where", "how", "tell", "explain", "about"]]
+                CRITICAL_ACADEMIC_TERMS = {"cse", "it", "eee", "ece", "mech", "civil", "cie", "mba", "mca", "bme", "ad", "aiml", "aids", "fee", "fees", "exam", "ug", "pg", "time", "timing", "test", "hours", "rule", "rules"}
+                query_terms = [w for w in re.findall(r'\b\w+\b', query_lower + " " + search_query.lower()) if (w in CRITICAL_ACADEMIC_TERMS or len(w) > 3) and w not in ["what", "when", "which", "where", "how", "tell", "explain", "about", "enna", "irukku", "iruku", "pannurathu", "kaise", "hoga"]]
+                
+                matched_sections = []
                 for fname in os.listdir(DOCS_DIR):
                     fpath = os.path.join(DOCS_DIR, fname)
                     if os.path.isfile(fpath) and fname.endswith((".txt", ".md", ".json")):
                         with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
                             txt_content = f.read()
-                        if any(term in txt_content.lower() for term in query_terms) or any(term in fname.lower() for term in query_terms):
-                            matched_chunks.append(f"📄 **Circular / Document ({fname})**:\n{txt_content}")
-                if matched_chunks:
-                    context_str = "\n\n".join(matched_chunks[:3])
+                        
+                        # Check header sections
+                        sections = re.split(r'\n(?=## |\# )', txt_content)
+                        for sec in sections:
+                            sec_lower = sec.lower()
+                            score = sum(1 for term in query_terms if term in sec_lower)
+                            if score > 0:
+                                matched_sections.append((score, f"📄 **Circular / Document ({fname})**:\n{sec.strip()}"))
+                
+                if matched_sections:
+                    matched_sections.sort(key=lambda x: x[0], reverse=True)
+                    context_str = "\n\n".join([item[1] for item in matched_sections[:4]])
             except Exception as fe:
                 logger.error(f"Direct circular scan error: {fe}")
 
@@ -998,17 +1260,17 @@ class CollegeChatbot:
             pass
 
         # If neural model is available, perform generation
-        # If neural model is available, perform generation
         if self.tokenizer is not None and self.model is not None:
             try:
                 system_instructions = {
-                    "hi": "Aap ek college sahayak bot hain. Dee gayi jaankari ke aadhar par uttar dein.",
+                    "hi": "Aap ek college sahayak bot hain. Dee gayi jaankari ke aadhar par saral Hindi mein uttar dein.",
+                    "hinglish": "Aap ek friendly college assistant bot hain. Chatbot user ne Romanized Hindi/Hinglish mein sawaal poocha hai. Romanized conversational Hinglish (Hindi words written in English letters, e.g. 'College ke CSE department mein ye programs hain...') mein spasht uttar dein.",
                     "en": "You are a helpful college assistant bot. Answer the question accurately using the provided ground-truth context.",
-                    "ta": "Neengal oru college udhavi bot. Kodukkappatta context-in adippadayil pathilalikkavum.",
+                    "ta": "நீங்கள் ஒரு கல்லூரி உதவி பாட். கொடுக்கப்பட்ட விவரங்களின் அடிப்படையில் தெளிவான தமிழில் பதிலளிக்கவும்.",
+                    "tanglish": "You are a friendly college assistant bot. The user asked in Tanglish (Tamil words written in English alphabet, e.g. 'Sona College-la indha programs offer panranga...'). Answer in natural conversational Tanglish keeping course and official names in clear English.",
                     "te": "Meeru sahayakaramaina college sahayaka bot. Andhinchina context aadharanga samadhanam ivvandi."
                 }
                 sys_prompt = system_instructions.get(detected_lang, system_instructions["en"])
-                sys_prompt += f" Respond accurately in '{detected_lang}' or clear English."
 
                 start_tok = "<|im_start|>"
                 end_tok = "<|im_end|>"
@@ -1023,7 +1285,9 @@ class CollegeChatbot:
                 outputs = self.model.generate(**inputs, max_new_tokens=256, temperature=0.2, repetition_penalty=1.1)
                 raw_response = self.tokenizer.decode(outputs[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True, clean_up_tokenization_spaces=True)
                 clean_response = raw_response.encode("utf-8", errors="replace").decode("utf-8", errors="ignore").strip()
-                if clean_response:
+                
+                unhelpful_phrases = ["i don't understand what you're asking", "i cannot provide information", "not relevant to my purpose", "as an ai language model"]
+                if clean_response and not any(phrase in clean_response.lower() for phrase in unhelpful_phrases):
                     context["history"].append({"role": "user", "text": query})
                     context["history"].append({"role": "bot", "text": clean_response})
                     return clean_response, context
@@ -1034,12 +1298,23 @@ class CollegeChatbot:
         if context_str.strip():
             rag_lines = [line.strip() for line in context_str.split("\n") if line.strip() and not line.startswith("Scholarship:")]
             if rag_lines:
-                rag_summary = "\n\n".join(rag_lines[:5])
-                fallback_res = (
-                    f"### 📄 Official Campus Knowledge Base & Circulars\n\n"
-                    f"{rag_summary}\n\n"
-                    f"📌 *Note: This information is retrieved directly from official campus circulars and policy guidelines.*"
-                )
+                rag_summary = "\n\n".join(rag_lines[:8])
+                if detected_lang == "tanglish":
+                    header_txt = "### 📄 Campus Knowledge Base & Circular Details\n\nUngal kelvikku official college records & circulars-la irundhu kedaitha details idho:\n\n"
+                    footer_txt = "\n\n📌 *Kooduthal thagavalluku college administration illana respective department office-ah consult pannunga.*"
+                elif detected_lang == "hinglish":
+                    header_txt = "### 📄 Campus Knowledge Base & Circular Details\n\nAapke sawaal ke liye official college circulars se jaankari yahan hai:\n\n"
+                    footer_txt = "\n\n📌 *Aur vistaar mein jaankari ke liye college office se sampark karein.*"
+                elif detected_lang == "ta":
+                    header_txt = "### 📄 கல்லூரி சுற்றறிக்கை மற்றும் அறிவுத் தளம்\n\nஉங்கள் கேள்விக்கான அதிகாரப்பூர்வ கல்லூரித் தகவல்கள் இதோ:\n\n"
+                    footer_txt = "\n\n📌 *கூடுதல் விவரங்களுக்கு கல்லூரி அலுவலகத்தைத் தொடர்பு கொள்ளவும்.*"
+                elif detected_lang == "hi":
+                    header_txt = "### 📄 आधिकारिक कॉलेज सूचना और ज्ञानकोष\n\nआपके प्रश्न के लिए आधिकारिक रिकॉर्ड से जानकारी यहाँ है:\n\n"
+                    footer_txt = "\n\n📌 *अधिक जानकारी के लिए कॉलेज कार्यालय से संपर्क करें।*"
+                else:
+                    header_txt = "### 📄 Official Campus Knowledge Base & Circulars\n\n"
+                    footer_txt = "\n\n📌 *Note: This information is retrieved directly from official campus circulars and policy guidelines.*"
+                fallback_res = f"{header_txt}{rag_summary}{footer_txt}"
             else:
                 fallback_res = (
                     f"### 🎓 Campus Scholarship Information\n\n"
@@ -1047,14 +1322,49 @@ class CollegeChatbot:
                     f"📌 *For application submission and document upload, please check the **Scholarships Hub** and **Digital Document Vault** in your portal.*"
                 )
         else:
-            fallback_res = (
-                f"I received your query: **'{query}'**.\n\n"
-                f"To find relevant information:\n"
-                f"1. Check the **Scholarships Hub** (`/dashboard/scholarships`) for all verified active schemes.\n"
-                f"2. Visit the **Digital Document Vault** (`/dashboard/documents`) for mandatory certificate requirements.\n"
-                f"3. Check the **Circulars & Notifications** feed for official administrative memos.\n"
-                f"4. Contact the **College Scholarship Cell (Room 102)** or call `0120-6619540` for direct nodal assistance."
-            )
+            if detected_lang == "tanglish":
+                fallback_res = (
+                    f"Ungal query: **'{query}'** kedaithadhu.\n\n"
+                    f"Ippodhu relevant information paarka:\n"
+                    f"1. **Scholarships Hub** (`/dashboard/scholarships`)-la ungal profile-ku match aana schemes check pannunga.\n"
+                    f"2. **Digital Document Vault** (`/dashboard/documents`)-la certificates thevaigalai paarunga.\n"
+                    f"3. **Circulars & Notifications** feed-la college memos paarunga.\n"
+                    f"4. Nodal Officer udhavikku **College Scholarship Cell (Room 102)** contact pannunga."
+                )
+            elif detected_lang == "hinglish":
+                fallback_res = (
+                    f"Aapka sawaal: **'{query}'** mila.\n\n"
+                    f"Zaroori jaankari ke liye:\n"
+                    f"1. **Scholarships Hub** (`/dashboard/scholarships`) mein active schemes check karein.\n"
+                    f"2. **Digital Document Vault** (`/dashboard/documents`) mein documents ki list check karein.\n"
+                    f"3. **Circulars & Notifications** feed mein college memos dekhein.\n"
+                    f"4. College Nodal Officer sahayata ke liye **Scholarship Cell (Room 102)** se sampark karein."
+                )
+            elif detected_lang == "ta":
+                fallback_res = (
+                    f"உங்கள் கேள்வி: **'{query}'** பெறப்பட்டது.\n\n"
+                    f"தொடர்புடைய தகவல்களைக் காண:\n"
+                    f"1. **Scholarships Hub** (`/dashboard/scholarships`)-ல் திட்டங்களை சரிபார்க்கவும்.\n"
+                    f"2. **Digital Document Vault** (`/dashboard/documents`)-ல் சான்றிதழ்களைப் பார்க்கவும்.\n"
+                    f"3. உதவிக்கு **கல்லூரி உதவித்தொகை பிரிவு (அறை 102)**-ஐத் தொடர்பு கொள்ளவும்."
+                )
+            elif detected_lang == "hi":
+                fallback_res = (
+                    f"आपका प्रश्न: **'{query}'** प्राप्त हुआ।\n\n"
+                    f"संबंधित जानकारी के लिए:\n"
+                    f"1. **Scholarships Hub** (`/dashboard/scholarships`) में योजनाएं जांचें।\n"
+                    f"2. **Digital Document Vault** (`/dashboard/documents`) में दस्तावेज आवश्यकताएं देखें।\n"
+                    f"3. सहायता के लिए **कॉलेज छात्रवृत्ति कक्ष (कमरा 102)** से संपर्क करें।"
+                )
+            else:
+                fallback_res = (
+                    f"I received your query: **'{query}'**.\n\n"
+                    f"To find relevant information:\n"
+                    f"1. Check the **Scholarships Hub** (`/dashboard/scholarships`) for all verified active schemes.\n"
+                    f"2. Visit the **Digital Document Vault** (`/dashboard/documents`) for mandatory certificate requirements.\n"
+                    f"3. Check the **Circulars & Notifications** feed for official administrative memos.\n"
+                    f"4. Contact the **College Scholarship Cell (Room 102)** or call `0120-6619540` for direct nodal assistance."
+                )
         
         context["history"].append({"role": "user", "text": query})
         context["history"].append({"role": "bot", "text": fallback_res})
@@ -1067,3 +1377,4 @@ def get_bot():
     if bot is None:
         bot = CollegeChatbot()
     return bot
+

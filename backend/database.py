@@ -32,6 +32,8 @@ class MockDocRef:
         self.db._update_doc(self.collection_name, self.id, data)
     def set(self, data):
         self.db._set_doc(self.collection_name, self.id, data)
+    def delete(self):
+        self.db._delete_doc(self.collection_name, self.id)
 
 class MockCollection:
     def __init__(self, name, db_instance):
@@ -113,13 +115,15 @@ class MockFirestore:
         if "applications" not in self.data:
             self.data["applications"] = {}
             dirty = True
-        if "scholarships" not in self.data or len(self.data.get("scholarships", {})) < 5:
+        if "scholarships" not in self.data:
             try:
                 from scholarships_data import ALL_SCHOLARSHIPS
                 sch_dict = {}
+                deleted = set(self.data.get("deleted_scholarships", []))
                 for s in ALL_SCHOLARSHIPS:
                     sch_id = s.get("id", f"sch_{uuid.uuid4().hex[:8]}")
-                    sch_dict[sch_id] = s
+                    if sch_id not in deleted:
+                        sch_dict[sch_id] = s
                 self.data["scholarships"] = sch_dict
                 dirty = True
             except Exception:
@@ -156,6 +160,18 @@ class MockFirestore:
         self.data[coll_name][doc_id] = doc_data
         self.save()
         return doc_id
+
+    def _delete_doc(self, coll_name, doc_id):
+        if coll_name in self.data:
+            if doc_id in self.data[coll_name]:
+                del self.data[coll_name][doc_id]
+            # Track deleted scholarships so they are not restored by defaults
+            if coll_name == "scholarships":
+                if "deleted_scholarships" not in self.data:
+                    self.data["deleted_scholarships"] = []
+                if doc_id not in self.data["deleted_scholarships"]:
+                    self.data["deleted_scholarships"].append(doc_id)
+            self.save()
 
 def seed_real_firestore_if_empty(client):
     try:

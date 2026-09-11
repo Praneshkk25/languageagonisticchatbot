@@ -838,8 +838,15 @@ def get_all_scholarships():
                 d["id"] = doc.id
             results.append(d)
         
+        deleted_ids = set()
+        if hasattr(db, "data") and isinstance(db.data, dict):
+            deleted_ids = set(db.data.get("deleted_scholarships", []))
+        
         if not results:
-            results = ALL_SCHOLARSHIPS
+            results = [s for s in ALL_SCHOLARSHIPS if s.get("id") not in deleted_ids and s.get("scholarship_id_ref") not in deleted_ids]
+        else:
+            results = [s for s in results if s.get("id") not in deleted_ids and s.get("scholarship_id_ref") not in deleted_ids]
+            
         set_cache("all_scholarships", results, ttl=60)
         return results
     except Exception as e:
@@ -850,8 +857,6 @@ def get_scholarships_by_category(cat_id: int):
     try:
         all_sch = get_all_scholarships()
         results = [s for s in all_sch if s.get("category_id") == cat_id]
-        if not results:
-            results = [s for s in ALL_SCHOLARSHIPS if s.get("category_id") == cat_id]
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1019,14 +1024,22 @@ def update_scholarship(id: str, s: ScholarshipInput):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.delete("/api/scholarships/{id}")
+@app.delete("/api/scholarships/{id:path}")
 def delete_scholarship(id: str):
     try:
-        ref = db.collection("scholarships").document(id)
+        from urllib.parse import unquote
+        clean_id = unquote(id).strip()
+        ref = db.collection("scholarships").document(clean_id)
         ref.delete()
+        if hasattr(db, "_delete_doc"):
+            db._delete_doc("scholarships", clean_id)
         invalidate_cache("scholarship")
-        return {"status": "success", "message": f"Scholarship with ID '{id}' deleted."}
+        invalidate_cache("all_scholarships")
+        invalidate_cache("scholarship_categories")
+        logger.log("ADMIN", "DELETE_SCHOLARSHIP", f"Permanently deleted scholarship scheme '{clean_id}'")
+        return {"status": "success", "message": f"Scholarship with ID '{clean_id}' deleted."}
     except Exception as e:
+        logger.error(f"Failed to delete scholarship '{id}': {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # --- STUDENT MANAGEMENT & EXCEL IMPORT ---

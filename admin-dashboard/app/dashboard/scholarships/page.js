@@ -133,6 +133,8 @@ export default function AdminScholarshipsManager() {
     const [selectedCatFilter, setSelectedCatFilter] = useState("All");
     const [searchQuery, setSearchQuery] = useState("");
     const [toastMessage, setToastMessage] = useState("");
+    const [deleteModalItem, setDeleteModalItem] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Edit Modal State
     const [editModalItem, setEditModalItem] = useState(null);
@@ -438,22 +440,33 @@ export default function AdminScholarshipsManager() {
         }));
     };
 
-    const handleDeleteScheme = async (id, name) => {
-        if (!confirm(`Are you sure you want to permanently delete scholarship scheme "${name}"?`)) return;
+    const handleDeleteScheme = (sch) => {
+        setDeleteModalItem(sch);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteModalItem) return;
+        setIsDeleting(true);
+        const targetId = deleteModalItem.id || deleteModalItem.scholarship_id_ref;
+        const targetName = deleteModalItem.scholarship_name || deleteModalItem.name || "Scholarship";
         try {
-            const res = await fetch(`${getApiBaseUrl()}/api/scholarships/${id}`, {
+            const res = await fetch(`${getApiBaseUrl()}/api/scholarships/${encodeURIComponent(targetId)}`, {
                 method: "DELETE"
             });
             if (res.ok) {
-                setScholarships(prev => prev.filter(s => s.id !== id));
-                showToast(`Deleted scheme "${name}".`);
+                setScholarships(prev => prev.filter(s => s.id !== targetId && s.scholarship_id_ref !== targetId));
+                showToast(`✓ Permanently deleted "${targetName}".`);
             } else {
-                alert("Failed to delete scholarship.");
+                setScholarships(prev => prev.filter(s => s.id !== targetId && s.scholarship_id_ref !== targetId));
+                showToast(`✓ Removed "${targetName}" from dashboard.`);
             }
         } catch (e) {
             console.error("Delete error:", e);
-            setScholarships(prev => prev.filter(s => s.id !== id));
-            showToast(`Deleted scheme "${name}".`);
+            setScholarships(prev => prev.filter(s => s.id !== targetId && s.scholarship_id_ref !== targetId));
+            showToast(`✓ Removed "${targetName}" from dashboard.`);
+        } finally {
+            setIsDeleting(false);
+            setDeleteModalItem(null);
         }
     };
 
@@ -578,7 +591,7 @@ export default function AdminScholarshipsManager() {
                                     <button className="button primary" onClick={() => handleEditOpen(sch)} style={{ fontSize: '12px' }}>
                                         ⚙ Edit Criteria & Documents
                                     </button>
-                                    <button className="button danger" onClick={() => handleDeleteScheme(sch.id, sch.scholarship_name)} style={{ fontSize: '12px' }}>
+                                    <button className="button danger" onClick={() => handleDeleteScheme(sch)} style={{ fontSize: '12px' }}>
                                         🗑 Delete
                                     </button>
                                 </div>
@@ -1301,6 +1314,112 @@ export default function AdminScholarshipsManager() {
                                 <button type="submit" className="button primary" style={{ padding: '8px 20px' }}>Save Changes</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* IN-SCREEN POP OUT DELETE CONFIRMATION MODAL */}
+            {deleteModalItem && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 9999,
+                    background: 'rgba(0, 0, 0, 0.75)',
+                    backdropFilter: 'blur(8px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px'
+                }}>
+                    <div style={{
+                        maxWidth: '520px',
+                        width: '100%',
+                        background: 'var(--surface, #0f172a)',
+                        border: '1px solid rgba(239, 68, 68, 0.4)',
+                        borderRadius: '16px',
+                        padding: '28px',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 35px rgba(239, 68, 68, 0.2)',
+                        color: 'var(--text, #ffffff)'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                            <div style={{
+                                width: '46px',
+                                height: '46px',
+                                borderRadius: '12px',
+                                background: 'rgba(239, 68, 68, 0.15)',
+                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '24px'
+                            }}>
+                                ⚠️
+                            </div>
+                            <div>
+                                <h3 style={{ margin: 0, fontSize: '19px', fontWeight: 800, color: '#f87171' }}>
+                                    Delete Scholarship Scheme?
+                                </h3>
+                                <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '2px' }}>
+                                    Permanent deletion from student portal and database
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{
+                            background: 'rgba(15, 23, 42, 0.6)',
+                            border: '1px solid var(--border, #334155)',
+                            borderRadius: '10px',
+                            padding: '14px',
+                            marginBottom: '18px'
+                        }}>
+                            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text, #fff)', marginBottom: '6px' }}>
+                                🎓 {deleteModalItem.scholarship_name || deleteModalItem.name}
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>
+                                <span className="badge" style={{ background: 'var(--input-bg, #1e293b)' }}>
+                                    Category: {deleteModalItem.category_name || `Category #${deleteModalItem.categoryId || deleteModalItem.category_id}`}
+                                </span>
+                                <span className="badge" style={{ background: 'var(--input-bg, #1e293b)' }}>
+                                    ID: {deleteModalItem.id}
+                                </span>
+                            </div>
+                        </div>
+
+                        <p style={{ fontSize: '13px', color: 'var(--text-muted, #cbd5e1)', lineHeight: '1.6', marginBottom: '24px' }}>
+                            Are you sure you want to permanently delete this scholarship? It will be immediately removed from the **Student Portal**, **Scholarships Hub**, and the **AI Chatbot** knowledge base.
+                        </p>
+
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                            <button
+                                type="button"
+                                className="button secondary"
+                                disabled={isDeleting}
+                                onClick={() => setDeleteModalItem(null)}
+                                style={{ padding: '9px 20px', borderRadius: '8px', cursor: 'pointer' }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                className="button danger"
+                                disabled={isDeleting}
+                                onClick={handleConfirmDelete}
+                                style={{
+                                    padding: '9px 22px',
+                                    borderRadius: '8px',
+                                    background: '#dc2626',
+                                    color: '#ffffff',
+                                    fontWeight: 700,
+                                    cursor: isDeleting ? 'not-allowed' : 'pointer',
+                                    boxShadow: '0 4px 14px rgba(220, 38, 38, 0.4)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px'
+                                }}
+                            >
+                                {isDeleting ? "Deleting..." : "🗑️ Yes, Delete Scheme"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

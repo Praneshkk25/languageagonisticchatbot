@@ -55,12 +55,17 @@ desktop.ini
 *.log
 logs/
 
-# ML Model checkpoints (large files)
+# ML Model checkpoints, Large Weights & Datasets
 *.h5
 *.keras
 *.pkl
 *.pt
 *.pth
+*.safetensors
+*.bin
+output/
+merged_qwen/
+*.jsonl
 
 # Uploaded knowledge (may contain large files)
 # uploaded_knowledge/
