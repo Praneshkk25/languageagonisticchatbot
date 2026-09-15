@@ -52,7 +52,8 @@ logger = logging.getLogger(__name__)
 
 # Constants
 LOCAL_MERGED_MODEL = os.path.join(os.path.dirname(os.path.abspath(__file__)), "merged_qwen")
-BASE_MODEL = LOCAL_MERGED_MODEL if (os.path.exists(LOCAL_MERGED_MODEL) and (os.path.exists(os.path.join(LOCAL_MERGED_MODEL, "model.safetensors")) or os.path.exists(os.path.join(LOCAL_MERGED_MODEL, "pytorch_model.bin")))) else "Qwen/Qwen2.5-1.5B-Instruct"
+REMOTE_MODEL_REPO = os.getenv("MODEL_REPO_ID", "PraneshKK/college-qwen")
+BASE_MODEL = LOCAL_MERGED_MODEL if (os.path.exists(LOCAL_MERGED_MODEL) and (os.path.exists(os.path.join(LOCAL_MERGED_MODEL, "model.safetensors")) or os.path.exists(os.path.join(LOCAL_MERGED_MODEL, "pytorch_model.bin")))) else REMOTE_MODEL_REPO
 LORA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "qwen-college-bot-lora")
 VECTOR_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "college_faiss_index")
 DOCS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploaded_knowledge")
